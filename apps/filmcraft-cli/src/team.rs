@@ -127,6 +127,8 @@ struct Member {
     ctrl: TeamSessionController,
     s: Session,
     toasts: Vec<String>,
+    /// Where downloaded originals and their proxies go.
+    cache: PathBuf,
 }
 
 impl Member {
@@ -140,7 +142,8 @@ impl Member {
             open_browser: Arc::new(|_| {}),
             login: LoginOptions::default(),
         };
-        let mut m = Member { ctrl: TeamSessionController::new(cfg), s: Session::default(), toasts: Vec::new() };
+        let cache = cfg.cache_dir.clone();
+        let mut m = Member { ctrl: TeamSessionController::new(cfg), s: Session::default(), toasts: Vec::new(), cache };
         m.wait("sign-in", |m| match m.ctrl.phase() {
             Phase::SignedIn => Some(Ok(Value::Null)),
             Phase::SignedOut => Some(Err(m.ctrl.error().unwrap_or("not signed in").to_string())),
@@ -209,6 +212,61 @@ impl Member {
         self.s.project.items.values().filter(|i| i.as_sequence().is_some()).map(|i| i.id).collect()
     }
 
+    /// Waits for the controller's work to end: `ok` then, or its error.
+    fn settled(&mut self, what: &str, ok: Value) -> Result<Value, String> {
+        self.wait(what, |m| m.ctrl.busy().is_none().then(|| m.ctrl.error().map_or_else(|| Ok(ok.clone()), |e| Err(e.to_string()))))
+    }
+
+    /// `local [proxies]`: waits until the footage the open sequences and the Source monitor use
+    /// is on this Mac (and, with `proxies`, each downloaded original has the proxy this Mac made;
+    /// a member's own originals get none), as the app's frame loop fetches it. Answers with the
+    /// media list.
+    fn local(&mut self, proxies: bool) -> Result<Value, String> {
+        self.wait("the open footage", |m| {
+            let s = &m.s;
+            let wanted = filmcraft_team::cache::wanted(&s.project, &s.state.open_sequences, s.state.source_item);
+            if wanted.is_empty() {
+                return Some(Err("nothing is open: open a sequence or a source clip first".into()));
+            }
+            let media = m.ctrl.media()?;
+            if let Some((id, e)) = media.failures().into_iter().next() {
+                return Some(Err(format!("download of item {} failed: {e}", id.0)));
+            }
+            let ready = wanted.iter().all(|id| {
+                s.project.item(*id).and_then(|i| i.as_media()).is_none_or(|mi| {
+                    let MediaRef::File { path } = &mi.media else { return true };
+                    let downloaded = Path::new(path).starts_with(&m.cache);
+                    !path.starts_with(filmcraft_drive::DRIVE_PREFIX) && (!proxies || !downloaded || mi.proxy.is_some())
+                })
+            });
+            (ready && media.progress().is_empty() && (!proxies || media.proxy_progress(s).is_empty())).then_some(Ok(Value::Null))
+        })?;
+        Ok(self.status())
+    }
+
+    /// `drive-footage`: lists the project's media folder until files no item uses are offered
+    /// (footage put there from the dashboard or the Drive website), then Add to Project.
+    /// Answers with the added file paths.
+    fn drive_footage(&mut self) -> Result<Value, String> {
+        let mut asked: Option<Instant> = None;
+        self.wait("footage added on the website", |m| {
+            if !m.ctrl.drive_only().is_empty() {
+                return Some(Ok(Value::Null));
+            }
+            if asked.is_none_or(|at| at.elapsed() >= Duration::from_secs(2)) {
+                asked = Some(Instant::now());
+                m.ctrl.refresh_media();
+            }
+            None
+        })?;
+        let offered: Vec<String> = self.ctrl.drive_only().into_iter().map(|(p, _)| p).collect();
+        self.ctrl.clear_error();
+        self.ctrl.add_drive_footage();
+        self.settled("adding the footage", json!({"added": offered}))?;
+        self.sync()?;
+        Ok(json!({"added": offered}))
+    }
+
     /// Nothing left to send or download, and no change for [`QUIET`].
     fn sync(&mut self) -> Result<Value, String> {
         let mut last = (self.s.revision, Instant::now());
@@ -249,11 +307,12 @@ impl Member {
             .values()
             .filter_map(|i| {
                 let m = i.as_media()?;
-                let path = match &m.media {
+                let file = |r: &MediaRef| match r {
                     MediaRef::File { path } => Some(path.clone()),
                     _ => None,
                 };
-                Some(json!({"id": i.id.0, "name": i.name, "path": path, "in_bin": self.s.project.root.parent_of(i.id).is_some() || self.s.project.root.children.contains(&filmcraft_project::BinEntry::Item(i.id))}))
+                let (path, proxy) = (file(&m.media), m.proxy.as_ref().and_then(file));
+                Some(json!({"id": i.id.0, "name": i.name, "path": path, "proxy": proxy, "in_bin": self.s.project.root.parent_of(i.id).is_some() || self.s.project.root.children.contains(&filmcraft_project::BinEntry::Item(i.id))}))
             })
             .collect();
         json!({
@@ -341,6 +400,21 @@ impl Member {
                 self.sync()?;
                 Ok(self.status())
             }
+            "decline" => {
+                let id = word(0)?.to_string();
+                self.ctrl.clear_error();
+                self.ctrl.decline(&id);
+                self.settled("the decline", json!({"declined": id}))
+            }
+            "leave" => {
+                // `leave <id>`: leave the team project for good (closing it here first)
+                let id = word(0)?.to_string();
+                self.ctrl.clear_error();
+                self.ctrl.leave_team(&mut self.s, &id);
+                self.settled("leaving", json!({"left": id}))
+            }
+            "local" => self.local(words.first() == Some(&"proxies")),
+            "drive-footage" => self.drive_footage(),
             "lock" => {
                 let seq = self.seq(word(0)?)?;
                 self.s.team_take_lock(seq).map_err(|e| e.to_string())?;
