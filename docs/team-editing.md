@@ -28,9 +28,14 @@ updates live. Projects sync through InFocus Drive. The full design is in
 
 Keep these small so upstream merges stay easy.
 
-- Engine (planned): `Session::team`, a call to `team::after_command` after each journaled command,
-  `Session::apply_remote_sequence`, `Session::apply_remote_shared`, `Session::lock_lost` and
-  `Session::poll_team` (called from `poll_persistence`).
+- Engine (`crates/engine/src/team.rs`): the field `Session::team` (None for an ordinary project,
+  and then nothing below runs), two calls in `Session::execute` around the outermost command
+  (`team::before_command` / `team::after_command`), one call to `Session::poll_team` at the top of
+  `poll_persistence`, and the module declarations in `lib.rs`. The app connects through the
+  `TeamLink` trait (requests return at once; outcomes come back from `TeamLink::poll`), so the
+  engine never touches the network. Limits for now: deleting a sequence is refused in a team
+  project, and only items and bins are shared (settings, transcripts, source graphics and notes
+  stay on each Mac), because the Drive API has no route for them.
 - UI (planned): a Team Projects panel, lock badges on sequence tabs, and a guard on the export
   entry point that fetches originals first.
 - Packaging (planned): app name "InFocus Cut" and its own bundle id.
