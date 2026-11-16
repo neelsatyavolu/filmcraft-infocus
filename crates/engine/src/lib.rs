@@ -59,6 +59,7 @@ pub mod shortcuts;
 pub mod source_monitor;
 pub mod sync;
 pub mod team;
+pub mod team_media;
 pub mod transcript;
 pub mod trim;
 pub mod voiceover;
@@ -1536,6 +1537,8 @@ mod shortcuts_tests;
 mod split_edit_ripple_trim_tests;
 #[cfg(test)]
 mod stored_paths_tests;
+#[cfg(test)]
+mod team_media_tests;
 #[cfg(test)]
 mod team_tests;
 #[cfg(test)]

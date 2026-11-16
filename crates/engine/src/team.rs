@@ -656,6 +656,30 @@ impl Session {
         Some(name)
     }
 
+    /// A change that stays on this Mac (where it keeps a team media item's original and proxy):
+    /// written into the project, every undo/redo snapshot and the team's last-synced copy, so it
+    /// is neither an undo step nor sent to the Drive. Works without a team too.
+    pub(crate) fn patch_local(&mut self, f: impl Fn(&mut Project)) {
+        let synced = self.team.as_ref().is_some_and(|t| Arc::ptr_eq(&t.base, &self.project));
+        let mut p = (*self.project).clone();
+        f(&mut p);
+        self.project = Arc::new(p);
+        patch_snapshots(&mut self.history, &f);
+        let project = self.project.clone();
+        if let Some(t) = self.team.as_mut() {
+            t.base = if synced {
+                project
+            } else {
+                let mut b = (*t.base).clone();
+                f(&mut b);
+                Arc::new(b)
+            };
+        }
+        self.fix_state();
+        self.bump();
+        self.previews.live.publish_project(self.project.clone());
+    }
+
     fn remote_applied(&mut self) {
         if let Some(t) = self.team.as_mut() {
             t.base = self.project.clone();

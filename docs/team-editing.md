@@ -11,7 +11,11 @@ updates live. Projects sync through InFocus Drive. The full design is in
   never allocate the same item id. Slot 0 is the upstream behaviour.
 - `crates/team` (`filmcraft-team`): pure logic with no network and no UI. It splits a project into a
   shared part and one part per sequence, merges them back, strips local paths and proxies, and
-  classifies which parts an edit changed. Later: the local media cache rules.
+  classifies which parts an edit changed. `cache` holds the media cache rules: the index at
+  `<cache>/index.json`, which media an editor needs (`wanted`: the open sequences, nested ones
+  included, and the Source monitor), and what to remove (`eviction_plan`: a project's media 30
+  days after it was last opened on this Mac; over 200 GB originals before proxies; never the
+  media of an open sequence).
 - `crates/drive` (`filmcraft-drive`, layer 5, no UI): the InFocus Drive client. Browser sign-in
   with PKCE (token in the Keychain, service `InFocus Cut`, account `drive`), one method per team
   project route, the change feed parser, resumable media downloads from the project's
@@ -39,6 +43,12 @@ Keep these small so upstream merges stay easy.
   engine never touches the network. Limits for now: deleting a sequence is refused in a team
   project, and only items and bins are shared (settings, transcripts, source graphics and notes
   stay on each Mac), because the Drive API has no route for them.
+- Engine (`crates/engine/src/team_media.rs`): `TeamMedia` downloads originals on demand into
+  `~/Library/Caches/InFocus Cut/media/<fingerprint>/original/` (at most two at once, paused
+  during an export) through the app's `Downloader`, links them, and makes a ProRes 422 Proxy ½
+  proxy in `…/proxy/` with the existing proxy job. These links stay on the Mac: they are written
+  into the project and its undo snapshots without an undo step (`Session::patch_local`) and are
+  never sent to the Drive.
 - UI (planned): a Team Projects panel, lock badges on sequence tabs, and a guard on the export
   entry point that fetches originals first.
 - Packaging (planned): app name "InFocus Cut" and its own bundle id.
