@@ -13,8 +13,12 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::client::{Body, DriveClient, Method, project_path};
+use crate::download::valid_media_path;
 use crate::error::{DriveError, Result};
 use crate::http;
+
+/// `expect_mtime_ns` for "the file must not exist yet": completing never overwrites.
+const MUST_NOT_EXIST: i64 = -1;
 
 /// Largest chunk this client sends or accepts from the server (the server caps chunks at 32 MiB).
 pub const MAX_CHUNK_SIZE: u64 = 64 * 1024 * 1024;
@@ -146,6 +150,9 @@ impl DriveClient {
     /// earlier [`UploadProgress`]) it asks the server which chunks arrived and sends only the rest;
     /// an expired or mismatched session starts over. `on_progress` returning `false` stops with
     /// [`DriveError::Cancelled`] and the session stays open for resuming.
+    ///
+    /// Never overwrites: when a file with that name is already there (a teammate's), the session is
+    /// dropped and the answer is [`DriveError::NameTaken`], so the caller can pick another name.
     pub fn upload_media(
         &self,
         project: &str,
@@ -193,6 +200,29 @@ impl DriveClient {
                 return Err(DriveError::Cancelled);
             }
         }
-        self.media_upload_complete(project, &session.upload_id, None)
+        match self.media_upload_complete(project, &session.upload_id, Some(MUST_NOT_EXIST)) {
+            // create-only: the one conflict `complete` has is a file already at that name
+            Err(DriveError::NameTaken(msg) | DriveError::Conflict(msg)) => {
+                let _ = self.upload_abort(&session.upload_id);
+                Err(DriveError::NameTaken(msg))
+            }
+            other => other,
+        }
+    }
+
+    /// Whether the media folder already has a file at `media_path` (a path inside `<name> Media/`):
+    /// asks for its first byte.
+    pub fn media_exists(&self, project: &str, media_path: &str) -> Result<bool> {
+        let rel = valid_media_path(media_path)?;
+        let path = format!("{}/media?{}", project_path(project)?, query(&[("path", rel)]));
+        let resp = self.open_stream(&path, &[("Range", "bytes=0-0".to_string())])?;
+        match resp.status().as_u16() {
+            200 | 206 | 416 => Ok(true),
+            404 => Ok(false),
+            status => {
+                let (_, bytes) = http::read_body(resp)?;
+                Err(http::error_for(status, &bytes))
+            }
+        }
     }
 }

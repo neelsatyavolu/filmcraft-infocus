@@ -156,23 +156,30 @@ fn open_project(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, elems: &mut 
         ui.label(RichText::new(e).small().color(t.text_faint));
     }
     if open.exporting {
-        ui.label(RichText::new(tl!("Downloads are paused while exporting.")).small().color(t.text_dim));
+        ui.label(RichText::new(tl!("Downloads and uploads are paused while exporting.")).small().color(t.text_dim));
     }
     for (i, (name, frac)) in open.downloads.iter().enumerate() {
-        let (r, _) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::hover());
-        let pct = format!("{:.0} %", frac.clamp(0.0, 1.0) * 100.0);
-        ui.painter().text(r.min + vec2(0.0, 2.0), Align2::LEFT_TOP, name, Tokens::ui(12.0), t.text);
-        ui.painter().text(pos2(r.max.x, r.min.y + 2.0), Align2::RIGHT_TOP, &pct, Tokens::ui(11.0), t.text_dim);
-        let bar = Rect::from_min_max(pos2(r.min.x, r.max.y - 8.0), pos2(r.max.x, r.max.y - 3.0));
-        ui.painter().rect_filled(bar, 2.0, t.field_bg);
-        ui.painter().rect_filled(Rect::from_min_max(bar.min, pos2(bar.min.x + bar.width() * frac.clamp(0.0, 1.0), bar.max.y)), 2.0, t.accent);
-        elems.push((format!("team.download.{i}"), r, format!("{name}: {pct}")));
+        progress_row(ui, t, name, *frac, format!("team.download.{i}"), elems);
     }
-    if !open.failures.is_empty() {
+    for (i, (name, frac)) in open.uploads.iter().enumerate() {
+        let text = tlf!("Uploading {name}", name);
+        progress_row(ui, t, &text, *frac, format!("team.upload.{i}"), elems);
+    }
+    for (i, (name, member)) in open.incoming.iter().enumerate() {
+        let text = tlf!("{name}: uploading from {member}", name, member);
+        let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.text_dim)).wrap());
+        elems.push((format!("team.incoming.{i}"), r.rect, text));
+    }
+    if !open.failures.is_empty() || !open.upload_failures.is_empty() {
         for (i, (name, why)) in open.failures.iter().enumerate() {
             let text = tlf!("{name} didn't download: {why}", name, why);
             let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.danger)).wrap());
             elems.push((format!("team.failure.{i}"), r.rect, text));
+        }
+        for (i, (name, why)) in open.upload_failures.iter().enumerate() {
+            let text = tlf!("{name} didn't upload: {why}", name, why);
+            let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.danger)).wrap());
+            elems.push((format!("team.upload_failure.{i}"), r.rect, text));
         }
         let r = ui.button(tl!("Retry"));
         elems.push(("team.retry".into(), r.rect, "Retry".into()));
@@ -181,6 +188,19 @@ fn open_project(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, elems: &mut 
         }
     }
     ui.add_space(8.0);
+}
+
+/// A name, its percentage and a progress bar (a download or an upload).
+fn progress_row(ui: &mut egui::Ui, t: &Tokens, name: &str, frac: f32, id: String, elems: &mut Elems) {
+    let frac = frac.clamp(0.0, 1.0);
+    let (r, _) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::hover());
+    let pct = format!("{:.0} %", frac * 100.0);
+    ui.painter().text(r.min + vec2(0.0, 2.0), Align2::LEFT_TOP, name, Tokens::ui(12.0), t.text);
+    ui.painter().text(pos2(r.max.x, r.min.y + 2.0), Align2::RIGHT_TOP, &pct, Tokens::ui(11.0), t.text_dim);
+    let bar = Rect::from_min_max(pos2(r.min.x, r.max.y - 8.0), pos2(r.max.x, r.max.y - 3.0));
+    ui.painter().rect_filled(bar, 2.0, t.field_bg);
+    ui.painter().rect_filled(Rect::from_min_max(bar.min, pos2(bar.min.x + bar.width() * frac, bar.max.y)), 2.0, t.accent);
+    elems.push((id, r, format!("{name}: {pct}")));
 }
 
 fn create_row(ui: &mut egui::Ui, in_team: bool, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
@@ -411,6 +431,9 @@ mod tests {
                 link_error: Some("connection reset".into()),
                 downloads: vec![("A001.mov".into(), 0.25)],
                 failures: vec![("A002.mov".into(), "disk full".into())],
+                uploads: vec![("B001.mov".into(), 0.5)],
+                upload_failures: vec![("B002.mov".into(), "file is gone".into())],
+                incoming: vec![("C001.mov".into(), "maya".into())],
                 exporting: false,
             }),
             projects: vec![TeamProjectRow { id: "p1".into(), name: "Robotics".into(), ..Default::default() }],
@@ -424,6 +447,9 @@ mod tests {
         assert_eq!(label(&app, "team.open").as_deref(), Some("Robotics (Reconnecting…)"));
         assert_eq!(label(&app, "team.download.0").as_deref(), Some("A001.mov: 25 %"));
         assert_eq!(label(&app, "team.failure.0").as_deref(), Some("A002.mov didn't download: disk full"));
+        assert_eq!(label(&app, "team.upload.0").as_deref(), Some("Uploading B001.mov: 50 %"));
+        assert_eq!(label(&app, "team.upload_failure.0").as_deref(), Some("B002.mov didn't upload: file is gone"));
+        assert_eq!(label(&app, "team.incoming.0").as_deref(), Some("C001.mov: uploading from maya"));
         assert!(app.auto.find("team.project.p1.open").is_none(), "the open project has no Open button");
         h.click(&mut app, "team.retry");
         h.click(&mut app, "team.error.dismiss");

@@ -18,6 +18,7 @@ use filmcraft_team::cache::CacheIndex;
 use serde_json::Value;
 
 use crate::feed::{self, FeedState};
+use crate::uploads::UploadNotes;
 
 /// Lock tokens by sequence id.
 pub(crate) type Tokens = Arc<Mutex<BTreeMap<u64, String>>>;
@@ -64,6 +65,7 @@ pub struct DriveTeamLink {
     index: Arc<Mutex<CacheIndex>>,
     status: Arc<LinkStatus>,
     stop: Arc<AtomicBool>,
+    notes: Option<Arc<Mutex<UploadNotes>>>,
 }
 
 impl DriveTeamLink {
@@ -88,7 +90,14 @@ impl DriveTeamLink {
             .spawn(move || feed.run())
             .map_err(|e| status.set_error(Some(format!("Could not start the change feed: {e}"))))
             .ok();
-        Self { cmds: cmd_tx, events: ev_rx, index, status, stop }
+        Self { cmds: cmd_tx, events: ev_rx, index, status, stop, notes: None }
+    }
+
+    /// Shares who is uploading what: this member's uploading items are marked in what the link
+    /// sends, and teammates' are read from every shared part that arrives.
+    pub fn with_upload_notes(mut self, notes: Arc<Mutex<UploadNotes>>) -> Self {
+        self.notes = Some(notes);
+        self
     }
 
     /// The connection's status (shared with the threads).
@@ -125,14 +134,25 @@ impl TeamLink for DriveTeamLink {
     fn delete_sequence(&mut self, seq: ItemId, base_rev: u64) {
         self.send(Cmd::Delete { seq: seq.0, base: base_rev });
     }
-    fn post_shared(&mut self, push: SharedPush) {
+    fn post_shared(&mut self, mut push: SharedPush) {
+        if let Some(notes) = &self.notes {
+            notes.lock().unwrap_or_else(PoisonError::into_inner).mark(&mut push.upserts);
+        }
         self.send(Cmd::Shared(push));
     }
     fn refresh(&mut self) {
         self.send(Cmd::Refresh);
     }
     fn poll(&mut self) -> Vec<LinkEvent> {
-        self.events.try_iter().collect()
+        let events: Vec<LinkEvent> = self.events.try_iter().collect();
+        if let Some(notes) = &self.notes {
+            for ev in &events {
+                if let LinkEvent::SharedUpdated { shared, .. } = ev {
+                    notes.lock().unwrap_or_else(PoisonError::into_inner).read_shared(shared);
+                }
+            }
+        }
+        events
     }
     fn media_ref(&self, media: &MediaRef) -> Option<String> {
         let MediaRef::File { path } = media else { return None };

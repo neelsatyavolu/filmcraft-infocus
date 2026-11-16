@@ -54,6 +54,9 @@ fn view(c: &TeamSessionController, s: &Session) -> TeamView {
         link_error: c.link_error(),
         downloads: c.media().map(|m| m.progress().into_iter().map(|(id, f)| (item_name(s, id), f)).collect()).unwrap_or_default(),
         failures: c.media().map(|m| m.failures().into_iter().map(|(id, e)| (item_name(s, id), e)).collect()).unwrap_or_default(),
+        uploads: c.uploads().map(|u| u.progress()).unwrap_or_default(),
+        upload_failures: c.uploads().map(|u| u.failures()).unwrap_or_default(),
+        incoming: c.incoming_uploads().into_iter().map(|(id, by)| (item_name(s, id), by)).collect(),
         exporting: c.exporting(),
     });
     let phase = match c.phase() {
@@ -90,11 +93,7 @@ impl TeamUi for Team {
             TeamAction::Close => c.close(s),
             TeamAction::Keep(id) => c.keep(&id),
             TeamAction::SetKeepForever(id, keep) => c.set_keep_forever(&id, keep),
-            TeamAction::RetryDownloads => {
-                if let Some(m) = c.media_mut() {
-                    m.retry();
-                }
-            }
+            TeamAction::RetryDownloads => c.retry_media(),
             TeamAction::ClearError => c.clear_error(),
         }
     }
@@ -118,7 +117,9 @@ impl TeamUi for Team {
     }
 
     fn active(&self) -> bool {
-        self.0.as_ref().is_ok_and(|c| c.busy().is_some() || c.media().is_some_and(|m| !m.progress().is_empty()) || c.open_project().is_some())
+        self.0.as_ref().is_ok_and(|c| {
+            c.busy().is_some() || c.media().is_some_and(|m| !m.progress().is_empty()) || c.uploads().is_some_and(|u| u.busy()) || c.open_project().is_some()
+        })
     }
 }
 

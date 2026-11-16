@@ -14,10 +14,13 @@ filmcraft-drive = { workspace = true }
 filmcraft-engine = { workspace = true }
 filmcraft-project = { workspace = true }
 filmcraft-team = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 web-time = "1"
 
 [dev-dependencies]
+filmcraft-media = { workspace = true }
 filmcraft-drive = { workspace = true, features = ["test-util"] }
 tempfile = "3.27"
 ureq = { version = "3", default-features = false }

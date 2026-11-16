@@ -106,11 +106,20 @@ pub struct CacheEntry {
     /// Team project ids that use it.
     #[serde(default)]
     pub projects: BTreeSet<String>,
+    /// The original is the member's own file that this Mac uploaded (it lives where they imported
+    /// it from, outside the cache): it is never removed and does not count towards the size cap.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub external: bool,
 }
 
 impl CacheEntry {
     fn bytes(&self) -> u64 {
-        self.original.as_ref().map_or(0, |f| f.bytes).saturating_add(self.proxy.as_ref().map_or(0, |f| f.bytes))
+        self.removable_original().map_or(0, |f| f.bytes).saturating_add(self.proxy.as_ref().map_or(0, |f| f.bytes))
+    }
+
+    /// The original, unless it is the member's own uploaded file.
+    fn removable_original(&self) -> Option<&CachedFile> {
+        self.original.as_ref().filter(|_| !self.external)
     }
 }
 
@@ -161,7 +170,17 @@ impl CacheIndex {
 
     /// A downloaded original.
     pub fn record_original(&mut self, fp: &Fingerprint, project: &str, drive_ref: &str, file: CachedFile, now: u64) {
-        self.entry(fp, project, drive_ref, now).original = Some(file);
+        let e = self.entry(fp, project, drive_ref, now);
+        e.original = Some(file);
+        e.external = false;
+    }
+
+    /// An original this Mac uploaded from the member's own file at `file.path`: the file stands in
+    /// for a download (so it is never fetched again) but is never removed.
+    pub fn record_uploaded(&mut self, fp: &Fingerprint, project: &str, drive_ref: &str, file: CachedFile, now: u64) {
+        let e = self.entry(fp, project, drive_ref, now);
+        e.original = Some(file);
+        e.external = true;
     }
 
     /// A finished proxy.
@@ -209,7 +228,8 @@ impl CacheIndex {
 /// Files to remove, in order: everything of media whose projects were all last opened on this
 /// Mac 30 days or more before `now`; then, while the cache is over `cap_bytes`, originals
 /// (least recently used first), then proxies. Media in `in_use` (used by an open sequence or the
-/// Source monitor) is never removed.
+/// Source monitor) is never removed, and neither is an original this Mac uploaded from the
+/// member's own file ([`CacheIndex::record_uploaded`]).
 pub fn eviction_plan(idx: &CacheIndex, cap_bytes: u64, now: u64, in_use: &BTreeSet<Fingerprint>) -> Vec<PathBuf> {
     let idle = |e: &CacheEntry| {
         let last = |p: &String| idx.project_last_open.get(p).copied().unwrap_or(e.last_used);
@@ -224,7 +244,7 @@ pub fn eviction_plan(idx: &CacheIndex, cap_bytes: u64, now: u64, in_use: &BTreeS
             continue;
         }
         if idle(e) {
-            for f in e.original.iter().chain(e.proxy.iter()) {
+            for f in e.removable_original().into_iter().chain(e.proxy.iter()) {
                 plan.push(f.path.clone());
                 total = total.saturating_sub(f.bytes);
             }
@@ -233,7 +253,7 @@ pub fn eviction_plan(idx: &CacheIndex, cap_bytes: u64, now: u64, in_use: &BTreeS
         }
     }
     keep.sort_by_key(|(fp, e)| (e.last_used, *fp));
-    let originals_then_proxies: [fn(&CacheEntry) -> Option<CachedFile>; 2] = [|e| e.original.clone(), |e| e.proxy.clone()];
+    let originals_then_proxies: [fn(&CacheEntry) -> Option<CachedFile>; 2] = [|e| e.removable_original().cloned(), |e| e.proxy.clone()];
     for pick in originals_then_proxies {
         for (_, e) in &keep {
             if total <= cap_bytes {

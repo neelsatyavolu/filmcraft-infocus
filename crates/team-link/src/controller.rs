@@ -17,7 +17,7 @@ use filmcraft_drive::{
 use filmcraft_engine::Session;
 use filmcraft_engine::panels::Level;
 use filmcraft_engine::team::TeamState;
-use filmcraft_engine::team_media::TeamMedia;
+use filmcraft_engine::team_media::{TeamMedia, relink_local};
 use filmcraft_project::{ItemId, MediaRef};
 use filmcraft_team::cache::{self, CacheIndex};
 use filmcraft_team::{DRIVE_PREFIX, TeamDoc};
@@ -26,6 +26,7 @@ use serde_json::Value;
 use crate::downloader::DriveDownloader;
 use crate::feed::FeedState;
 use crate::link::{DriveTeamLink, LinkStatus};
+use crate::uploads::{TeamUploads, UploadNotes, mark_project, uploadable};
 
 /// Where this Mac's team media lives: `~/Library/Caches/InFocus Cut/media`.
 pub fn default_cache_dir() -> PathBuf {
@@ -104,6 +105,12 @@ struct Open {
     /// Media an export needs on this Mac.
     for_export: BTreeSet<ItemId>,
     exporting: bool,
+    /// The member's own media going up to the project's media folder.
+    uploads: TeamUploads,
+    /// Who is uploading what (shared with the link).
+    notes: Arc<Mutex<UploadNotes>>,
+    /// The session revision the uploads last looked for new media at.
+    scanned: Option<u64>,
 }
 
 enum Outcome {
@@ -199,6 +206,23 @@ impl TeamSessionController {
     pub fn media_mut(&mut self) -> Option<&mut TeamMedia> {
         self.open.as_mut().map(|o| &mut o.media)
     }
+    /// The open project's uploads of this member's media (progress, failures).
+    pub fn uploads(&self) -> Option<&TeamUploads> {
+        self.open.as_ref().map(|o| &o.uploads)
+    }
+    /// Try failed downloads and uploads again.
+    pub fn retry_media(&mut self) {
+        if let Some(o) = self.open.as_mut() {
+            o.media.retry();
+            o.uploads.retry();
+        }
+    }
+    /// Items whose file a teammate is still uploading, with the teammate's name.
+    pub fn incoming_uploads(&self) -> Vec<(ItemId, String)> {
+        self.open
+            .as_ref()
+            .map_or_else(Vec::new, |o| o.notes.lock().unwrap_or_else(PoisonError::into_inner).theirs.iter().map(|(id, by)| (ItemId(*id), by.clone())).collect())
+    }
     /// True while live updates are connected (otherwise they are polled every 5 s).
     pub fn feed_live(&self) -> bool {
         self.open.as_ref().is_some_and(|o| o.status.feed_live())
@@ -260,10 +284,14 @@ impl TeamSessionController {
         if s.team.is_some() {
             return self.error = Some("This is already a team project".into());
         }
-        let project = match project_json(s) {
+        let mut project = match project_json(s) {
             Ok(p) => p,
             Err(e) => return self.error = Some(format!("Could not prepare the project: {e}")),
         };
+        // teammates see the media still on this Mac as uploading from this member
+        if let Some(me) = &self.me {
+            mark_project(&mut project, &uploadable(&s.project), me);
+        }
         let (name, epoch) = (name.to_string(), s.document_epoch);
         self.spawn("Creating the team project", move || {
             let run = || -> Result<Outcome, DriveError> {
@@ -332,6 +360,7 @@ impl TeamSessionController {
     pub fn export_begin(&mut self) {
         let Some(o) = self.open.as_mut() else { return };
         o.media.pause(true);
+        o.uploads.pause(true);
         o.exporting = true;
         let id = o.info.id.clone();
         let Some(client) = self.client.clone() else { return };
@@ -342,6 +371,7 @@ impl TeamSessionController {
     pub fn export_end(&mut self) {
         let Some(o) = self.open.as_mut() else { return };
         o.media.pause(false);
+        o.uploads.pause(false);
         o.exporting = false;
         o.for_export.clear();
         o.seen = None;
@@ -377,10 +407,25 @@ impl TeamSessionController {
             o.seen = Some(sig);
         }
         o.media.poll(s);
-        let mut mirror = o.index.lock().unwrap_or_else(PoisonError::into_inner);
-        if *mirror != *o.media.index() {
-            *mirror = o.media.index().clone();
+        if o.scanned != Some(s.revision) {
+            o.scanned = Some(s.revision);
+            let queued = o.uploads.scan(&s.project, o.media.index());
+            // sent again so teammates see them as uploading from this member
+            s.team_push_items(&queued);
         }
+        let finished = o.uploads.poll();
+        for f in &finished {
+            o.media.record_uploaded(s, &f.items, &f.drive_ref, &f.src, f.bytes);
+        }
+        {
+            let mut mirror = o.index.lock().unwrap_or_else(PoisonError::into_inner);
+            if *mirror != *o.media.index() {
+                *mirror = o.media.index().clone();
+            }
+        }
+        // after the index: the link now gives these items their `drive:/` path
+        let items: Vec<ItemId> = finished.into_iter().flat_map(|f| f.items).collect();
+        s.team_push_items(&items);
     }
 
     fn signed_in_client(&mut self) -> Option<Arc<DriveClient>> {
@@ -444,7 +489,11 @@ impl TeamSessionController {
         let downloader = Arc::new(DriveDownloader::new(client.clone(), &summary.id, &summary.folder));
         let media = TeamMedia::new(self.cfg.cache_dir.clone(), &summary.id, downloader);
         let index = Arc::new(Mutex::new(media.index().clone()));
-        let link = DriveTeamLink::start(client, &summary.id, FeedState::of(&data), index.clone());
+        let mut notes = UploadNotes::new(&me);
+        notes.read_shared(&data.shared);
+        let notes = Arc::new(Mutex::new(notes));
+        let uploads = TeamUploads::new(self.cfg.cache_dir.clone(), &summary.id, client.clone(), notes.clone());
+        let link = DriveTeamLink::start(client, &summary.id, FeedState::of(&data), index.clone()).with_upload_notes(notes.clone());
         let status = link.status();
         let revs = data.sequences.iter().map(|(id, part)| (ItemId(*id), part.rev)).collect();
         let holders = data.locks.iter().filter(|(_, l)| l.holder != me).map(|(id, l)| (ItemId(*id), l.holder.clone())).collect();
@@ -457,6 +506,12 @@ impl TeamSessionController {
             let project = filmcraft_team::merge(&doc, &|path| media.index().resolve(path)).map_err(|e| format!("Could not open “{}”: {e}", summary.name))?;
             s.open_team_project(project, team).map_err(|e| e.to_string())?;
         }
+        // uploads cut short last time: the items play from the member's file again meanwhile
+        for (items, src) in uploads.unfinished() {
+            if src.is_file() {
+                relink_local(s, &items, &src);
+            }
+        }
         let mut open = Open {
             info: OpenTeamProject { id: summary.id, name: summary.name, folder: summary.folder, cleanup: data.cleanup },
             media,
@@ -465,6 +520,9 @@ impl TeamSessionController {
             seen: None,
             for_export: BTreeSet::new(),
             exporting: false,
+            uploads,
+            notes,
+            scanned: None,
         };
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_secs();
         if let Err(e) = open.media.opened(now) {

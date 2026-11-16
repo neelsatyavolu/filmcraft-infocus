@@ -2498,8 +2498,11 @@ version = "0.20.1"
 dependencies = [
  "filmcraft-drive",
  "filmcraft-engine",
+ "filmcraft-media",
  "filmcraft-project",
  "filmcraft-team",
+ "log",
+ "serde",
  "serde_json",
  "tempfile",
  "ureq",

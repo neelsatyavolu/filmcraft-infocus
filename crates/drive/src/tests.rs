@@ -672,6 +672,8 @@ struct UploadState {
     open: bool,
     fail_chunk: Option<u64>,
     file: Vec<u8>,
+    /// A teammate's file already has the name: complete refuses (create-only).
+    taken: bool,
 }
 
 const MIB: u64 = 1024 * 1024;
@@ -709,6 +711,10 @@ fn upload_server(state: Arc<Mutex<UploadState>>) -> MockServer {
             }
             ("POST", p) if p == format!("/api/team/projects/{PID}/media/upload/complete") => {
                 assert_eq!(req.json()["upload_id"], "up_1");
+                assert_eq!(req.json()["expect_mtime_ns"], -1, "completing never overwrites");
+                if st.taken {
+                    return Reply::json(409, json!({"error": "conflict", "message": "A file with that name already exists"}));
+                }
                 st.file = st.chunks.values().flatten().copied().collect();
                 st.open = false;
                 Reply::json(200, json!({"name": "B001.mov", "path": "Team Projects/A Media/Day 2/B001.mov", "size": st.file.len(), "mtime_ns": 17}))
@@ -828,4 +834,35 @@ fn hostile_upload_sessions_are_refused() {
     let empty = dir.path().join("empty.mov");
     std::fs::write(&empty, b"").unwrap();
     assert!(matches!(c.upload_media(PID, &empty, "empty.mov", None, None, &mut |_| true), Err(DriveError::Invalid(_))));
+}
+
+#[test]
+fn upload_onto_a_taken_name_drops_the_session() {
+    let state = Arc::new(Mutex::new(UploadState { taken: true, ..Default::default() }));
+    let server = upload_server(state.clone());
+    let dir = tempfile::tempdir().unwrap();
+    let src = dir.path().join("B001.mov");
+    std::fs::write(&src, footage(1000)).unwrap();
+    let err = client(&server).upload_media(PID, &src, "B001.mov", None, None, &mut |_| true).unwrap_err();
+    assert!(matches!(err, DriveError::NameTaken(ref m) if m.contains("already exists")), "{err:?}");
+    assert!(!state.lock().unwrap().open, "the session was aborted");
+    assert!(state.lock().unwrap().file.is_empty(), "nothing was overwritten");
+}
+
+#[test]
+fn media_exists_asks_for_one_byte() {
+    let server = MockServer::start(|req: &Req| {
+        assert_eq!(req.header("range"), Some("bytes=0-0"));
+        match req.query("path").as_deref() {
+            Some("Day 2/A001.mov") => Reply::Full(206, vec![("Content-Range".into(), "bytes 0-0/10".into())], vec![1]),
+            Some("empty.mov") => Reply::Full(416, vec![("Content-Range".into(), "bytes */0".into())], vec![]),
+            Some(_) => Reply::json(404, json!({"detail": "Not found"})),
+            None => Reply::json(400, json!({"detail": "path"})),
+        }
+    });
+    let c = client(&server);
+    assert!(c.media_exists(PID, "Day 2/A001.mov").unwrap());
+    assert!(c.media_exists(PID, "empty.mov").unwrap());
+    assert!(!c.media_exists(PID, "A002.mov").unwrap());
+    assert!(matches!(c.media_exists(PID, "../x"), Err(DriveError::Invalid(_))));
 }

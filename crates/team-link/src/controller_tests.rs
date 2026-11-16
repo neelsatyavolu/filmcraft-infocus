@@ -48,7 +48,7 @@ fn drive(me_ok: bool) -> (MockServer, Arc<Mutex<Option<Value>>>) {
 }
 
 /// The project as the Drive stores and returns it: sequences split off at revision 1.
-fn project_data(project: &Value) -> Value {
+pub(crate) fn project_data(project: &Value) -> Value {
     let mut shared = project.clone();
     let mut sequences = serde_json::Map::new();
     if let Some(items) = shared["items"].as_object_mut() {
@@ -72,7 +72,7 @@ fn browser(link: &str) {
     });
 }
 
-fn config(url: &str, store: Arc<MemoryStore>, cache: &Path) -> ControllerConfig {
+pub(crate) fn config(url: &str, store: Arc<MemoryStore>, cache: &Path) -> ControllerConfig {
     ControllerConfig {
         drive: Ok(DriveConfig::new(url, None).unwrap()),
         app: AppInfo::new("0.20.1", 17).unwrap().with_device("Studio Mac"),
@@ -83,7 +83,7 @@ fn config(url: &str, store: Arc<MemoryStore>, cache: &Path) -> ControllerConfig 
     }
 }
 
-fn poll_until(c: &mut TeamSessionController, s: &mut Session, mut done: impl FnMut(&TeamSessionController, &Session) -> bool) {
+pub(crate) fn poll_until(c: &mut TeamSessionController, s: &mut Session, mut done: impl FnMut(&TeamSessionController, &Session) -> bool) {
     let deadline = Instant::now() + Duration::from_secs(10);
     while Instant::now() < deadline {
         c.poll(s);

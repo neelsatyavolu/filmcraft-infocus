@@ -632,6 +632,19 @@ impl Session {
         Ok(())
     }
 
+    /// Send shared `items` to the Drive again as they are now, for a change only the link sees: an
+    /// upload finished (the items' file now has a `drive:/` path) or started (the items are marked
+    /// as uploading from this member). Sequences and unknown ids are skipped.
+    pub fn team_push_items(&mut self, items: &[ItemId]) {
+        let ids: Vec<ItemId> = items.iter().copied().filter(|i| self.project.item(*i).is_some_and(|it| it.as_sequence().is_none())).collect();
+        let Some(t) = self.team.as_mut() else { return };
+        if ids.is_empty() {
+            return;
+        }
+        t.shared_pending.items.extend(ids);
+        send_shared(self, Instant::now());
+    }
+
     /// Give up the lock on `seq` once its edits are saved on the Drive.
     pub fn team_release_lock(&mut self, seq: ItemId) -> Result<()> {
         let t = self.team.as_mut().ok_or_else(not_team)?;

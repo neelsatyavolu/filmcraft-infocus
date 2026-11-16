@@ -168,3 +168,24 @@ fn drive_ref_only_for_media_not_yet_here() {
     assert_eq!(drive_ref(&p, b), None);
     assert_eq!(drive_ref(&p, ItemId(77)), None);
 }
+
+#[test]
+fn uploaded_originals_are_never_evicted() {
+    let now = 100 * DAY;
+    let mut idx = three(now);
+    // fp(1)'s original is the member's own file, uploaded from where they imported it
+    let own = CachedFile { path: PathBuf::from("/Users/me/Footage/1.mov"), bytes: 50 * GB };
+    idx.record_uploaded(&fp(1), "p", "drive:/Team Projects/P Media/1.mov", own.clone(), now);
+    assert_eq!(idx.total_bytes(), 115 * GB, "the member's own file does not count towards the cap");
+    assert_eq!(eviction_plan(&idx, 10 * GB, now, &BTreeSet::new()), paths(&["2/original", "3/original", "2/proxy"]));
+    let idle = eviction_plan(&idx, 200 * GB, now + 31 * DAY, &BTreeSet::new());
+    assert!(!idle.contains(&own.path), "{idle:?}");
+    assert!(idle.contains(&PathBuf::from("/cache/1/proxy")));
+    assert_eq!(idx.resolve("drive:/Team Projects/P Media/1.mov").original, Some(own.path.clone()), "it stands in for a download");
+    assert_eq!(idx.drive_ref_of(&own.path), Some("drive:/Team Projects/P Media/1.mov"));
+    // a later download of the same media is a cache file again
+    idx.record_original(&fp(1), "p", "drive:/Team Projects/P Media/1.mov", file("1/original", 50 * GB), now);
+    assert!(!idx.entries[&fp(1)].external);
+    let saved = serde_json::to_string(&idx).unwrap();
+    assert!(!saved.contains("external"), "the flag is written only when set");
+}

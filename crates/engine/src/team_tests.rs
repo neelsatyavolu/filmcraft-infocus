@@ -535,3 +535,25 @@ fn edit_refused_by_own_lock_on_another_mac_says_so() {
     let err = add_marker(&mut s, rough, "mine").unwrap_err().to_string();
     assert!(err.contains("You're editing “Rough Cut” on Lab Mac"), "{err}");
 }
+
+#[test]
+fn push_items_sends_shared_items_as_they_are() {
+    let (mut s, fake, main, _) = team_demo();
+    calls(&fake);
+    let media = s.project.items.values().find(|i| i.as_media().is_some()).map(|i| i.id).unwrap();
+    s.team_push_items(&[media, main, ItemId(999_999)]);
+    let shared: Vec<SharedPush> = calls(&fake)
+        .into_iter()
+        .filter_map(|c| match c {
+            Call::Shared(p) => Some(p),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(shared.len(), 1);
+    assert_eq!(shared[0].upserts.keys().copied().collect::<Vec<_>>(), vec![media], "sequences and unknown ids are skipped");
+    assert!(shared[0].bins.is_none() && shared[0].deletes.is_empty());
+    s.team_push_items(&[main]);
+    assert!(calls(&fake).is_empty(), "nothing to send");
+    let mut plain = Session::default();
+    plain.team_push_items(&[media]);
+}

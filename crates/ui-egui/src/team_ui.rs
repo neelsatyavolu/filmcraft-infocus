@@ -42,6 +42,12 @@ pub struct TeamOpenView {
     pub downloads: Vec<(String, f32)>,
     /// Media that failed to download: (name, why).
     pub failures: Vec<(String, String)>,
+    /// This member's media going up to the project's media folder: (name, fraction done).
+    pub uploads: Vec<(String, f32)>,
+    /// This member's media that failed to upload: (name, why).
+    pub upload_failures: Vec<(String, String)>,
+    /// Media a teammate is still uploading: (name, teammate).
+    pub incoming: Vec<(String, String)>,
     /// An export is running (downloads are paused).
     pub exporting: bool,
 }
@@ -72,6 +78,7 @@ pub enum TeamAction {
     /// Restart the project's 30-day cleanup clock.
     Keep(String),
     SetKeepForever(String, bool),
+    /// Try failed downloads and uploads again.
     RetryDownloads,
     ClearError,
 }

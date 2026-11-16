@@ -63,7 +63,7 @@ pub fn media_path_in(folder: &str, drive_ref: &str) -> Option<String> {
 
 /// A path inside the media folder: `/`-separated, no empty, `.` or `..` parts, no backslash or
 /// control characters (the server refuses the same).
-fn valid_media_path(path: &str) -> Result<&str> {
+pub(crate) fn valid_media_path(path: &str) -> Result<&str> {
     let bad = path.is_empty() || path.split('/').any(|p| p.is_empty() || p == "." || p == "..") || path.chars().any(|c| c == '\\' || c.is_control());
     if bad { Err(DriveError::Invalid(format!("media path {path:?}"))) } else { Ok(path) }
 }

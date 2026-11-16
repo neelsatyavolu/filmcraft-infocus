@@ -135,6 +135,16 @@ impl TeamMedia {
         self.index.save(&self.cache_dir)
     }
 
+    /// This Mac uploaded `items`' original from the member's own file at `path` to `drive_ref`:
+    /// the file is recorded in the cache index (so it is never downloaded here, and never removed),
+    /// which also makes `TeamLink::media_ref` give the items' Drive path from now on.
+    pub fn record_uploaded(&mut self, s: &mut Session, items: &[ItemId], drive_ref: &str, path: &Path, bytes: u64) {
+        let identity = items.iter().find_map(|i| s.project.item(*i).and_then(|it| it.as_media()).and_then(|m| m.identity));
+        let fp = Fingerprint::for_media(identity.as_ref(), drive_ref);
+        self.index.record_uploaded(&fp, &self.project, drive_ref, CachedFile { path: path.to_path_buf(), bytes }, now_unix());
+        self.save(s);
+    }
+
     /// The media items to have on this Mac (replaces the previous set). Items no longer wanted
     /// stop downloading; their partial files stay for later.
     pub fn ensure(&mut self, items: BTreeSet<ItemId>) {
@@ -395,6 +405,40 @@ impl TeamMedia {
             s.log.push(panels::Level::Warning, "team", format!("Could not save the media cache index: {e}"));
         }
     }
+}
+
+/// Points `items` at the member's own file `path` on this Mac without an undo step and without
+/// sending it to the Drive (after a restart, for media this Mac is still uploading: the Drive has
+/// only its file name). Items already on a local file or a `drive:/` path are left alone.
+pub fn relink_local(s: &mut Session, items: &[ItemId], path: &Path) {
+    let to = file_ref(path);
+    let stale: Vec<ItemId> = items
+        .iter()
+        .copied()
+        .filter(|i| {
+            s.project
+                .item(*i)
+                .and_then(|it| it.as_media())
+                .is_some_and(|m| matches!(&m.media, MediaRef::File { path: p } if !p.starts_with(filmcraft_team::DRIVE_PREFIX) && !Path::new(p).is_absolute()))
+        })
+        .collect();
+    if stale.is_empty() {
+        return;
+    }
+    s.media.allow(&to_string(path));
+    s.patch_local(|p| {
+        for id in &stale {
+            if let Some(m) = p.items.get_mut(id).and_then(|it| it.as_media_mut()) {
+                m.media = to.clone();
+                m.offline = false;
+            }
+        }
+    });
+    s.offline.missing.retain(|i| !stale.contains(i));
+}
+
+fn to_string(path: &Path) -> String {
+    path.to_string_lossy().into_owned()
 }
 
 /// Starts the existing proxy job for `item` into `dir`, not attaching (this module attaches it

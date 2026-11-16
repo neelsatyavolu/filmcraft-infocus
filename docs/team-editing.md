@@ -20,7 +20,8 @@ updates live. Projects sync through InFocus Drive. The full design is in
   with PKCE (token in the Keychain, service `InFocus Cut`, account `drive`), one method per team
   project route, the change feed parser, resumable media downloads from the project's
   `<name> Media/` folder that only rename a `.partial` file once it is complete and checked, and
-  resumable chunked media uploads into that folder. Lock requests name the Mac
+  resumable chunked media uploads into that folder that never overwrite (a name already there is
+  `DriveError::NameTaken`). Lock requests name the Mac
   (`X-Drive-Device`), so a member's lock on one Mac is refused on their other Mac. Every team 409
   maps to its own `DriveError` variant by the server's `error` code. On campus it uses the LAN address with a short-lived LAN
   token (the long-lived token never crosses the LAN) and falls back to the internet address.
@@ -28,7 +29,15 @@ updates live. Projects sync through InFocus Drive. The full design is in
   Drive. `DriveTeamLink` is the engine's `TeamLink`: requests run in order on a worker thread
   that keeps the lock tokens, and a feed thread follows the change feed, fetches the project when
   a teammate saved something, reconnects with backoff when the stream ends and polls every 5 s
-  while it is down. `DriveDownloader` is `TeamMedia`'s `Downloader`. `TeamSessionController` is
+  while it is down. `DriveDownloader` is `TeamMedia`'s `Downloader`. `TeamUploads` uploads
+  the member's own media (a project just made a team project, and anything imported into an open
+  one) into `<name> Media/<bin path>/`, two at a time, paused during an export; a name a teammate
+  already used gets a number (`A001 (2).mov`). The queue and session ids are in
+  `<cache>/uploads.json`, so an upload cut by a quit resumes. Until it finishes the item plays
+  from the member's file here and teammates see it as "uploading from <member>" (the shared item
+  carries `local_only` and `uploading_by`); then the file goes into the cache index as an
+  original that is never removed or downloaded again, and the item is sent again with its
+  `drive:/` path. `TeamSessionController` is
   what the UI calls (sign in and out, list, create from the current project, open, keep, export
   guard); its network work runs on background threads and `poll` finishes it on the UI thread.
 - Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
@@ -59,7 +68,10 @@ Keep these small so upstream merges stay easy.
   during an export) through the app's `Downloader`, links them, and makes a ProRes 422 Proxy ½
   proxy in `…/proxy/` with the existing proxy job. These links stay on the Mac: they are written
   into the project and its undo snapshots without an undo step (`Session::patch_local`) and are
-  never sent to the Drive.
+  never sent to the Drive. `TeamMedia::record_uploaded` and `relink_local` do the same for media
+  this Mac uploads.
+- Engine (`Session::team_push_items`): sends shared items again as they are, for a change only
+  the link sees (an upload started or finished).
 - UI (`crates/ui-egui`): the Team panel (`panels/team.rs`) draws a `TeamView` and sends
   `TeamAction`s through the object-safe `team_ui::TeamUi` trait. The desktop app plugs in
   `apps/filmcraft/src/team.rs` (over `TeamSessionController`) as `HostHooks::team`; without it (the
