@@ -16,6 +16,11 @@ fn client(server: &MockServer) -> DriveClient {
     DriveClient::connect(&DriveConfig::new(&server.url, None).unwrap(), "ifd_test", app()).unwrap()
 }
 
+/// One stream at a time, chunk by chunk (the order the tests below check).
+fn serial_client(server: &MockServer) -> DriveClient {
+    client(server).with_transfers(Transfers::serial())
+}
+
 fn sha_hex(bytes: &[u8]) -> String {
     sha256_hex(&mut &bytes[..]).unwrap()
 }
@@ -793,7 +798,7 @@ fn upload_sends_every_chunk_and_completes() {
     );
     assert_eq!(state.lock().unwrap().file, data);
     let init = server.requests()[0].json();
-    assert_eq!(init, json!({"name": "B001.mov", "size": data.len(), "path": "Day 2"}));
+    assert_eq!(init, json!({"name": "B001.mov", "size": data.len(), "path": "Day 2", "chunk_size": UPLOAD_CHUNK_BYTES}));
     assert_eq!(seen.first().unwrap().1, 0);
     assert_eq!(seen.last().unwrap(), &("up_1".to_string(), data.len() as u64, data.len() as u64));
 }
@@ -806,7 +811,7 @@ fn upload_resumes_with_only_missing_chunks() {
     let src = dir.path().join("B001.mov");
     let data = footage(3 * MIB as usize);
     std::fs::write(&src, &data).unwrap();
-    let c = client(&server);
+    let c = serial_client(&server);
     let mut id = None;
     let err = c
         .upload_media(PID, &src, "B001.mov", None, None, &mut |p| {
@@ -852,7 +857,7 @@ fn upload_cancel_keeps_the_session_and_abort_drops_it() {
     let dir = tempfile::tempdir().unwrap();
     let src = dir.path().join("B001.mov");
     std::fs::write(&src, footage(2 * MIB as usize)).unwrap();
-    let c = client(&server);
+    let c = serial_client(&server);
     let err = c.upload_media(PID, &src, "B001.mov", None, None, &mut |p| p.done == 0).unwrap_err();
     assert!(matches!(err, DriveError::Cancelled));
     assert!(state.lock().unwrap().open);

@@ -34,6 +34,7 @@ mod args;
 mod probe;
 mod project_lock;
 mod team;
+mod team_bench;
 
 use args::{Args, parse_value};
 use filmcraft_automation::BridgeClient;

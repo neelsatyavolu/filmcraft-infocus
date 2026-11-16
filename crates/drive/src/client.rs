@@ -15,6 +15,7 @@ use crate::events::EventStream;
 use crate::http;
 use crate::lan::{self, Route};
 use crate::members::{Invite, Person, Role};
+use crate::transfers::{Streams, Transfers};
 
 /// Largest id the server accepts (ids stay JSON-safe).
 pub const MAX_ID: u64 = (1 << 53) - 1;
@@ -203,6 +204,8 @@ pub struct DriveClient {
     api: ureq::Agent,
     pub(crate) stream: ureq::Agent,
     route: Mutex<Route>,
+    transfers: Transfers,
+    pub(crate) streams: Streams,
 }
 
 impl DriveClient {
@@ -214,7 +217,16 @@ impl DriveClient {
         }
         let api = http::agent(Some(API_TIMEOUT));
         let route = lan::probe(cfg, token, &api).unwrap_or_else(|| Route::internet(cfg, token));
-        Ok(Self { cfg: cfg.clone(), token: token.to_string(), app, api, stream: http::agent(None), route: Mutex::new(route) })
+        Ok(Self {
+            cfg: cfg.clone(),
+            token: token.to_string(),
+            app,
+            api,
+            stream: http::agent(None),
+            route: Mutex::new(route),
+            transfers: Transfers::default(),
+            streams: Streams::default(),
+        })
     }
 
     /// [`DriveClient::connect`] with the stored token; `Unauthorized` when none is stored.
@@ -224,6 +236,16 @@ impl DriveClient {
     }
 
     /// True while requests go over the LAN.
+    /// The same client with other transfer settings (parallel ranges, upload streams).
+    pub fn with_transfers(self, transfers: Transfers) -> Self {
+        Self { transfers: transfers.sane(), ..self }
+    }
+
+    /// How this client moves media.
+    pub fn transfers(&self) -> Transfers {
+        self.transfers
+    }
+
     pub fn on_lan(&self) -> bool {
         self.current().lan
     }

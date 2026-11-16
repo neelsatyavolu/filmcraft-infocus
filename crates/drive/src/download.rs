@@ -34,7 +34,7 @@ fn validator_path(dest: &Path) -> PathBuf {
     with_suffix(dest, ".partial.etag")
 }
 
-fn with_suffix(dest: &Path, suffix: &str) -> PathBuf {
+pub(crate) fn with_suffix(dest: &Path, suffix: &str) -> PathBuf {
     let mut name = dest.file_name().map(|n| n.to_os_string()).unwrap_or_default();
     name.push(suffix);
     dest.with_file_name(name)
@@ -90,6 +90,25 @@ impl DriveClient {
     ) -> Result<u64> {
         let rel = valid_media_path(media_path)?;
         let route = format!("{}/media", project_path(project)?);
+        let query = url::form_urlencoded::Serializer::new(String::new()).append_pair("path", rel).finish();
+        let tuning = self.transfers();
+        let resuming_ranges = crate::ranged::parts_path(dest).is_file();
+        if resuming_ranges || (tuning.parts > 1 && expected.size.is_some_and(|s| s >= tuning.parallel_min_bytes)) {
+            match self.probe_media(&route, &query)? {
+                crate::ranged::Probe::Ranges { size, etag } if resuming_ranges || size >= tuning.parallel_min_bytes => {
+                    return self.download_ranges(&route, &query, dest, size, etag, expected, on_progress);
+                }
+                _ if resuming_ranges => {
+                    // the ranges can't go on: start again with one stream
+                    let _ = std::fs::remove_file(crate::ranged::parts_path(dest));
+                    let _ = std::fs::remove_file(partial_path(dest));
+                }
+                _ => {}
+            }
+        }
+        let Some(_permit) = self.streams.acquire(tuning.max_streams, &mut || on_progress(0, expected.size.unwrap_or(0))) else {
+            return Err(DriveError::Cancelled);
+        };
         let partial = partial_path(dest);
         let mut file = OpenOptions::new().create(true).read(true).append(true).open(&partial)?;
         let mut have = file.metadata()?.len();
@@ -99,7 +118,6 @@ impl DriveClient {
         if have > 0 && expected.size == Some(have) {
             return finish(file, dest, have, expected);
         }
-        let query = url::form_urlencoded::Serializer::new(String::new()).append_pair("path", rel).finish();
         let mut headers = Vec::new();
         if have > 0 {
             headers.push(("Range", format!("bytes={have}-")));
@@ -179,7 +197,7 @@ fn restart(file: &File, dest: &Path) -> Result<u64> {
 
 /// Checks the complete partial file and renames it to `dest`. A failed check deletes the bytes, so
 /// a bad file can never become an original.
-fn finish(mut file: File, dest: &Path, total: u64, expected: &Expected) -> Result<u64> {
+pub(crate) fn finish(mut file: File, dest: &Path, total: u64, expected: &Expected) -> Result<u64> {
     file.flush()?;
     file.sync_all()?;
     let len = file.metadata()?.len();

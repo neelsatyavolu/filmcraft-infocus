@@ -68,7 +68,7 @@ fn write_private(path: &Path, text: &str) -> std::io::Result<()> {
     f.write_all(text.as_bytes())
 }
 
-fn read(dir: &Path, name: &str) -> Result<String, String> {
+pub(crate) fn read(dir: &Path, name: &str) -> Result<String, String> {
     std::fs::read_to_string(dir.join(name))
         .map(|s| s.trim().to_string())
         .map_err(|e| format!("{}: {e} (run `filmcraft-cli team login` first)", dir.join(name).display()))
@@ -79,6 +79,7 @@ pub async fn cli_team(a: &Args) {
     let r = match a.pos(1) {
         Some("login") => login(a),
         Some("session") => session(a),
+        Some("bench") => crate::team_bench::bench(a),
         Some(cmd) => one_shot(a, cmd),
         None => Err("missing team command (login, session, create, open, list, status, …)".into()),
     };
@@ -87,7 +88,7 @@ pub async fn cli_team(a: &Args) {
     }
 }
 
-fn dir_of(a: &Args) -> Result<PathBuf, String> {
+pub(crate) fn dir_of(a: &Args) -> Result<PathBuf, String> {
     a.opt("--dir")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os(DIR_ENV).map(PathBuf::from))
@@ -117,7 +118,7 @@ fn login(a: &Args) -> Result<(), String> {
     Ok(())
 }
 
-fn app_info(device: &str) -> Result<AppInfo, String> {
+pub(crate) fn app_info(device: &str) -> Result<AppInfo, String> {
     AppInfo::new(env!("CARGO_PKG_VERSION"), filmcraft_format::SCHEMA_VERSION).map(|i| i.with_device(device)).map_err(|e| e.to_string())
 }
 

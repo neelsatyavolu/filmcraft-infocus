@@ -22,6 +22,8 @@ mod events;
 mod http;
 mod lan;
 mod members;
+mod ranged;
+mod transfers;
 mod upload;
 
 pub use auth::{
@@ -38,6 +40,8 @@ pub use error::{DriveError, Result};
 pub use events::{EventStream, SseEvent, SseParser, TeamEvent};
 pub use lan::{LAN_PROBE_TIMEOUT, LAN_TOKEN_PREFIX};
 pub use members::{Invite, MAX_INVITES_PER_REQUEST, Person, Role};
+pub use ranged::parts_path;
+pub use transfers::{MAX_MEDIA_STREAMS, MAX_PARTS, PARALLEL_MIN_BYTES, Transfers, UPLOAD_CHUNK_BYTES, UPLOAD_STREAMS};
 pub use upload::{MAX_CHUNK_SIZE, UploadProgress, UploadSession, UploadedMedia};
 
 #[cfg(test)]
@@ -46,5 +50,7 @@ mod members_tests;
 #[cfg(any(test, feature = "test-util"))]
 #[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 pub mod mock;
+#[cfg(test)]
+mod ranged_tests;
 #[cfg(test)]
 mod tests;

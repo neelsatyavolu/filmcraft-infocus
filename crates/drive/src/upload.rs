@@ -5,9 +5,13 @@
 //! place. A session survives a dropped connection (the server keeps it for a day): pass its id back
 //! to [`DriveClient::upload_media`] and only the missing chunks are sent.
 
+use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Mutex, PoisonError};
+use std::time::Duration;
 
 use serde::Deserialize;
 use serde_json::json;
@@ -162,7 +166,7 @@ impl DriveClient {
         resume: Option<&str>,
         on_progress: &mut dyn FnMut(&UploadProgress<'_>) -> bool,
     ) -> Result<UploadedMedia> {
-        let mut file = File::open(src)?;
+        let file = File::open(src)?;
         let size = file.metadata()?.len();
         if size == 0 {
             return Err(DriveError::Invalid("an empty file can't be uploaded as media".into()));
@@ -181,25 +185,17 @@ impl DriveClient {
         };
         let session = match resumed {
             Some(s) => s,
-            None => self.media_upload_init(project, name, size, dir, None)?,
+            None => self.media_upload_init(project, name, size, dir, self.transfers().upload_chunk)?,
         };
         let have: std::collections::BTreeSet<u64> = session.received.iter().copied().collect();
-        let mut done = have.iter().filter_map(|&i| session.chunk_range(i)).fold(0u64, |acc, (_, len)| acc.saturating_add(len));
+        let done = have.iter().filter_map(|&i| session.chunk_range(i)).fold(0u64, |acc, (_, len)| acc.saturating_add(len));
         let progress = |done| UploadProgress { upload_id: &session.upload_id, done, total: size };
         if !on_progress(&progress(done)) {
             return Err(DriveError::Cancelled);
         }
-        for index in (0..session.total_chunks).filter(|i| !have.contains(i)) {
-            let (offset, len) = session.chunk_range(index).ok_or_else(|| DriveError::BadResponse("upload session".into()))?;
-            let mut buf = vec![0u8; usize::try_from(len).map_err(|_| DriveError::BadResponse("chunk size".into()))?];
-            file.seek(SeekFrom::Start(offset))?;
-            file.read_exact(&mut buf)?;
-            self.upload_chunk(&session.upload_id, index, &buf)?;
-            done = done.saturating_add(len);
-            if !on_progress(&progress(done)) {
-                return Err(DriveError::Cancelled);
-            }
-        }
+        drop(file);
+        let todo: Vec<u64> = (0..session.total_chunks).filter(|i| !have.contains(i)).collect();
+        self.send_chunks(&session, src, &todo, done, &mut |done| on_progress(&progress(done)))?;
         match self.media_upload_complete(project, &session.upload_id, Some(MUST_NOT_EXIST)) {
             // create-only: the one conflict `complete` has is a file already at that name
             Err(DriveError::NameTaken(msg) | DriveError::Conflict(msg)) => {
@@ -208,6 +204,98 @@ impl DriveClient {
             }
             other => other,
         }
+    }
+
+    /// Sends chunks `todo` of `src`, [`crate::Transfers::upload_streams`] at once, each holding a
+    /// place among the client's media streams. `on_progress(done)` runs on this thread every
+    /// 100 ms (`done` starts at `done`); false stops with [`DriveError::Cancelled`].
+    fn send_chunks(&self, session: &UploadSession, src: &Path, todo: &[u64], done: u64, on_progress: &mut dyn FnMut(u64) -> bool) -> Result<()> {
+        if self.transfers().upload_streams <= 1 {
+            return self.send_chunks_in_turn(session, src, todo, done, on_progress);
+        }
+        let queue = Mutex::new(todo.iter().copied().collect::<VecDeque<u64>>());
+        let sent = AtomicU64::new(done);
+        let stop = AtomicBool::new(false);
+        let error: Mutex<Option<DriveError>> = Mutex::new(None);
+        let fail = |e: DriveError| {
+            stop.store(true, Ordering::Relaxed);
+            let mut slot = error.lock().unwrap_or_else(PoisonError::into_inner);
+            if slot.is_none() {
+                *slot = Some(e);
+            }
+        };
+        let worker = || -> Result<()> {
+            let mut file = File::open(src)?;
+            loop {
+                if stop.load(Ordering::Relaxed) {
+                    return Ok(());
+                }
+                let Some(index) = queue.lock().unwrap_or_else(PoisonError::into_inner).pop_front() else { return Ok(()) };
+                let (offset, len) = session.chunk_range(index).ok_or_else(|| DriveError::BadResponse("upload session".into()))?;
+                let mut buf = vec![0u8; usize::try_from(len).map_err(|_| DriveError::BadResponse("chunk size".into()))?];
+                file.seek(SeekFrom::Start(offset))?;
+                file.read_exact(&mut buf)?;
+                let Some(_permit) = self.streams.acquire(self.transfers().max_streams, &mut || !stop.load(Ordering::Relaxed)) else { return Ok(()) };
+                self.upload_chunk(&session.upload_id, index, &buf)?;
+                sent.fetch_add(len, Ordering::Relaxed);
+            }
+        };
+        let streams = self.transfers().upload_streams.clamp(1, todo.len().max(1));
+        let mut cancelled = false;
+        std::thread::scope(|scope| {
+            let handles: Vec<_> = (0..streams)
+                .map(|_| {
+                    std::thread::Builder::new().name("drive-upload-chunk".into()).spawn_scoped(scope, || {
+                        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(worker)) {
+                            Ok(Ok(())) => {}
+                            Ok(Err(e)) => fail(e),
+                            Err(_) => fail(DriveError::Network("an upload stream stopped unexpectedly".into())),
+                        }
+                    })
+                })
+                .collect();
+            for h in &handles {
+                if let Err(e) = h {
+                    fail(DriveError::Io(std::io::Error::other(e.to_string())));
+                }
+            }
+            loop {
+                let running = handles.iter().any(|h| h.as_ref().is_ok_and(|h| !h.is_finished()));
+                if !on_progress(sent.load(Ordering::Relaxed)) {
+                    cancelled = true;
+                    stop.store(true, Ordering::Relaxed);
+                }
+                if !running {
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        });
+        if let Some(e) = error.into_inner().unwrap_or_else(PoisonError::into_inner) {
+            return Err(e);
+        }
+        if cancelled || !queue.into_inner().unwrap_or_else(PoisonError::into_inner).is_empty() {
+            return Err(DriveError::Cancelled);
+        }
+        Ok(())
+    }
+
+    /// One chunk after another, asking `on_progress` after each.
+    fn send_chunks_in_turn(&self, session: &UploadSession, src: &Path, todo: &[u64], mut done: u64, on_progress: &mut dyn FnMut(u64) -> bool) -> Result<()> {
+        let mut file = File::open(src)?;
+        for &index in todo {
+            let (offset, len) = session.chunk_range(index).ok_or_else(|| DriveError::BadResponse("upload session".into()))?;
+            let mut buf = vec![0u8; usize::try_from(len).map_err(|_| DriveError::BadResponse("chunk size".into()))?];
+            file.seek(SeekFrom::Start(offset))?;
+            file.read_exact(&mut buf)?;
+            let Some(_permit) = self.streams.acquire(self.transfers().max_streams, &mut || on_progress(done)) else { return Err(DriveError::Cancelled) };
+            self.upload_chunk(&session.upload_id, index, &buf)?;
+            done = done.saturating_add(len);
+            if !on_progress(done) {
+                return Err(DriveError::Cancelled);
+            }
+        }
+        Ok(())
     }
 
     /// Whether the media folder already has a file at `media_path` (a path inside `<name> Media/`):
