@@ -124,6 +124,8 @@ fn errors_map_for_the_engine() {
     use filmcraft_drive::DriveError;
     let own = DriveError::HeldBy { holder: Some("student1".into()), expires_at: 0.0, device: Some("Lab Mac".into()) };
     assert_eq!(link_error(&own), LinkError::HeldBy { holder: "You on Lab Mac".into() });
+    let LinkError::HeldBy { holder } = link_error(&own) else { panic!("held") };
+    assert_eq!(filmcraft_engine::team::editing_message(&holder, "this"), "You're editing this on Lab Mac");
     assert_eq!(link_error(&DriveError::ItemInUse { item: 4 }), LinkError::ItemInUse { item: ItemId(4) });
     assert_eq!(link_error(&DriveError::FilesChanged("x".into())), LinkError::FilesChanged);
     assert!(matches!(link_error(&DriveError::Unauthorized("x".into())), LinkError::Network(_)));

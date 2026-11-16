@@ -88,6 +88,24 @@ pub struct LockInfo {
     pub last_sent: Instant,
 }
 
+/// How a lock holder reads when the lock is this member's own, on another Mac
+/// ([`own_device_holder`]); [`editing_message`] words it.
+const OWN_DEVICE: &str = "You on ";
+
+/// The holder name for this member's own lock on another Mac (the Drive refuses a second Mac).
+pub fn own_device_holder(device: &str) -> String {
+    format!("{OWN_DEVICE}{device}")
+}
+
+/// Who is editing `what` (a quoted sequence name, or "this"): "Maya is editing “Rough Cut”", or
+/// for this member's own lock on another Mac "You're editing “Rough Cut” on Lab Mac".
+pub fn editing_message(holder: &str, what: &str) -> String {
+    match holder.strip_prefix(OWN_DEVICE) {
+        Some(device) => format!("You're editing {what} on {device}"),
+        None => format!("{holder} is editing {what}"),
+    }
+}
+
 /// What a sequence tab shows.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SequenceStatus {
@@ -300,7 +318,7 @@ fn check(team: &TeamState, before: &Project, after: &Project, changes: &ChangeSe
         let (was, is) = (before.item(seq).is_some(), after.item(seq).is_some());
         if was && is && !team.may_edit(seq) {
             let why = match team.holders.get(&seq) {
-                Some(h) => format!("{h} is editing “{}”", name(seq)),
+                Some(h) => editing_message(h, &format!("“{}”", name(seq))),
                 None => format!("Take the lock to edit “{}”", name(seq)),
             };
             plan.refused.push((Refusal::Sequence(seq), why));
@@ -315,7 +333,7 @@ fn check(team: &TeamState, before: &Project, after: &Project, changes: &ChangeSe
                 plan.dropped.insert(seq);
             } else if !team.held.contains_key(&seq) {
                 let why = match team.holders.get(&seq) {
-                    Some(h) => format!("{h} is editing “{}”", name(seq)),
+                    Some(h) => editing_message(h, &format!("“{}”", name(seq))),
                     None => format!("Take the lock to delete “{}”", name(seq)),
                 };
                 plan.refused.push((Refusal::Sequence(seq), why));

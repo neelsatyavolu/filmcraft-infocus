@@ -517,3 +517,21 @@ fn two_sessions_converge() {
 
 #[path = "team_sync_tests.rs"]
 mod sync;
+
+/// A lock this member holds on another Mac reads as their own, not "You on Lab Mac is editing".
+#[test]
+fn own_lock_on_another_mac_reads_naturally() {
+    use crate::team::{editing_message, own_device_holder};
+    assert_eq!(editing_message(&own_device_holder("Lab Mac"), "this"), "You're editing this on Lab Mac");
+    assert_eq!(editing_message(&own_device_holder("Lab Mac"), "“Rough Cut”"), "You're editing “Rough Cut” on Lab Mac");
+    assert_eq!(editing_message("Maya", "“Rough Cut”"), "Maya is editing “Rough Cut”");
+}
+
+#[test]
+fn edit_refused_by_own_lock_on_another_mac_says_so() {
+    let (mut s, _fake, _main, rough) = team_demo();
+    s.state.active_sequence = Some(rough);
+    s.team.as_mut().unwrap().holders.insert(rough, crate::team::own_device_holder("Lab Mac"));
+    let err = add_marker(&mut s, rough, "mine").unwrap_err().to_string();
+    assert!(err.contains("You're editing “Rough Cut” on Lab Mac"), "{err}");
+}

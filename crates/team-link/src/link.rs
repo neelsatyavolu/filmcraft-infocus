@@ -163,7 +163,7 @@ pub fn link_error(e: &DriveError) -> LinkError {
 /// The name a lock refusal shows: the teammate, or this member on another Mac.
 fn holder_name(holder: Option<&str>, device: Option<&str>) -> String {
     match (device, holder) {
-        (Some(d), _) => format!("You on {d}"),
+        (Some(d), _) => filmcraft_engine::team::own_device_holder(d),
         (None, Some(h)) if !h.is_empty() => h.to_string(),
         _ => "Someone".to_string(),
     }

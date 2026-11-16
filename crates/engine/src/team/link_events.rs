@@ -165,7 +165,7 @@ impl Session {
                 if let Some(t) = self.team.as_mut() {
                     t.holders.insert(seq, holder.clone());
                 }
-                tell(self, format!("{holder} is editing “{name}”"));
+                tell(self, super::editing_message(&holder, &format!("“{name}”")));
             }
             LinkEvent::LockFailed { seq, message } => {
                 t.requested.remove(&seq);

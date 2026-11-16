@@ -437,6 +437,31 @@ pub fn panel_menu_area(app: &mut FilmcraftApp, ui: &mut egui::Ui) {
 /// The panel's own items, each section after a separator: the Timeline's sequence and track
 /// display items, and the Project, Media Browser and Source menus. Shared by the ≡ menu and the
 /// tab's context menu. True when an item asks the menu to close.
+/// Team projects: Take Lock / Release Lock for the shown sequence in the Timeline's panel menu
+/// (also its sequence tab's right-click menu). True when one was clicked.
+fn team_lock_items(app: &mut FilmcraftApp, ui: &mut egui::Ui) -> bool {
+    use filmcraft_engine::team::SequenceStatus;
+    let Some(seq) = app.session.state.active_sequence else { return false };
+    let Some(status) = app.session.team_status(seq) else { return false };
+    let r = ui.add_enabled(status == SequenceStatus::Free, egui::Button::new(tl!("Take Lock")));
+    app.auto.add("panel.menu.Timeline.takeLock", r.rect, "Take Lock");
+    let take = r.on_hover_text(tl!("Edit this sequence. Teammates see it read-only until you release it.")).clicked();
+    let r = ui.add_enabled(matches!(status, SequenceStatus::Editing { .. }), egui::Button::new(tl!("Release Lock")));
+    app.auto.add("panel.menu.Timeline.releaseLock", r.rect, "Release Lock");
+    let release = r.on_hover_text(tl!("Let a teammate edit this sequence. Your edits are saved to the Drive first.")).clicked();
+    let result = if take {
+        app.session.team_take_lock(seq)
+    } else if release {
+        app.session.team_release_lock(seq)
+    } else {
+        return false;
+    };
+    if let Err(e) = result {
+        app.ui.status = e.to_string();
+    }
+    true
+}
+
 pub(crate) fn panel_items(app: &mut FilmcraftApp, ui: &mut egui::Ui, p: PanelKind) -> bool {
     let mut close = false;
     if p == PanelKind::Timeline {
@@ -447,6 +472,7 @@ pub(crate) fn panel_items(app: &mut FilmcraftApp, ui: &mut egui::Ui, p: PanelKin
             let _ = app.session.execute("sequence.revealInProject", serde_json::json!({}));
             close = true;
         }
+        close |= team_lock_items(app, ui);
         let r = ui.checkbox(&mut app.ui.timeline.show_thumbnails, tl!("Video Thumbnails"));
         app.auto.add("panel.menu.Timeline.videoThumbnails", r.rect, "Video Thumbnails");
         let r = ui.checkbox(&mut app.ui.timeline.show_waveforms, tl!("Audio Waveforms"));

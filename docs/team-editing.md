@@ -65,8 +65,12 @@ Keep these small so upstream merges stay easy.
   `apps/filmcraft/src/team.rs` (over `TeamSessionController`) as `HostHooks::team`; without it (the
   web app) the panel is left out of the Window menu and nothing team-related runs. One call in
   `logic_background` (`team_ui::tick`) polls it every frame.
-- Planned: lock badges on sequence tabs, and a guard on the export entry point that fetches
-  originals first.
+- Sequence tabs (`dock.rs`, `dock::tab_badge`): a badge after a team sequence's name: Editing
+  (a dot while edits are not on the Drive yet), Requested, Read-only ("Maya is editing this",
+  with a lock), or a Take button when the sequence is free. The Timeline's panel menu (also the
+  tab's right-click menu) has Take Lock and Release Lock. A lock a member holds on their other
+  Mac reads "You're editing this on <device>" (`team::editing_message`).
+- Planned: a guard on the export entry point that fetches originals first.
 - Packaging (planned): app name "InFocus Cut" and its own bundle id.
 
 ## Merging upstream
