@@ -1,0 +1,372 @@
+//! `DriveClient`: one method per team project route (`/api/team/…` in infocus-drive).
+
+use std::collections::BTreeMap;
+use std::sync::{Mutex, PoisonError};
+use std::time::Duration;
+
+use serde::Deserialize;
+use serde_json::{Value, json};
+
+use crate::auth::TokenStore;
+use crate::config::DriveConfig;
+use crate::error::{DriveError, Result};
+use crate::events::EventStream;
+use crate::http;
+use crate::lan::{self, Route};
+
+/// Largest id the server accepts (ids stay JSON-safe).
+pub const MAX_ID: u64 = (1 << 53) - 1;
+const API_TIMEOUT: Duration = Duration::from_secs(120);
+
+/// This app's version and project schema, sent with every write so the server can refuse old apps.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AppInfo {
+    version: String,
+    schema_version: u32,
+}
+
+impl AppInfo {
+    /// `version` looks like `1.2.3` (one to four numeric parts), as the server requires.
+    pub fn new(version: &str, schema_version: u32) -> Result<Self> {
+        let parts: Vec<&str> = version.split('.').collect();
+        let ok = (1..=4).contains(&parts.len()) && parts.iter().all(|p| (1..=6).contains(&p.len()) && p.bytes().all(|b| b.is_ascii_digit()));
+        if !ok {
+            return Err(DriveError::Invalid(format!("app version {version:?} must look like 1.2.3")));
+        }
+        Ok(Self { version: version.to_string(), schema_version })
+    }
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+    pub fn schema_version(&self) -> u32 {
+        self.schema_version
+    }
+}
+
+/// A live sequence lock.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct LockState {
+    pub holder: String,
+    /// Unix seconds.
+    pub expires_at: f64,
+}
+
+/// One entry of `GET /api/team/projects`.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct ProjectSummary {
+    pub id: String,
+    pub name: String,
+    /// Drive-relative folder, `Team Projects/<name>.fcteam`.
+    pub folder: String,
+    #[serde(default)]
+    pub locks: BTreeMap<u64, LockState>,
+    /// Unix seconds of the last open by anyone (0 when never).
+    #[serde(default)]
+    pub last_open: f64,
+}
+
+/// Answer of `POST /api/team/projects`.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct CreatedProject {
+    pub id: String,
+    /// This member's id slot in the new project.
+    pub slot: u16,
+}
+
+/// One sequence of a project and its revision.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct SequencePart {
+    pub rev: u64,
+    /// The sequence item's JSON.
+    pub json: Value,
+}
+
+/// `GET /api/team/projects/{id}`: the whole project (the server also records the open).
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct ProjectData {
+    pub id: String,
+    pub name: String,
+    /// `meta.json` (`schema_version`, `min_app_version`, `created_by`, `file_hashes`, …).
+    pub meta: Value,
+    /// The shared part: the project JSON with sequence items removed.
+    pub shared: Value,
+    pub sequences: BTreeMap<u64, SequencePart>,
+    pub shared_rev: u64,
+    #[serde(default)]
+    pub locks: BTreeMap<u64, LockState>,
+    /// This member's id slot.
+    pub slot: u16,
+}
+
+/// A granted lock.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct LockGrant {
+    pub token: String,
+    pub expires_at: f64,
+}
+
+/// A change to the shared part (`POST …/shared`). Upserts and deletes merge by id; `bins`, when set,
+/// replaces the whole root bin and needs `base_rev` to be current.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct SharedChange {
+    pub base_rev: u64,
+    pub upserts: BTreeMap<u64, Value>,
+    pub deletes: Vec<u64>,
+    pub bins: Option<Value>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Method {
+    Get,
+    Post,
+    Put,
+    Delete,
+}
+
+/// The InFocus Drive client. Blocking; share it between threads (`Send + Sync`).
+pub struct DriveClient {
+    cfg: DriveConfig,
+    token: String,
+    app: AppInfo,
+    api: ureq::Agent,
+    pub(crate) stream: ureq::Agent,
+    route: Mutex<Route>,
+}
+
+impl DriveClient {
+    /// A client for `cfg` with a Drive token. Uses the LAN route when it answers within 300 ms
+    /// and proves it is this Drive; otherwise the internet route.
+    pub fn connect(cfg: &DriveConfig, token: &str, app: AppInfo) -> Result<Self> {
+        if token.trim().is_empty() {
+            return Err(DriveError::Unauthorized("not signed in".into()));
+        }
+        let api = http::agent(Some(API_TIMEOUT));
+        let route = lan::probe(cfg, token, &api).unwrap_or_else(|| Route::internet(cfg, token));
+        Ok(Self { cfg: cfg.clone(), token: token.to_string(), app, api, stream: http::agent(None), route: Mutex::new(route) })
+    }
+
+    /// [`DriveClient::connect`] with the stored token; `Unauthorized` when none is stored.
+    pub fn from_store(cfg: &DriveConfig, store: &dyn TokenStore, app: AppInfo) -> Result<Self> {
+        let token = store.load()?.ok_or_else(|| DriveError::Unauthorized("not signed in".into()))?;
+        Self::connect(cfg, &token, app)
+    }
+
+    /// True while requests go over the LAN.
+    pub fn on_lan(&self) -> bool {
+        self.current().lan
+    }
+
+    /// The base URL requests currently go to.
+    pub fn base_url(&self) -> String {
+        self.current().base
+    }
+
+    /// Probes the LAN again (for example after the network changed). Returns [`Self::on_lan`].
+    pub fn refresh_route(&self) -> bool {
+        let route = lan::probe(&self.cfg, &self.token, &self.api).unwrap_or_else(|| Route::internet(&self.cfg, &self.token));
+        let lan = route.lan;
+        *self.route.lock().unwrap_or_else(PoisonError::into_inner) = route;
+        lan
+    }
+
+    pub(crate) fn current(&self) -> Route {
+        self.route.lock().unwrap_or_else(PoisonError::into_inner).clone()
+    }
+
+    /// Leaves the LAN route after it failed; later calls use the internet route.
+    pub(crate) fn fall_back(&self) -> Route {
+        let route = Route::internet(&self.cfg, &self.token);
+        *self.route.lock().unwrap_or_else(PoisonError::into_inner) = route.clone();
+        route
+    }
+
+    pub fn list_projects(&self) -> Result<Vec<ProjectSummary>> {
+        http::parse(&self.call(Method::Get, "/api/team/projects", None)?)
+    }
+
+    /// Creates a team project from a FilmCraft project JSON (or an empty one).
+    pub fn create_project(&self, name: &str, project: Option<&Value>) -> Result<CreatedProject> {
+        let mut body = self.versions();
+        body["name"] = json!(name);
+        if let Some(p) = project {
+            body["project"] = p.clone();
+        }
+        http::parse(&self.call(Method::Post, "/api/team/projects", Some(&body))?)
+    }
+
+    pub fn get_project(&self, project: &str) -> Result<ProjectData> {
+        http::parse(&self.call(Method::Get, &project_path(project)?, None)?)
+    }
+
+    /// Takes a sequence lock; [`DriveError::HeldBy`] when a teammate holds it.
+    pub fn take_lock(&self, project: &str, seq: u64) -> Result<LockGrant> {
+        http::parse(&self.call(Method::Post, &format!("{}/lock", seq_path(project, seq)?), None)?)
+    }
+
+    /// Extends a lock (every 20 s). Returns the new expiry; [`DriveError::LockLost`] when it is gone.
+    pub fn heartbeat(&self, project: &str, seq: u64, token: &str) -> Result<f64> {
+        #[derive(Deserialize)]
+        struct Beat {
+            expires_at: f64,
+        }
+        let beat: Beat = http::parse(&self.call(Method::Post, &format!("{}/lock/heartbeat", seq_path(project, seq)?), Some(&json!({ "token": token })))?)?;
+        Ok(beat.expires_at)
+    }
+
+    pub fn release(&self, project: &str, seq: u64, token: &str) -> Result<()> {
+        self.call(Method::Delete, &format!("{}/lock", seq_path(project, seq)?), Some(&json!({ "token": token })))?;
+        Ok(())
+    }
+
+    /// Drive admins only.
+    pub fn force_release(&self, project: &str, seq: u64) -> Result<()> {
+        self.call(Method::Post, &format!("{}/lock/force", seq_path(project, seq)?), None)?;
+        Ok(())
+    }
+
+    /// Saves a sequence. Returns the new revision. Errors: [`DriveError::LockLost`],
+    /// [`DriveError::Stale`], [`DriveError::UpdateRequired`].
+    pub fn put_sequence(&self, project: &str, seq: u64, token: &str, base_rev: u64, sequence: &Value) -> Result<u64> {
+        let mut body = self.versions();
+        body["token"] = json!(token);
+        body["base_rev"] = json!(base_rev);
+        body["json"] = sequence.clone();
+        rev(&self.call(Method::Put, &seq_path(project, seq)?, Some(&body))?)
+    }
+
+    /// Merges a change into the shared part. Returns the new shared revision.
+    pub fn post_shared(&self, project: &str, change: &SharedChange) -> Result<u64> {
+        let mut body = json!({ "base_rev": change.base_rev, "upserts": change.upserts, "deletes": change.deletes });
+        if let Some(bins) = &change.bins {
+            body["bins"] = bins.clone();
+        }
+        rev(&self.call(Method::Post, &format!("{}/shared", project_path(project)?), Some(&body))?)
+    }
+
+    /// Marks a project "Keep forever" (creator or admin).
+    pub fn keep(&self, project: &str, keep: bool) -> Result<bool> {
+        let v: Value = http::parse(&self.call(Method::Post, &format!("{}/keep", project_path(project)?), Some(&json!({ "keep": keep })))?)?;
+        Ok(v.get("keep").and_then(Value::as_bool).unwrap_or(keep))
+    }
+
+    /// Resets the project's cleanup clock. Returns the last-open time.
+    pub fn open(&self, project: &str) -> Result<f64> {
+        let v: Value = http::parse(&self.call(Method::Post, &format!("{}/open", project_path(project)?), None)?)?;
+        Ok(v.get("last_open").and_then(Value::as_f64).unwrap_or(0.0))
+    }
+
+    /// Tells the Drive an export is reading this project's media (cleanup skips it for up to 6 h).
+    pub fn export_begin(&self, project: &str) -> Result<()> {
+        self.call(Method::Post, &format!("/api/team/exports/{}/begin", project_id(project)?), None)?;
+        Ok(())
+    }
+
+    pub fn export_end(&self, project: &str) -> Result<()> {
+        self.call(Method::Post, &format!("/api/team/exports/{}/end", project_id(project)?), None)?;
+        Ok(())
+    }
+
+    /// Opens the project's change feed. The iterator blocks; run it on its own thread.
+    pub fn events(&self, project: &str) -> Result<EventStream> {
+        let path = format!("{}/events", project_path(project)?);
+        let resp = self.open_stream(&path, &[("Accept", "text/event-stream".to_string())])?;
+        let status = resp.status().as_u16();
+        if status != 200 {
+            let (_, bytes) = http::read_body(resp)?;
+            return Err(http::error_for(status, &bytes));
+        }
+        Ok(EventStream::new(Box::new(resp.into_body().into_reader())))
+    }
+
+    fn versions(&self) -> Value {
+        json!({ "app_version": self.app.version, "schema_version": self.app.schema_version })
+    }
+
+    /// A JSON call with LAN fallback. Returns the body of a 2xx answer.
+    pub(crate) fn call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
+        let route = self.current();
+        let (status, bytes) = match self.call_on(&route, method, path, body) {
+            Ok((401, _)) if route.lan => self.call_on(&self.fall_back(), method, path, body).map_err(http::transport)?,
+            Ok(answer) => answer,
+            Err(e) if route.lan => {
+                self.fall_back();
+                // Resend only what is safe: reads, or a request that never left this Mac.
+                if method == Method::Get || http::never_sent(&e) {
+                    self.call_on(&self.current(), method, path, body).map_err(http::transport)?
+                } else {
+                    return Err(http::transport(e));
+                }
+            }
+            Err(e) => return Err(http::transport(e)),
+        };
+        if (200..300).contains(&status) { Ok(bytes) } else { Err(http::error_for(status, &bytes)) }
+    }
+
+    fn call_on(&self, route: &Route, method: Method, path: &str, body: Option<&Value>) -> std::result::Result<(u16, Vec<u8>), ureq::Error> {
+        let url = format!("{}{path}", route.base);
+        let auth = format!("Bearer {}", route.bearer);
+        let mut resp = match method {
+            Method::Get => self.api.get(&url).header("Authorization", &auth).call()?,
+            Method::Post => send_json(self.api.post(&url).header("Authorization", &auth), body)?,
+            Method::Put => send_json(self.api.put(&url).header("Authorization", &auth), body)?,
+            Method::Delete => send_json(self.api.delete(&url).header("Authorization", &auth).force_send_body(), body)?,
+        };
+        let status = resp.status().as_u16();
+        let bytes = resp.body_mut().with_config().limit(http::MAX_JSON_BYTES).read_to_vec()?;
+        Ok((status, bytes))
+    }
+
+    /// A streaming GET (event feed, downloads) with LAN fallback. Any status is returned.
+    pub(crate) fn open_stream(&self, path_and_query: &str, headers: &[(&str, String)]) -> Result<ureq::http::Response<ureq::Body>> {
+        let route = self.current();
+        match self.stream_on(&route, path_and_query, headers) {
+            Ok(resp) if route.lan && resp.status().as_u16() == 401 => self.stream_on(&self.fall_back(), path_and_query, headers).map_err(http::transport),
+            Ok(resp) => Ok(resp),
+            Err(_) if route.lan => self.stream_on(&self.fall_back(), path_and_query, headers).map_err(http::transport),
+            Err(e) => Err(http::transport(e)),
+        }
+    }
+
+    fn stream_on(&self, route: &Route, path_and_query: &str, headers: &[(&str, String)]) -> std::result::Result<ureq::http::Response<ureq::Body>, ureq::Error> {
+        let mut req = self.stream.get(format!("{}{path_and_query}", route.base)).header("Authorization", format!("Bearer {}", route.bearer));
+        for (k, v) in headers {
+            req = req.header(*k, v);
+        }
+        req.call()
+    }
+}
+
+fn send_json(req: ureq::RequestBuilder<ureq::typestate::WithBody>, body: Option<&Value>) -> std::result::Result<ureq::http::Response<ureq::Body>, ureq::Error> {
+    match body {
+        Some(v) => req.header("Content-Type", "application/json").send(v.to_string().as_bytes()),
+        None => req.send_empty(),
+    }
+}
+
+fn rev(bytes: &[u8]) -> Result<u64> {
+    #[derive(Deserialize)]
+    struct Rev {
+        rev: u64,
+    }
+    Ok(http::parse::<Rev>(bytes)?.rev)
+}
+
+/// Project ids are 32 lowercase hex digits (`uuid4().hex`); anything else never reaches a URL.
+fn project_id(id: &str) -> Result<&str> {
+    if id.len() == 32 && id.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
+        Ok(id)
+    } else {
+        Err(DriveError::Invalid(format!("project id {id:?}")))
+    }
+}
+
+fn project_path(id: &str) -> Result<String> {
+    Ok(format!("/api/team/projects/{}", project_id(id)?))
+}
+
+fn seq_path(project: &str, seq: u64) -> Result<String> {
+    if !(1..=MAX_ID).contains(&seq) {
+        return Err(DriveError::Invalid(format!("sequence id {seq}")));
+    }
+    Ok(format!("{}/sequences/{seq}", project_path(project)?))
+}

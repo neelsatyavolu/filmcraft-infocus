@@ -1,0 +1,32 @@
+[package]
+name = "filmcraft-drive"
+description = "InFocus Cut: the InFocus Drive client (sign-in, team project API, change feed and resumable downloads)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }
+# Same HTTP stack as filmcraft-speech's model downloads: blocking ureq, pure-Rust TLS (rustls +
+# RustCrypto) with OS certificate verification.
+ureq = { version = "3", default-features = false, features = ["rustls-no-provider", "platform-verifier"] }
+rustls-rustcrypto = "0.0.2-alpha"
+sha2 = "0.10"
+base64 = "0.23"
+getrandom = "0.3"
+toml = "1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Keychain access (generic passwords) through Apple's Security framework; already in the lock file
+# through the platform certificate verifier.
+security-framework = "3"
+
+[dev-dependencies]
+tempfile = "3.27"

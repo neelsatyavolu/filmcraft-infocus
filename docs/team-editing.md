@@ -12,7 +12,11 @@ updates live. Projects sync through InFocus Drive. The full design is in
 - `crates/team` (`filmcraft-team`): pure logic with no network and no UI. It splits a project into a
   shared part and one part per sequence, merges them back, strips local paths and proxies, and
   classifies which parts an edit changed. Later: the local media cache rules.
-- `crates/drive` (`filmcraft-drive`, planned): the InFocus Drive HTTP client and sign-in.
+- `crates/drive` (`filmcraft-drive`, layer 5, no UI): the InFocus Drive client. Browser sign-in
+  with PKCE (token in the Keychain, service `InFocus Cut`, account `drive`), one method per team
+  project route, the change feed parser, and resumable downloads that only rename a `.partial`
+  file once it is complete and checked. On campus it uses the LAN address with a short-lived LAN
+  token (the long-lived token never crosses the LAN) and falls back to the internet address.
 - Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
   [`config/infocus.example.toml`](../config/infocus.example.toml)) or the build environment
   variable `INFOCUS_DRIVE_URL`. Hosts are never hard-coded.

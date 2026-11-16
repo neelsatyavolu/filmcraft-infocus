@@ -2165,6 +2165,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "filmcraft-drive"
+version = "0.20.1"
+dependencies = [
+ "base64",
+ "getrandom 0.3.4",
+ "rustls-rustcrypto",
+ "security-framework",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.21",
+ "toml 1.1.6+spec-1.1.0",
+ "ureq",
+ "url",
+]
+
+[[package]]
 name = "filmcraft-edit"
 version = "0.20.1"
 dependencies = [

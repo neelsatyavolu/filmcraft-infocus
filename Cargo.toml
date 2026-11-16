@@ -40,6 +40,7 @@ filmcraft-scopes = { path = "crates/scopes" }
 filmcraft-export = { path = "crates/export" }
 filmcraft-format = { path = "crates/format" }
 filmcraft-team = { path = "crates/team" }
+filmcraft-drive = { path = "crates/drive" }
 filmcraft-engine = { path = "crates/engine" }
 filmcraft-ui-egui = { path = "crates/ui-egui" }
 filmcraft-automation = { path = "crates/automation" }
