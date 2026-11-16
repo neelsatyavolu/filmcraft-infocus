@@ -231,6 +231,18 @@ impl TeamSessionController {
     pub fn link_error(&self) -> Option<String> {
         self.open.as_ref().and_then(|o| o.status.last_error())
     }
+    /// The session's project as the Drive stores it (shared part and sequence parts, media at
+    /// their `drive:/` paths through this Mac's cache index), for comparing members' copies.
+    pub fn team_doc(&self, s: &Session) -> Result<TeamDoc, String> {
+        let o = self.open.as_ref().ok_or("no team project is open")?;
+        let index = o.media.index();
+        let media_ref = |m: &MediaRef| match m {
+            MediaRef::File { path } if path.starts_with(DRIVE_PREFIX) => Some(path.clone()),
+            MediaRef::File { path } => index.drive_ref_of(std::path::Path::new(path)).map(str::to_string),
+            _ => None,
+        };
+        filmcraft_team::split(&s.project, &media_ref).map_err(|e| e.to_string())
+    }
     pub fn exporting(&self) -> bool {
         self.open.as_ref().is_some_and(|o| o.exporting)
     }

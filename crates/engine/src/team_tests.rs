@@ -317,6 +317,20 @@ fn lock_taken_by_a_teammate_is_forgotten_before_refetching() {
 }
 
 #[test]
+fn idle_once_everything_is_on_the_drive() {
+    let (mut s, _fake, main, _) = team_demo();
+    assert!(s.team.as_ref().unwrap().idle());
+    s.team_take_lock(main).unwrap();
+    assert!(!s.team.as_ref().unwrap().idle(), "the lock is asked for");
+    s.poll_team(later(0));
+    add_marker(&mut s, main, "work").unwrap();
+    assert!(!s.team.as_ref().unwrap().idle(), "the edit waits for its push");
+    s.poll_team(later(2));
+    s.poll_team(later(3));
+    assert!(s.team.as_ref().unwrap().idle());
+}
+
+#[test]
 fn heartbeat_every_20_s_keeps_the_lock() {
     let (mut s, fake, main, _) = team_demo();
     let t0 = Instant::now();

@@ -234,6 +234,20 @@ impl TeamState {
         self.dirty.contains_key(&seq) || self.in_flight.contains(&seq) || self.local_new.contains(&seq)
     }
 
+    /// Nothing is waiting to go to the Drive or on its way: no lock asked for, no sequence push,
+    /// release or delete, and no shared change.
+    pub fn idle(&self) -> bool {
+        self.requested.is_empty()
+            && self.local_new.is_empty()
+            && self.dirty.is_empty()
+            && self.in_flight.is_empty()
+            && self.releasing.is_empty()
+            && self.deleting.is_empty()
+            && self.delete_in_flight.is_empty()
+            && self.shared_pending.is_empty()
+            && self.shared_in_flight.is_none()
+    }
+
     pub fn status(&self, seq: ItemId) -> SequenceStatus {
         if self.held.contains_key(&seq) || self.local_new.contains(&seq) {
             SequenceStatus::Editing { unsynced: self.unsynced(seq) }
