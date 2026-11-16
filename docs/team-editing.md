@@ -74,7 +74,12 @@ Keep these small so upstream merges stay easy.
   project the export waits, with a message naming what is still downloading, until the
   originals of the exported sequences are on this Mac (asking for them starts their download).
   `team_ui::tick` pauses downloads while any export runs, whichever route started it.
-- Packaging (planned): app name "InFocus Cut" and its own bundle id.
+- Name: the app shows "InFocus Cut" (window title, macOS app menu, About, Quit/Hide, error and
+  recovery dialogs) and the macOS bundle is `InFocus Cut.app` with the placeholder bundle id
+  `org.infocus.cut` (`packaging/macos`). The About dialog says it is based on FilmCraft; the
+  FilmCraft licence and copyright notices stay. The ArtCraft Discord and website links (Help
+  menu, About, Home, the header's Discord button) are gone; GitHub and Report an Issue go to
+  this fork. File formats keep their FilmCraft names (`.fcproj` is a FilmCraft Project).
 
 ## Merging upstream
 

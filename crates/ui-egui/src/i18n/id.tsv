@@ -21,7 +21,7 @@
 # thumbnail = gambar mini, voice-over = sulih suara, default = bawaan, preferences (also the native
 # macOS Settings menu) = Preferensi, settings = pengaturan.
 
-	About FilmCraft	Tentang FilmCraft
+	About InFocus Cut	Tentang InFocus Cut
 	Add Audio Submix Track	Tambah Trek Submix Audio
 	Add Caption at Playhead	Tambah Takarir di Kepala Putar
 	Add Chapter Marker…	Tambah Penanda Bab…
@@ -47,7 +47,6 @@
 	Apply Default Transitions to Selection	Terapkan Transisi Bawaan ke Pilihan
 	Apply Video Transition	Terapkan Transisi Video
 	Arrange	Susun
-	ArtCraft Website	Situs Web ArtCraft
 	Assembly	Perakitan
 	Attach Proxies…	Lampirkan Proksi…
 	Audio Channels…	Kanal Audio…
@@ -145,8 +144,7 @@
 	File…	Berkas…
 	Fill frame	Isi bingkai
 	FilmCraft Help…	Bantuan FilmCraft…
-	FilmCraft on GitHub	FilmCraft di GitHub
-	FilmCraft on getartcraft.com	FilmCraft di getartcraft.com
+	Source Code on GitHub	Kode sumber di GitHub
 	Find Next	Cari Berikutnya
 	Find…	Cari…
 	Fit	Pas
@@ -190,7 +188,6 @@
 	Insert Frame Hold Segment	Sisipkan Segmen Tahan Bingkai
 	Install Motion Graphics Template…	Pasang Templat Grafis Gerak…
 	Interpret Footage…	Interpretasikan Rekaman…
-	Join the ArtCraft Discord…	Gabung ke Discord ArtCraft…
 	Keyboard Shortcuts…	Pintasan Keyboard…
 	Label	Label
 	Labels…	Label…
@@ -386,7 +383,6 @@
 	Master volume: use the Audio Track Mixer	Volume master: gunakan Mixer Trek Audio
 	Search	Cari
 	Quick Export	Ekspor Cepat
-	Join the ArtCraft Discord (discord.gg/artcraft)	Gabung ke Discord ArtCraft (discord.gg/artcraft)
 	Cancel	Batal
 	OK	OK
 	Interpret Footage	Interpretasikan Rekaman
@@ -429,8 +425,6 @@
 	Delete Caption Track	Hapus Trek Takarir
 	Delete Empty Caption Tracks	Hapus Trek Takarir Kosong
 	Version {version}	Versi {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Editor video non-linear clean-room berbahasa Rust murni. Bagian dari keluarga ArtCraft.
-	Join the ArtCraft Discord	Gabung ke Discord ArtCraft
 	Source code on GitHub	Kode sumber di GitHub
 	Report an issue	Laporkan masalah
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Font: Inter, Noto Serif dan JetBrains Mono (SIL OFL 1.1).
@@ -450,8 +444,8 @@
 	No background jobs.	Tidak ada tugas latar belakang.
 	Recover Unsaved Changes	Pulihkan Perubahan yang Belum Disimpan
 	Untitled	Tanpa Judul
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft ditutup saat “{name}” masih memiliki perubahan yang belum disimpan.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft keluar secara tak terduga saat “{name}” masih memiliki perubahan yang belum disimpan.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut ditutup saat “{name}” masih memiliki perubahan yang belum disimpan.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut keluar secara tak terduga saat “{name}” masih memiliki perubahan yang belum disimpan.
 	Recover unsaved changes from {when}?	Pulihkan perubahan yang belum disimpan dari {when}?
 	The project had not been saved yet.	Proyek ini belum pernah disimpan.
 	{n} sessions have unsaved changes:	{n} sesi memiliki perubahan yang belum disimpan:
@@ -473,8 +467,6 @@
 	A cut sequence with transitions, effects and music	Sekuens yang sudah dipotong dengan transisi, efek, dan musik
 	Bars and Tone	Bar dan Nada
 	SMPTE HD bars with 1 kHz reference tone	Bar SMPTE HD dengan nada referensi 1 kHz
-	Community	Komunitas
-	Join us on Discord	Bergabunglah dengan kami di Discord
 	OMF Export Settings	Pengaturan Ekspor OMF
 	AAF Export Settings	Pengaturan Ekspor AAF
 	OMF Title:	Judul OMF:
@@ -2990,7 +2982,7 @@
 	Drag a clip to slide it between its neighbours.	Seret klip untuk menggesernya di antara klip tetangganya.
 	Drag to scroll the timeline.	Seret untuk menggulir linimasa.
 	Click to zoom in; Opt-click to zoom out.	Klik untuk memperbesar; Opt-klik untuk memperkecil.
-	FilmCraft hit an error	FilmCraft mengalami galat
+	InFocus Cut hit an error	InFocus Cut mengalami galat
 	Details: {path}	Detail: {path}
 	Opened {url}	Membuka {url}
 	(empty)	(kosong)
@@ -3243,7 +3235,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) dengan kanal alfa, PCM 24-bit 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), PCM 24-bit 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, PCM 24-bit 48 kHz
-	Quit FilmCraft	Keluar dari FilmCraft
+	Quit InFocus Cut	Keluar dari InFocus Cut
 	Rate Stretch Tool	Alat Regang Laju
 	Razor Tool	Alat Silet
 	Rectangle Tool	Alat Persegi Panjang

@@ -14,7 +14,7 @@
 # ProRes, LUFS, H.264…) keep their spelling, as do key-cap names (Shift, Alt, Ctrl, Cmd, Opt, Esc).
 # Commands are imperatives addressed with "tu"; decimals use a comma (29,97 fps).
 
-	About FilmCraft	Informazioni su FilmCraft
+	About InFocus Cut	Informazioni su InFocus Cut
 	Add Audio Submix Track	Aggiungi traccia submix audio
 	Add Caption at Playhead	Aggiungi sottotitolo all'indicatore di riproduzione
 	Add Chapter Marker…	Aggiungi marcatore di capitolo…
@@ -40,7 +40,6 @@
 	Apply Default Transitions to Selection	Applica transizioni predefinite alla selezione
 	Apply Video Transition	Applica transizione video
 	Arrange	Disponi
-	ArtCraft Website	Sito web di ArtCraft
 	Assembly	Assemblaggio
 	Attach Proxies…	Associa proxy…
 	Audio Channels…	Canali audio…
@@ -138,8 +137,7 @@
 	File…	File…
 	Fill frame	Riempi il fotogramma
 	FilmCraft Help…	Guida di FilmCraft…
-	FilmCraft on GitHub	FilmCraft su GitHub
-	FilmCraft on getartcraft.com	FilmCraft su getartcraft.com
+	Source Code on GitHub	Codice sorgente su GitHub
 	Find Next	Trova successivo
 	Find…	Trova…
 	Fit	Adatta
@@ -183,7 +181,6 @@
 	Insert Frame Hold Segment	Inserisci segmento di fermo immagine
 	Install Motion Graphics Template…	Installa modello di grafica animata…
 	Interpret Footage…	Interpreta metraggio…
-	Join the ArtCraft Discord…	Unisciti al Discord di ArtCraft…
 	Keyboard Shortcuts…	Scorciatoie da tastiera…
 	Label	Etichetta
 	Labels…	Etichette…
@@ -376,7 +373,6 @@
 	Master volume: use the Audio Track Mixer	Volume master: usa il Mixer tracce audio
 	Search	Cerca
 	Quick Export	Esportazione rapida
-	Join the ArtCraft Discord (discord.gg/artcraft)	Unisciti al Discord di ArtCraft (discord.gg/artcraft)
 	Cancel	Annulla
 	OK	OK
 	Interpret Footage	Interpreta metraggio
@@ -419,8 +415,6 @@
 	Delete Caption Track	Elimina traccia sottotitoli
 	Delete Empty Caption Tracks	Elimina tracce sottotitoli vuote
 	Version {version}	Versione {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Un editor video non lineare clean-room, interamente in Rust. Parte della famiglia ArtCraft.
-	Join the ArtCraft Discord	Unisciti al Discord di ArtCraft
 	Source code on GitHub	Codice sorgente su GitHub
 	Report an issue	Segnala un problema
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Font: Inter, Noto Serif e JetBrains Mono (SIL OFL 1.1).
@@ -440,8 +434,8 @@
 	No background jobs.	Nessun processo in background.
 	Recover Unsaved Changes	Recupera modifiche non salvate
 	Untitled	Senza titolo
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft è stato chiuso mentre “{name}” aveva modifiche non salvate.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft si è chiuso inaspettatamente mentre “{name}” aveva modifiche non salvate.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut è stato chiuso mentre “{name}” aveva modifiche non salvate.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut si è chiuso inaspettatamente mentre “{name}” aveva modifiche non salvate.
 	Recover unsaved changes from {when}?	Recuperare le modifiche non salvate del {when}?
 	The project had not been saved yet.	Il progetto non era ancora stato salvato.
 	{n} sessions have unsaved changes:	{n} sessioni hanno modifiche non salvate:
@@ -463,8 +457,6 @@
 	A cut sequence with transitions, effects and music	Una sequenza montata con transizioni, effetti e musica
 	Bars and Tone	Barre e tono
 	SMPTE HD bars with 1 kHz reference tone	Barre SMPTE HD con tono di riferimento a 1 kHz
-	Community	Community
-	Join us on Discord	Unisciti a noi su Discord
 	OMF Export Settings	Impostazioni di esportazione OMF
 	AAF Export Settings	Impostazioni di esportazione AAF
 	OMF Title:	Titolo OMF:
@@ -2978,7 +2970,7 @@
 	Drag a clip to slide it between its neighbours.	Trascina una clip per farla scivolare tra le clip adiacenti.
 	Drag to scroll the timeline.	Trascina per scorrere la timeline.
 	Click to zoom in; Opt-click to zoom out.	Fai clic per ingrandire; Opt+clic per ridurre.
-	FilmCraft hit an error	FilmCraft ha riscontrato un errore
+	InFocus Cut hit an error	InFocus Cut ha riscontrato un errore
 	Details: {path}	Dettagli: {path}
 	Opened {url}	Aperto {url}
 	(empty)	(vuoto)
@@ -3237,7 +3229,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) con canale alfa, PCM 24 bit 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), PCM 24 bit 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, PCM 24 bit 48 kHz
-	Quit FilmCraft	Esci da FilmCraft
+	Quit InFocus Cut	Esci da InFocus Cut
 	Rate Stretch Tool	Strumento Allungamento velocità
 	Razor Tool	Strumento Lama
 	Rectangle Tool	Strumento Rettangolo
@@ -3607,7 +3599,6 @@
 	MXF export writes integer PCM only	L'esportazione MXF scrive solo PCM intero
 	Saves this session's log and shows it in your file manager.	Salva il registro di questa sessione e lo mostra nel gestore file.
 	Shows a report on this computer.	Mostra un rapporto su questo computer.
-	Shows the version, community links and credits in a FilmCraft window.	Mostra la versione, i link della community e i riconoscimenti in una finestra di FilmCraft.
 	Couldn't open your web browser	Impossibile aprire il browser web
 	Open this address in your browser yourself:	Apri tu questo indirizzo nel browser:
 # View > Reset Interface Zoom (#2253).

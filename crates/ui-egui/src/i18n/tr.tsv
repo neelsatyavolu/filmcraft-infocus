@@ -12,7 +12,7 @@
 # product UI was consulted or copied; add entries the same way. Product and technology names
 # (FilmCraft, ArtCraft, ProRes, LUFS, H.264…) keep their spelling.
 
-	About FilmCraft	FilmCraft Hakkında
+	About InFocus Cut	InFocus Cut Hakkında
 	Add Audio Submix Track	Ses Alt Miksaj İzi Ekle
 	Add Caption at Playhead	Oynatma Kafasına Altyazı Ekle
 	Add Chapter Marker…	Bölüm İşaretçisi Ekle…
@@ -38,7 +38,6 @@
 	Apply Default Transitions to Selection	Seçime Varsayılan Geçişleri Uygula
 	Apply Video Transition	Video Geçişi Uygula
 	Arrange	Sırala
-	ArtCraft Website	ArtCraft Web Sitesi
 	Assembly	Birleştirme
 	Attach Proxies…	Proxy'leri İliştir…
 	Audio Channels…	Ses Kanalları…
@@ -132,8 +131,7 @@
 	File…	Dosya…
 	Fill frame	Kareyi doldur
 	FilmCraft Help…	FilmCraft Yardımı…
-	FilmCraft on GitHub	GitHub'da FilmCraft
-	FilmCraft on getartcraft.com	getartcraft.com'da FilmCraft
+	Source Code on GitHub	GitHub'daki kaynak kodu
 	Find Next	Sonrakini Bul
 	Find…	Bul…
 	Fit	Sığdır
@@ -177,7 +175,6 @@
 	Insert Frame Hold Segment	Kare Dondurma Segmenti Ekle
 	Install Motion Graphics Template…	Hareketli Grafik Şablonu Yükle…
 	Interpret Footage…	Çekimi Yorumla…
-	Join the ArtCraft Discord…	ArtCraft Discord'una Katıl…
 	Keyboard Shortcuts…	Klavye Kısayolları…
 	Label	Etiket
 	Labels…	Etiketler…
@@ -372,7 +369,6 @@
 	Master volume: use the Audio Track Mixer	Ana ses düzeyi: Ses İzi Karıştırıcısı'nı kullanın
 	Search	Ara
 	Quick Export	Hızlı Dışa Aktar
-	Join the ArtCraft Discord (discord.gg/artcraft)	ArtCraft Discord'una Katılın (discord.gg/artcraft)
 	Cancel	İptal
 	OK	Tamam
 	Interpret Footage	Görüntüyü Yorumla
@@ -415,8 +411,6 @@
 	Delete Caption Track	Altyazı İzini Sil
 	Delete Empty Caption Tracks	Boş Altyazı İzlerini Sil
 	Version {version}	Sürüm {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Temiz oda prensibiyle geliştirilmiş, saf Rust doğrusal olmayan video düzenleyici. ArtCraft ailesinin bir parçası.
-	Join the ArtCraft Discord	ArtCraft Discord'una Katılın
 	Source code on GitHub	GitHub'daki kaynak kodu
 	Report an issue	Sorun bildir
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT VEYA Apache-2.0. Yazı Tipleri: Inter, Noto Serif ve JetBrains Mono (SIL OFL 1.1).
@@ -436,8 +430,8 @@
 	No background jobs.	Arka plan işi yok.
 	Recover Unsaved Changes	Kaydedilmemiş Değişiklikleri Kurtar
 	Untitled	Başlıksız
-	FilmCraft was closed while “{name}” had unsaved changes.	“{name}” kaydedilmemiş değişiklikler içerirken FilmCraft kapatıldı.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	“{name}” kaydedilmemiş değişiklikler içerirken FilmCraft beklenmedik şekilde kapandı.
+	InFocus Cut was closed while “{name}” had unsaved changes.	“{name}” kaydedilmemiş değişiklikler içerirken InFocus Cut kapatıldı.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	“{name}” kaydedilmemiş değişiklikler içerirken InFocus Cut beklenmedik şekilde kapandı.
 	Recover unsaved changes from {when}?	{when} tarihli kaydedilmemiş değişiklikler kurtarılsın mı?
 	The project had not been saved yet.	Proje henüz kaydedilmemişti.
 	{n} sessions have unsaved changes:	{n} oturumda kaydedilmemiş değişiklikler var:
@@ -456,8 +450,6 @@
 	A cut sequence with transitions, effects and music	Geçişler, efektler ve müzik içeren kurgulanmış bir sekans
 	Bars and Tone	Renk Çubukları ve Ton
 	SMPTE HD bars with 1 kHz reference tone	1 kHz referans tonlu SMPTE HD renk çubukları
-	Community	Topluluk
-	Join us on Discord	Discord'da bize katılın
 	OMF Export Settings	OMF Dışa Aktarma Ayarları
 	AAF Export Settings	AAF Dışa Aktarma Ayarları
 	OMF Title:	OMF Başlığı:
@@ -1834,7 +1826,7 @@
 	Height	Yükseklik
 	Hexagon	Altıgen
 	Hide Back Face	Arka Yüzü Gizle
-	Hide FilmCraft	FilmCraft'ı Gizle
+	Hide InFocus Cut	InFocus Cut'ı Gizle
 	Hide Others	Diğerlerini Gizle
 	High	Yüksek
 	High Cutoff	Yüksek Kesme
@@ -2977,7 +2969,7 @@
 	Drag a clip to slide it between its neighbours.	Bir klibi komşuları arasında ötelemek için sürükleyin.
 	Drag to scroll the timeline.	Zaman çizgisini kaydırmak için sürükleyin.
 	Click to zoom in; Opt-click to zoom out.	Yakınlaştırmak için tıklayın; uzaklaştırmak için Opt ile tıklayın.
-	FilmCraft hit an error	FilmCraft bir hatayla karşılaştı
+	InFocus Cut hit an error	InFocus Cut bir hatayla karşılaştı
 	Details: {path}	Ayrıntılar: {path}
 	Opened {url}	{url} açıldı
 	(empty)	(boş)
@@ -3236,7 +3228,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, alfa kanallı ProRes 4444 (4:4:4), 24 bit 48 kHz PCM
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), 24 bit 48 kHz PCM
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, 24 bit 48 kHz PCM
-	Quit FilmCraft	FilmCraft'tan Çık
+	Quit InFocus Cut	InFocus Cut'tan Çık
 	Rate Stretch Tool	Oran Uzatma Aracı
 	Razor Tool	Jilet Aracı
 	Rectangle Tool	Dikdörtgen Aracı
@@ -3600,7 +3592,6 @@
 	Opens in your web browser: {url}	Web tarayıcınızda açılır: {url}
 	Saves this session's log and shows it in your file manager.	Bu oturumun günlüğünü kaydeder ve dosya yöneticinizde gösterir.
 	Shows a report on this computer.	Bu bilgisayar hakkında bir rapor gösterir.
-	Shows the version, community links and credits in a FilmCraft window.	Sürümü, topluluk bağlantılarını ve jeneriği bir FilmCraft penceresinde gösterir.
 	Couldn't open your web browser	Web tarayıcınız açılamadı
 	Open this address in your browser yourself:	Bu adresi tarayıcınızda kendiniz açın:
 

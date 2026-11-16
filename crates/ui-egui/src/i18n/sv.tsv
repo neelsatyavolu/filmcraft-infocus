@@ -15,7 +15,7 @@
 # Labels use sentence case; commands are imperatives; Delete = Radera, Remove = Ta bort,
 # Clear = Rensa; decimals use a comma and frame rates are written bild/s (29,97 bild/s).
 
-	About FilmCraft	Om FilmCraft
+	About InFocus Cut	Om InFocus Cut
 	Add Audio Submix Track	Lägg till ljudsubmixspår
 	Add Caption at Playhead	Lägg till undertext vid spelmarkören
 	Add Chapter Marker…	Lägg till kapitelmarkör…
@@ -41,7 +41,6 @@
 	Apply Default Transitions to Selection	Använd standardövergångar på markering
 	Apply Video Transition	Använd videoövergång
 	Arrange	Ordna
-	ArtCraft Website	ArtCrafts webbplats
 	Assembly	Sammanställning
 	Attach Proxies…	Koppla proxyer…
 	Audio Channels…	Ljudkanaler…
@@ -135,8 +134,7 @@
 	File…	Fil…
 	Fill frame	Fyll bildrutan
 	FilmCraft Help…	FilmCraft-hjälp…
-	FilmCraft on GitHub	FilmCraft på GitHub
-	FilmCraft on getartcraft.com	FilmCraft på getartcraft.com
+	Source Code on GitHub	Källkod på GitHub
 	Find Next	Sök nästa
 	Find…	Sök…
 	Fit	Anpassa
@@ -180,7 +178,6 @@
 	Insert Frame Hold Segment	Infoga frysbildssegment
 	Install Motion Graphics Template…	Installera rörlig grafik-mall…
 	Interpret Footage…	Tolka material…
-	Join the ArtCraft Discord…	Gå med i ArtCraft på Discord…
 	Keyboard Shortcuts…	Kortkommandon…
 	Label	Etikett
 	Labels…	Etiketter…
@@ -375,7 +372,6 @@
 	Master volume: use the Audio Track Mixer	Huvudvolym: använd ljudspårsmixern
 	Search	Sök
 	Quick Export	Snabbexport
-	Join the ArtCraft Discord (discord.gg/artcraft)	Gå med i ArtCraft på Discord (discord.gg/artcraft)
 	Cancel	Avbryt
 	OK	OK
 	Interpret Footage	Tolka material
@@ -418,8 +414,6 @@
 	Delete Caption Track	Radera undertextspåret
 	Delete Empty Caption Tracks	Radera tomma undertextspår
 	Version {version}	Version {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	En icke-linjär videoredigerare i ren Rust, utvecklad enligt clean room-metoden. En del av ArtCraft-familjen.
-	Join the ArtCraft Discord	Gå med i ArtCraft på Discord
 	Source code on GitHub	Källkod på GitHub
 	Report an issue	Rapportera ett problem
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Typsnitt: Inter, Noto Serif och JetBrains Mono (SIL OFL 1.1).
@@ -439,8 +433,8 @@
 	No background jobs.	Inga bakgrundsjobb.
 	Recover Unsaved Changes	Återställ osparade ändringar
 	Untitled	Namnlös
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft stängdes medan “{name}” hade osparade ändringar.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft avslutades oväntat medan “{name}” hade osparade ändringar.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut stängdes medan “{name}” hade osparade ändringar.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut avslutades oväntat medan “{name}” hade osparade ändringar.
 	Recover unsaved changes from {when}?	Vill du återställa osparade ändringar från {when}?
 	The project had not been saved yet.	Projektet hade inte sparats ännu.
 	{n} sessions have unsaved changes:	{n} sessioner har osparade ändringar:
@@ -459,8 +453,6 @@
 	A cut sequence with transitions, effects and music	En klippt sekvens med övergångar, effekter och musik
 	Bars and Tone	Färgstaplar och ton
 	SMPTE HD bars with 1 kHz reference tone	SMPTE HD-färgstaplar med 1 kHz referenston
-	Community	Gemenskap
-	Join us on Discord	Gå med oss på Discord
 	OMF Export Settings	OMF-exportinställningar
 	AAF Export Settings	AAF-exportinställningar
 	OMF Title:	OMF-titel:
@@ -1837,7 +1829,7 @@
 	Height	Höjd
 	Hexagon	Hexagon
 	Hide Back Face	Dölj baksida
-	Hide FilmCraft	Göm FilmCraft
+	Hide InFocus Cut	Göm InFocus Cut
 	Hide Others	Göm övriga
 	High	Hög
 	High Cutoff	Övre brytfrekvens
@@ -2980,7 +2972,7 @@
 	Drag a clip to slide it between its neighbours.	Dra ett klipp för att slide-flytta det mellan grannklippen.
 	Drag to scroll the timeline.	Dra för att rulla tidslinjen.
 	Click to zoom in; Opt-click to zoom out.	Klicka för att zooma in; Opt-klicka för att zooma ut.
-	FilmCraft hit an error	FilmCraft stötte på ett fel
+	InFocus Cut hit an error	InFocus Cut stötte på ett fel
 	Details: {path}	Detaljer: {path}
 	Opened {url}	Öppnade {url}
 	(empty)	(tom)
@@ -3239,7 +3231,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) med alfakanal, PCM 24 bitar 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), PCM 24 bitar 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, PCM 24 bitar 48 kHz
-	Quit FilmCraft	Avsluta FilmCraft
+	Quit InFocus Cut	Avsluta InFocus Cut
 	Rate Stretch Tool	Hastighetssträckningsverktyg
 	Razor Tool	Rakbladsverktyg
 	Rectangle Tool	Rektangelverktyg
@@ -3601,7 +3593,6 @@
 	Opens in your web browser: {url}	Öppnas i din webbläsare: {url}
 	Saves this session's log and shows it in your file manager.	Sparar loggen för den här sessionen och visar den i filhanteraren.
 	Shows a report on this computer.	Visar en rapport om den här datorn.
-	Shows the version, community links and credits in a FilmCraft window.	Visar version, communitylänkar och medverkande i ett FilmCraft-fönster.
 	Couldn't open your web browser	Det gick inte att öppna webbläsaren
 	Open this address in your browser yourself:	Öppna den här adressen i webbläsaren själv:
 	Delete Redoable Actions	Radera åtgärder som kan göras om

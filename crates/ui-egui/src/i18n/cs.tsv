@@ -14,7 +14,7 @@
 #   escapes  \n  \t  \\ inside a column. Keep {name} placeholders in both columns.
 #   lines starting with # and blank lines are ignored.
 
-	About FilmCraft	O aplikaci FilmCraft
+	About InFocus Cut	O aplikaci InFocus Cut
 	Add Audio Submix Track	Přidat stopu zvukové podskupiny
 	Add Caption at Playhead	Přidat titulek na pozici přehrávací hlavy
 	Add Chapter Marker…	Přidat značku kapitoly…
@@ -40,7 +40,6 @@
 	Apply Default Transitions to Selection	Použít výchozí přechody na výběr
 	Apply Video Transition	Použít videopřechod
 	Arrange	Uspořádat
-	ArtCraft Website	Web ArtCraft
 	Assembly	Sestavení
 	Attach Proxies…	Připojit proxy soubory…
 	Audio Channels…	Zvukové kanály…
@@ -134,8 +133,7 @@
 	File…	Soubor…
 	Fill frame	Vyplnit snímek
 	FilmCraft Help…	Nápověda k FilmCraft…
-	FilmCraft on GitHub	FilmCraft na GitHubu
-	FilmCraft on getartcraft.com	FilmCraft na getartcraft.com
+	Source Code on GitHub	Zdrojový kód na GitHubu
 	Find Next	Najít další
 	Find…	Najít…
 	Fit	Přizpůsobit
@@ -167,7 +165,7 @@
 	Guide Templates	Šablony vodítek
 	Help	Nápověda
 	Hide All Caption Tracks	Skrýt všechny stopy titulků
-	Hide FilmCraft	Skrýt FilmCraft
+	Hide InFocus Cut	Skrýt InFocus Cut
 	Hide Others	Skrýt ostatní
 	High Quality Playback	Přehrávání ve vysoké kvalitě
 	History	Historie
@@ -181,7 +179,6 @@
 	Insert Frame Hold Segment	Vložit segment se zmrazeným snímkem
 	Install Motion Graphics Template…	Nainstalovat šablonu pohyblivé grafiky…
 	Interpret Footage…	Interpretovat záběry…
-	Join the ArtCraft Discord…	Připojit se k Discordu ArtCraft…
 	Keyboard Shortcuts…	Klávesové zkratky…
 	Label	Štítek
 	Labels…	Štítky…
@@ -374,7 +371,6 @@
 	Master volume: use the Audio Track Mixer	Celkovou hlasitost nastavte v mixážním pultu zvukových stop.
 	Search	Hledat
 	Quick Export	Rychlý export
-	Join the ArtCraft Discord (discord.gg/artcraft)	Připojit se k Discordu ArtCraft (discord.gg/artcraft)
 	Cancel	Zrušit
 	OK	Potvrdit
 	Interpret Footage	Interpretovat záběry
@@ -417,8 +413,6 @@
 	Delete Caption Track	Odstranit stopu titulků
 	Delete Empty Caption Tracks	Odstranit prázdné stopy titulků
 	Version {version}	Verze {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Nelineární videoeditor napsaný čistě v Rustu, vytvořený nezávislou implementací. Součást rodiny ArtCraft.
-	Join the ArtCraft Discord	Připojit se k Discordu ArtCraft
 	Source code on GitHub	Zdrojový kód na GitHubu
 	Report an issue	Nahlásit problém
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Písma: Inter, Noto Serif a JetBrains Mono (SIL OFL 1.1).
@@ -438,8 +432,8 @@
 	No background jobs.	Žádné úlohy na pozadí.
 	Recover Unsaved Changes	Obnovit neuložené změny
 	Untitled	Bez názvu
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft byl zavřen, když projekt „{name}“ obsahoval neuložené změny.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft se neočekávaně ukončil, když projekt „{name}“ obsahoval neuložené změny.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut byl zavřen, když projekt „{name}“ obsahoval neuložené změny.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut se neočekávaně ukončil, když projekt „{name}“ obsahoval neuložené změny.
 	Recover unsaved changes from {when}?	Obnovit neuložené změny z {when}?
 	The project had not been saved yet.	Projekt ještě nebyl uložen.
 	{n} sessions have unsaved changes:	Počet relací s neuloženými změnami: {n}
@@ -458,8 +452,6 @@
 	A cut sequence with transitions, effects and music	Sestříhaná sekvence s přechody, efekty a hudbou
 	Bars and Tone	Barevné pruhy a tón
 	SMPTE HD bars with 1 kHz reference tone	Pruhy SMPTE HD s referenčním tónem 1 kHz
-	Community	Komunita
-	Join us on Discord	Připojit se k nám na Discordu
 	OMF Export Settings	Nastavení exportu OMF
 	AAF Export Settings	Nastavení exportu AAF
 	OMF Title:	Název OMF:
@@ -2969,7 +2961,7 @@
 	Drag a clip to slide it between its neighbours.	Tažením klipu jej posuňte mezi sousedními klipy.
 	Drag to scroll the timeline.	Tažením posouvejte časovou osu.
 	Click to zoom in; Opt-click to zoom out.	Kliknutím přiblížíte; Opt+kliknutím oddálíte.
-	FilmCraft hit an error	Ve FilmCraft došlo k chybě
+	InFocus Cut hit an error	Ve InFocus Cut došlo k chybě
 	Details: {path}	Podrobnosti: {path}
 	Opened {url}	Otevřeno {url}
 	(empty)	(prázdné)
@@ -3223,7 +3215,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) s alfa kanálem, 24bitové PCM 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), 24bitové PCM 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, 24bitové PCM 48 kHz
-	Quit FilmCraft	Ukončit FilmCraft
+	Quit InFocus Cut	Ukončit InFocus Cut
 	Rate Stretch Tool	Nástroj Změna rychlosti
 	Razor Tool	Nástroj Žiletka
 	Rectangle Tool	Nástroj Obdélník
@@ -3606,7 +3598,6 @@
 	Recent	Nedávné
 	Saves this session's log and shows it in your file manager.	Uloží protokol této relace a zobrazí jej ve správci souborů.
 	Shows a report on this computer.	Zobrazí zprávu o tomto počítači.
-	Shows the version, community links and credits in a FilmCraft window.	Zobrazí verzi, odkazy na komunitu a poděkování v okně FilmCraft.
 	no Korean font is installed on this system; the interface stays in English	v systému není nainstalováno korejské písmo; rozhraní zůstává v angličtině
 	Animate zoom, scrolling and menus	Animovat přibližování, posouvání a nabídky
 	No matching text.	Žádný odpovídající text.

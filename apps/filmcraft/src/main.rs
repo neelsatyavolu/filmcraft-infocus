@@ -76,7 +76,7 @@ fn tell(text: &str, error: bool) {
     #[cfg(all(target_os = "windows", not(debug_assertions)))]
     {
         let level = if error { rfd::MessageLevel::Error } else { rfd::MessageLevel::Info };
-        let _ = rfd::MessageDialog::new().set_level(level).set_title("FilmCraft").set_description(text).show();
+        let _ = rfd::MessageDialog::new().set_level(level).set_title("InFocus Cut").set_description(text).show();
     }
 }
 
@@ -156,7 +156,7 @@ fn main() -> eframe::Result {
         log::error!("{msg}");
         filmcraft_ui_egui::crash::record(&msg);
         graphics.abandon();
-        let _ = rfd::MessageDialog::new().set_title("FilmCraft").set_description(&msg).set_level(rfd::MessageLevel::Error).show();
+        let _ = rfd::MessageDialog::new().set_title("InFocus Cut").set_description(&msg).set_level(rfd::MessageLevel::Error).show();
         std::process::exit(1);
     }
     // The GPU export renderer creates its own wgpu instance with every backend; after a start
@@ -172,7 +172,7 @@ fn main() -> eframe::Result {
         graphics::apply(&mut options, graphics.mode(), backend_override);
         let app_created = Arc::new(AtomicBool::new(false));
         let creator = app_creator(launch.clone(), graphics.clone(), Arc::clone(&app_created));
-        let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| eframe::run_native("FilmCraft", options, creator)));
+        let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| eframe::run_native("InFocus Cut", options, creator)));
         let app_created = app_created.load(Ordering::Relaxed);
         let result = match run {
             Ok(result) => result,
@@ -235,7 +235,7 @@ fn main() -> eframe::Result {
         }
         log::error!("{msg}");
         filmcraft_ui_egui::crash::record(&msg);
-        let _ = rfd::MessageDialog::new().set_title("FilmCraft").set_description(&msg).set_level(rfd::MessageLevel::Error).show();
+        let _ = rfd::MessageDialog::new().set_title("InFocus Cut").set_description(&msg).set_level(rfd::MessageLevel::Error).show();
     }
     started
 }
@@ -286,7 +286,7 @@ fn panic_text(panic: &(dyn std::any::Any + Send)) -> &str {
 fn native_options(agent: bool) -> eframe::NativeOptions {
     eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title("FilmCraft")
+            .with_title("InFocus Cut")
             .with_inner_size([1600.0, 980.0])
             .with_min_inner_size([900.0, 560.0])
             .with_drag_and_drop(true)

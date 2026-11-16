@@ -16,7 +16,7 @@
 #     (not 効果), ぼかし, 音量, ビデオ, 再生ヘッド, イン点/アウト点.
 #   - "Horizontal"/"Vertical" are 水平/垂直 (guides, blur, axes); vertical text is "Vertical Text".
 
-	About FilmCraft	FilmCraft について
+	About InFocus Cut	InFocus Cut について
 	Check for Updates…	アップデートを確認…
 	Checking for updates…	アップデートを確認中…
 	Could not check for updates:\n{error}	アップデートを確認できませんでした:\n{error}
@@ -47,7 +47,6 @@
 	Apply Default Transitions to Selection	選択範囲に既定のトランジションを適用
 	Apply Video Transition	ビデオトランジションを適用
 	Arrange	重ね順
-	ArtCraft Website	ArtCraft の Web サイト
 	Assembly	アセンブリ
 	Attach Proxies…	プロキシを関連付け…
 	Audio Channels…	オーディオチャンネル…
@@ -145,8 +144,7 @@
 	File…	ファイル…
 	Fill frame	フレームを埋める
 	FilmCraft Help…	FilmCraft ヘルプ…
-	FilmCraft on GitHub	GitHub の FilmCraft
-	FilmCraft on getartcraft.com	getartcraft.com の FilmCraft
+	Source Code on GitHub	GitHub のソースコード
 	Find Next	次を検索
 	Find…	検索…
 	Fit	合わせる
@@ -193,7 +191,6 @@
 	Insert Frame Hold Segment	フレームホールドセグメントを挿入
 	Install Motion Graphics Template…	モーショングラフィックステンプレートをインストール…
 	Interpret Footage…	素材を解釈…
-	Join the ArtCraft Discord…	ArtCraft の Discord に参加…
 	Keyboard Shortcuts…	キーボードショートカット…
 	Label	ラベル
 	Labels…	ラベル…
@@ -389,7 +386,6 @@
 	Master volume: use the Audio Track Mixer	マスター音量はオーディオトラックミキサーで調整してください
 	Search	検索
 	Quick Export	クイック書き出し
-	Join the ArtCraft Discord (discord.gg/artcraft)	ArtCraft の Discord に参加 (discord.gg/artcraft)
 	Cancel	キャンセル
 	OK	OK
 	Interpret Footage	素材を解釈
@@ -428,8 +424,6 @@
 	Delete Audio Tracks	オーディオトラックを削除する
 	All Empty Tracks	すべての空のトラック
 	Version {version}	バージョン {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Rust だけで書かれた、クリーンルーム設計のノンリニアビデオ編集ソフトです。ArtCraft ファミリーの一員です。
-	Join the ArtCraft Discord	ArtCraft の Discord に参加
 	Source code on GitHub	GitHub のソースコード
 	Report an issue	問題を報告
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0。フォント: Inter、Noto Serif、JetBrains Mono (SIL OFL 1.1)。
@@ -449,8 +443,8 @@
 	No background jobs.	バックグラウンドジョブはありません。
 	Recover Unsaved Changes	未保存の変更を復元
 	Untitled	名称未設定
-	FilmCraft was closed while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で FilmCraft が終了しました。
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で FilmCraft が予期せず終了しました。
+	InFocus Cut was closed while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で InFocus Cut が終了しました。
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で InFocus Cut が予期せず終了しました。
 	Recover unsaved changes from {when}?	{when} の未保存の変更を復元しますか？
 	The project had not been saved yet.	このプロジェクトはまだ保存されていませんでした。
 	{n} sessions have unsaved changes:	{n} 件のセッションに未保存の変更があります:
@@ -472,8 +466,6 @@
 	A cut sequence with transitions, effects and music	トランジション、エフェクト、音楽を含む編集済みのシーケンス
 	Bars and Tone	カラーバーとトーン
 	SMPTE HD bars with 1 kHz reference tone	1 kHz 基準トーン付きの SMPTE HD カラーバー
-	Community	コミュニティ
-	Join us on Discord	Discord に参加
 	OMF Export Settings	OMF 書き出し設定
 	AAF Export Settings	AAF 書き出し設定
 	OMF Title:	OMF タイトル:
@@ -2986,7 +2978,7 @@
 	Drag a clip to slide it between its neighbours.	クリップをドラッグすると、前後のクリップの間でスライドします。
 	Drag to scroll the timeline.	ドラッグしてタイムラインをスクロールします。
 	Click to zoom in; Opt-click to zoom out.	クリックでズームイン、Opt+クリックでズームアウトします。
-	FilmCraft hit an error	FilmCraft でエラーが発生しました
+	InFocus Cut hit an error	InFocus Cut でエラーが発生しました
 	Details: {path}	詳細: {path}
 	Opened {url}	{url} を開きました
 	(empty)	(空)
@@ -3249,9 +3241,9 @@
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime、ProRes 4444 XQ (4:4:4)、24-bit 48 kHz PCM
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime、ProRes 422、24-bit 48 kHz PCM
 	Settings	設定
-	Hide FilmCraft	FilmCraft を隠す
+	Hide InFocus Cut	InFocus Cut を隠す
 	Hide Others	ほかを隠す
-	Quit FilmCraft	FilmCraft を終了
+	Quit InFocus Cut	InFocus Cut を終了
 	Rate Stretch Tool	レートストレッチツール
 	Razor Tool	カミソリツール
 	Rectangle Tool	長方形ツール
@@ -3634,7 +3626,6 @@
 	Delete this preset	このプリセットを削除
 	Saves this session's log and shows it in your file manager.	このセッションのログを保存し、ファイルマネージャーで表示します。
 	Shows a report on this computer.	このコンピューターのレポートを表示します。
-	Shows the version, community links and credits in a FilmCraft window.	バージョン、コミュニティへのリンク、クレジットを FilmCraft のウィンドウに表示します。
 	Looks for a newer FilmCraft release and offers to update.	FilmCraft の新しいリリースを確認し、アップデートを提案します。
 	Couldn't open your web browser	ウェブブラウザーを開けませんでした
 	Open this address in your browser yourself:	このアドレスをご自身でブラウザーで開いてください：

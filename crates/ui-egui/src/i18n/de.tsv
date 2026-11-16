@@ -20,7 +20,7 @@
 # Option = Wahl, Ctrl = Strg.
 
 	AAF…	AAF…
-	About FilmCraft	Über FilmCraft
+	About InFocus Cut	Über InFocus Cut
 	Add Audio Submix Track	Audio-Submix-Spur hinzufügen
 	Add Caption at Playhead	Untertitel an Abspielposition hinzufügen
 	Add Chapter Marker…	Kapitelmarker hinzufügen…
@@ -46,7 +46,6 @@
 	Apply Default Transitions to Selection	Standardübergänge auf Auswahl anwenden
 	Apply Video Transition	Videoübergang anwenden
 	Arrange	Anordnen
-	ArtCraft Website	ArtCraft-Website
 	Assembly	Montage
 	Attach Proxies…	Proxys anhängen…
 	Audio	Audio
@@ -151,8 +150,7 @@
 	File…	Datei…
 	Fill frame	Bild füllen
 	FilmCraft Help…	FilmCraft-Hilfe…
-	FilmCraft on GitHub	FilmCraft auf GitHub
-	FilmCraft on getartcraft.com	FilmCraft auf getartcraft.com
+	Source Code on GitHub	Quellcode auf GitHub
 	Final Cut Pro XML…	Final Cut Pro XML…
 	Find Next	Weitersuchen
 	Find…	Suchen…
@@ -186,7 +184,7 @@
 	Guide Templates	Hilfslinienvorlagen
 	Help	Hilfe
 	Hide All Caption Tracks	Alle Untertitelspuren ausblenden
-	Hide FilmCraft	FilmCraft ausblenden
+	Hide InFocus Cut	InFocus Cut ausblenden
 	Hide Others	Andere ausblenden
 	High Quality Playback	Wiedergabe in hoher Qualität
 	History	Verlauf
@@ -201,7 +199,6 @@
 	Install Motion Graphics Template…	Motion-Graphics-Vorlage installieren…
 	Interpret Footage…	Material interpretieren…
 	Iris	Iris
-	Join the ArtCraft Discord…	Dem ArtCraft-Discord beitreten…
 	Keyboard Shortcuts…	Tastenkürzel…
 	Label	Farbmarkierung
 	Labels…	Farbmarkierungen…
@@ -279,7 +276,7 @@
 	Properties	Eigenschaften
 	Proxy	Proxy
 	Purple	Lila
-	Quit FilmCraft	FilmCraft beenden
+	Quit InFocus Cut	InFocus Cut beenden
 	Reconnect Full Resolution Media…	Medien in voller Auflösung neu verknüpfen…
 	Recover Unsaved Changes…	Nicht gespeicherte Änderungen wiederherstellen…
 	Rectangle	Rechteck
@@ -412,7 +409,6 @@
 	Master volume: use the Audio Track Mixer	Gesamtlautstärke: über das Audiospur-Mischpult
 	Search	Suchen
 	Quick Export	Schnellexport
-	Join the ArtCraft Discord (discord.gg/artcraft)	Dem ArtCraft-Discord beitreten (discord.gg/artcraft)
 	Cancel	Abbrechen
 	OK	OK
 	Interpret Footage	Material interpretieren
@@ -455,8 +451,6 @@
 	Delete Caption Track	Untertitelspur löschen
 	Delete Empty Caption Tracks	Leere Untertitelspuren löschen
 	Version {version}	Version {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Ein nichtlinearer Videoeditor in reinem Rust, im Clean-Room-Verfahren entwickelt. Teil der ArtCraft-Familie.
-	Join the ArtCraft Discord	Dem ArtCraft-Discord beitreten
 	Source code on GitHub	Quellcode auf GitHub
 	Report an issue	Problem melden
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Schriften: Inter, Noto Serif und JetBrains Mono (SIL OFL 1.1).
@@ -476,8 +470,8 @@
 	No background jobs.	Keine Hintergrundaufträge.
 	Recover Unsaved Changes	Nicht gespeicherte Änderungen wiederherstellen
 	Untitled	Unbenannt
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft wurde geschlossen, während „{name}“ nicht gespeicherte Änderungen hatte.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft wurde unerwartet beendet, während „{name}“ nicht gespeicherte Änderungen hatte.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut wurde geschlossen, während „{name}“ nicht gespeicherte Änderungen hatte.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut wurde unerwartet beendet, während „{name}“ nicht gespeicherte Änderungen hatte.
 	Recover unsaved changes from {when}?	Nicht gespeicherte Änderungen von {when} wiederherstellen?
 	The project had not been saved yet.	Das Projekt war noch nicht gespeichert worden.
 	{n} sessions have unsaved changes:	{n} Sitzungen haben nicht gespeicherte Änderungen:
@@ -496,8 +490,6 @@
 	A cut sequence with transitions, effects and music	Eine geschnittene Sequenz mit Übergängen, Effekten und Musik
 	Bars and Tone	Farbbalken und Ton
 	SMPTE HD bars with 1 kHz reference tone	SMPTE-HD-Farbbalken mit 1-kHz-Referenzton
-	Community	Community
-	Join us on Discord	Komm zu uns auf Discord
 	OMF Export Settings	OMF-Exporteinstellungen
 	AAF Export Settings	AAF-Exporteinstellungen
 	OMF Title:	OMF-Titel:
@@ -2993,7 +2985,7 @@
 	Drag a clip to slide it between its neighbours.	Zieh einen Clip, um ihn zwischen seinen Nachbarn zu verschieben (Slide).
 	Drag to scroll the timeline.	Ziehen scrollt die Timeline.
 	Click to zoom in; Opt-click to zoom out.	Klicken vergrößert; Wahl+Klick verkleinert.
-	FilmCraft hit an error	In FilmCraft ist ein Fehler aufgetreten
+	InFocus Cut hit an error	In InFocus Cut ist ein Fehler aufgetreten
 	Details: {path}	Details: {path}
 	Opened {url}	{url} geöffnet
 	(empty)	(leer)
@@ -3612,7 +3604,6 @@
 	Opens in your web browser: {url}	Wird in deinem Webbrowser geöffnet: {url}
 	Saves this session's log and shows it in your file manager.	Speichert das Protokoll dieser Sitzung und zeigt es in deinem Dateimanager.
 	Shows a report on this computer.	Zeigt einen Bericht über diesen Computer.
-	Shows the version, community links and credits in a FilmCraft window.	Zeigt Version, Community-Links und Credits in einem FilmCraft-Fenster.
 	Couldn't open your web browser	Dein Webbrowser konnte nicht geöffnet werden
 	Open this address in your browser yourself:	Öffne diese Adresse selbst in deinem Browser:
 
