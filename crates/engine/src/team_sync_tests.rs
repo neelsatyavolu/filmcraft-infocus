@@ -295,3 +295,27 @@ fn open_team_project_replaces_the_project_and_attaches() {
     s.poll_team(Instant::now());
     assert!(s.team.is_some(), "still attached after a poll");
 }
+
+#[test]
+fn shared_post_past_a_teammates_revision_still_gets_their_changes() {
+    // Upserts without bins merge on the Drive at any base, so this post can land after a
+    // teammate's (rev 2) and come back as rev 3. The change feed then fetches the shared part at
+    // rev 3, which holds the teammate's item: it must not be skipped as already seen.
+    let (mut s, fake, _, _) = team_demo();
+    let media = s.project.items.values().find(|i| i.as_media().is_some()).map(|i| i.id).unwrap();
+    s.team_push_items(&[media]);
+    let sent = calls(&fake);
+    assert_eq!(shared_pushes(&sent).len(), 1, "{sent:?}");
+    fake.lock().unwrap().queued = vec![LinkEvent::SharedPosted { rev: 3 }];
+    s.poll_team(later(0));
+    let mut shared = filmcraft_team::split(&s.project, &|_| None).unwrap().shared;
+    let mut theirs = shared["items"][media.0.to_string()].clone();
+    let new_id = (2u64 << filmcraft_project::ID_SLOT_SHIFT) + 1;
+    theirs["id"] = json!(new_id);
+    theirs["name"] = json!("from teammate");
+    shared["items"][new_id.to_string()] = theirs;
+    fake.lock().unwrap().queued.push(LinkEvent::SharedUpdated { rev: 3, shared });
+    s.poll_team(later(1));
+    assert!(s.project.item(ItemId(new_id)).is_some_and(|i| i.name == "from teammate"), "the teammate's item arrived");
+    assert_eq!(s.team.as_ref().unwrap().shared_rev, 3);
+}

@@ -260,7 +260,14 @@ impl Session {
                         }
                     }
                 }
-                t.shared_rev = t.shared_rev.max(rev);
+                if rev > t.shared_rev.saturating_add(1) {
+                    // upserts merge at any base, so a teammate's save landed in between: this Mac
+                    // has not seen it yet, so the revision must not skip it (the change feed's
+                    // fetch, or this refresh, brings it)
+                    t.link.refresh();
+                } else {
+                    t.shared_rev = t.shared_rev.max(rev);
+                }
             }
             LinkEvent::SharedPostFailed { error } => {
                 let out = t.shared_in_flight.take().unwrap_or_default();
