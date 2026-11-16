@@ -8,7 +8,7 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, TryRecvError, channel};
 use std::sync::{Arc, Mutex, PoisonError};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use filmcraft_drive::{
     AppInfo, Cleanup, DriveClient, DriveConfig, DriveError, KeychainStore, LoginOptions, ProjectData, ProjectSummary, TokenStore, local_device_name, login,
@@ -84,6 +84,24 @@ pub enum Phase {
     SignedIn,
 }
 
+/// What leaving the open team project is for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Leave {
+    Close,
+    SignOut,
+    Quit,
+}
+
+/// How long leaving waits for edits to reach the Drive before asking whether to wait more.
+pub const LEAVE_WAIT: Duration = Duration::from_secs(10);
+
+/// Leaving the open team project once what is waiting has reached the Drive.
+struct Leaving {
+    what: Leave,
+    deadline: Instant,
+    timed_out: bool,
+}
+
 /// The team project open in the session.
 #[derive(Clone, Debug, PartialEq)]
 pub struct OpenTeamProject {
@@ -156,12 +174,28 @@ pub struct TeamSessionController {
     open: Option<Open>,
     jobs: Vec<Job>,
     error: Option<String>,
+    leaving: Option<Leaving>,
+    leave_wait: Duration,
+    /// Quit may go ahead (the team project was left).
+    quit_ready: bool,
 }
 
 impl TeamSessionController {
     /// A controller; with a stored token it connects in the background.
     pub fn new(cfg: ControllerConfig) -> Self {
-        let mut c = Self { cfg, phase: Phase::SignedOut, client: None, me: None, projects: Vec::new(), open: None, jobs: Vec::new(), error: None };
+        let mut c = Self {
+            cfg,
+            phase: Phase::SignedOut,
+            client: None,
+            me: None,
+            projects: Vec::new(),
+            open: None,
+            jobs: Vec::new(),
+            error: None,
+            leaving: None,
+            leave_wait: LEAVE_WAIT,
+            quit_ready: false,
+        };
         if let Ok(drive) = c.cfg.drive.clone() {
             let (store, app) = (c.cfg.store.clone(), c.cfg.app.clone());
             c.phase = Phase::Connecting;
@@ -277,7 +311,72 @@ impl TeamSessionController {
         self.spawn("Signing out", move || logout(&drive, store.as_ref()).map_or_else(failed, |()| Outcome::SignedOut));
     }
 
-    /// Leaves the open team project (locks released; the session keeps the project as it is).
+    /// Close, Sign Out or Quit, once the edits still going to the Drive are there: what is waiting
+    /// is sent at once, and [`Self::poll`] finishes leaving when the session's team is idle. After
+    /// [`LEAVE_WAIT`] without that, [`Self::leaving`] says so and the member chooses
+    /// [`Self::leave_wait`] or [`Self::leave_anyway`]. Nothing waiting: it happens now.
+    pub fn leave(&mut self, s: &mut Session, what: Leave) {
+        if self.open.is_some() {
+            s.team_flush();
+        }
+        if self.open.is_none() || s.team.as_ref().is_none_or(TeamState::idle) {
+            return self.finish_leave(s, what);
+        }
+        self.leaving = Some(Leaving { what, deadline: Instant::now() + self.leave_wait, timed_out: false });
+    }
+
+    /// Leaving in progress: what for, and whether it has waited [`LEAVE_WAIT`] without the
+    /// edits getting to the Drive (time to ask).
+    pub fn leaving(&self) -> Option<(Leave, bool)> {
+        self.leaving.as_ref().map(|l| (l.what, l.timed_out))
+    }
+
+    /// Wait another [`LEAVE_WAIT`] (sending what is waiting again).
+    pub fn leave_wait(&mut self, s: &mut Session) {
+        let wait = self.leave_wait;
+        if let Some(l) = self.leaving.as_mut() {
+            l.deadline = Instant::now() + wait;
+            l.timed_out = false;
+            s.team_flush();
+        }
+    }
+
+    /// Leave now: edits not on the Drive stay in this Mac's copy only.
+    pub fn leave_anyway(&mut self, s: &mut Session) {
+        if let Some(l) = self.leaving.take() {
+            self.finish_leave(s, l.what);
+        }
+    }
+
+    /// Don't leave after all.
+    pub fn cancel_leave(&mut self) {
+        self.leaving = None;
+    }
+
+    /// True once after leaving for Quit finished: the app may close now.
+    pub fn take_quit(&mut self) -> bool {
+        std::mem::take(&mut self.quit_ready)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn set_leave_wait(&mut self, wait: Duration) {
+        self.leave_wait = wait;
+    }
+
+    fn finish_leave(&mut self, s: &mut Session, what: Leave) {
+        self.leaving = None;
+        match what {
+            Leave::Close => self.close(s),
+            Leave::SignOut => self.sign_out(s),
+            Leave::Quit => {
+                self.close(s);
+                self.quit_ready = true;
+            }
+        }
+    }
+
+    /// Leaves the open team project now (locks released; the session keeps the project as it
+    /// is). Edits not on the Drive yet stay in this project only: [`Self::leave`] waits for them.
     pub fn close(&mut self, s: &mut Session) {
         if self.open.take().is_some() {
             s.detach_team();
@@ -405,6 +504,14 @@ impl TeamSessionController {
         });
         for out in done {
             self.finish(out, s);
+        }
+        if let Some(l) = self.leaving.as_mut() {
+            if s.team.as_ref().is_none_or(TeamState::idle) {
+                let what = l.what;
+                self.finish_leave(s, what);
+            } else if Instant::now() >= l.deadline {
+                l.timed_out = true;
+            }
         }
         if self.open.is_some() && s.team.is_none() {
             // another project replaced the team project; its link (and locks) went with it

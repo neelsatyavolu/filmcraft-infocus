@@ -81,6 +81,28 @@ pub enum TeamAction {
     /// Try failed downloads and uploads again.
     RetryDownloads,
     ClearError,
+    /// Leaving waits on: another round of waiting for the edits to reach the Drive.
+    LeaveWait,
+    /// Leave now; edits not on the Drive stay on this Mac only.
+    LeaveAnyway,
+    /// Don't close, sign out or quit after all.
+    LeaveCancel,
+}
+
+/// What leaving the open team project is for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TeamLeave {
+    Close,
+    SignOut,
+    Quit,
+}
+
+/// Close, Sign Out or Quit waiting for edits still going to the Drive.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TeamLeaving {
+    pub what: TeamLeave,
+    /// It has waited a while without the edits getting there: ask whether to wait more.
+    pub timed_out: bool,
 }
 
 /// The team side of the desktop app. Object-safe so the host can box it.
@@ -96,6 +118,19 @@ pub trait TeamUi {
     fn exporting(&self) -> bool;
     /// Something is in flight (sign-in, downloads): the frame loop keeps polling.
     fn active(&self) -> bool;
+    /// Close, Sign Out or Quit waiting for edits still going to the Drive.
+    fn leaving(&self) -> Option<TeamLeaving> {
+        None
+    }
+    /// The window was asked to close: true to keep it open while edits still go to the Drive
+    /// (quitting then waits, see [`Self::take_quit`]).
+    fn hold_quit(&mut self, _s: &mut Session) -> bool {
+        false
+    }
+    /// True once when a held quit may go ahead.
+    fn take_quit(&mut self) -> bool {
+        false
+    }
 }
 
 /// Per frame (`logic_background`): poll the team link, and tell it when an export starts or ends
@@ -104,6 +139,9 @@ pub(crate) fn tick(app: &mut crate::FilmcraftApp, ctx: &egui::Context) {
     let exporting = crate::panels::export_mode::is_export_busy(app);
     let Some(team) = app.hooks.team.as_mut() else { return };
     team.poll(&mut app.session);
+    if team.take_quit() {
+        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+    }
     if team.exporting() != exporting && app.session.team.is_some() {
         team.set_exporting(exporting);
     } else if team.exporting() && app.session.team.is_none() {
@@ -112,6 +150,73 @@ pub(crate) fn tick(app: &mut crate::FilmcraftApp, ctx: &egui::Context) {
     if team.active() {
         ctx.request_repaint_after(std::time::Duration::from_millis(250));
     }
+}
+
+/// The window was asked to close: true (cancel the close) while a team project's edits are still
+/// going to the Drive. The app quits by itself once they are there, or when the member chooses
+/// Leave Anyway in [`show_leaving`].
+pub(crate) fn intercept_quit(app: &mut crate::FilmcraftApp) -> bool {
+    app.hooks.team.as_mut().is_some_and(|t| t.hold_quit(&mut app.session))
+}
+
+/// The dialog while Close, Sign Out or Quit waits for edits to reach the Drive: Leave Anyway or
+/// Cancel while it waits, then Wait or Leave Anyway once it has waited a while. Automation ids:
+/// `team.leaving.wait`, `team.leaving.anyway`, `team.leaving.cancel`.
+pub(crate) fn show_leaving(app: &mut crate::FilmcraftApp, ctx: &egui::Context) {
+    let Some(leaving) = app.hooks.team.as_ref().and_then(|t| t.leaving()) else { return };
+    let mut action = None;
+    let mut elems: Vec<(&str, egui::Rect, &str)> = Vec::new();
+    egui::Window::new(tl!("Saving to InFocus Drive"))
+        .id(egui::Id::unique("team-leaving"))
+        .collapsible(false)
+        .resizable(false)
+        .pivot(egui::Align2::CENTER_CENTER)
+        .default_pos(ctx.content_rect().center())
+        .show(ctx, |ui| {
+            ui.set_max_width(420.0);
+            let doing = match leaving.what {
+                TeamLeave::Close => tl!("closing the project"),
+                TeamLeave::SignOut => tl!("signing out"),
+                TeamLeave::Quit => tl!("quitting"),
+            };
+            if leaving.timed_out {
+                ui.label(tl!(
+                    "Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them."
+                ));
+            } else {
+                ui.horizontal(|ui| {
+                    ui.add(egui::Spinner::new().size(12.0));
+                    ui.label(tlf!("Sending your edits to InFocus Drive before {doing}…", doing));
+                });
+            }
+            ui.add_space(6.0);
+            ui.horizontal(|ui| {
+                if leaving.timed_out {
+                    let r = ui.button(tl!("Wait"));
+                    elems.push(("team.leaving.wait", r.rect, "Wait"));
+                    if r.clicked() {
+                        action = Some(TeamAction::LeaveWait);
+                    }
+                }
+                let r = ui.button(tl!("Leave Anyway"));
+                elems.push(("team.leaving.anyway", r.rect, "Leave Anyway"));
+                if r.clicked() {
+                    action = Some(TeamAction::LeaveAnyway);
+                }
+                let r = ui.button(tl!("Cancel"));
+                elems.push(("team.leaving.cancel", r.rect, "Cancel"));
+                if r.clicked() {
+                    action = Some(TeamAction::LeaveCancel);
+                }
+            });
+        });
+    for (id, r, label) in elems {
+        app.auto.add(id, r, label);
+    }
+    if let (Some(action), Some(team)) = (action, app.hooks.team.as_mut()) {
+        team.act(&mut app.session, action);
+    }
+    ctx.request_repaint_after(std::time::Duration::from_millis(250));
 }
 
 /// Before an export of `sequences` in a team project: Err with what is still downloading when
@@ -225,6 +330,70 @@ mod tests {
         app.hooks.team = Some(Box::new(Missing { exporting: exporting.clone() }));
         tick(&mut app, &egui::Context::default());
         assert!(!exporting.get(), "downloads resume once no team project is open");
+    }
+
+    /// A team host whose edits are still on their way until `done`, recording what it is asked.
+    #[derive(Default)]
+    struct Unsent {
+        done: Rc<Cell<bool>>,
+        leaving: Rc<Cell<bool>>,
+        acts: Rc<std::cell::RefCell<Vec<TeamAction>>>,
+    }
+
+    impl TeamUi for Unsent {
+        fn poll(&mut self, _s: &mut Session) {}
+        fn view(&self, _s: &Session) -> TeamView {
+            TeamView::default()
+        }
+        fn act(&mut self, _s: &mut Session, action: TeamAction) {
+            self.acts.borrow_mut().push(action);
+        }
+        fn export_missing(&mut self, _s: &Session, _sequences: &[ItemId]) -> Vec<ItemId> {
+            Vec::new()
+        }
+        fn set_exporting(&mut self, _exporting: bool) {}
+        fn exporting(&self) -> bool {
+            false
+        }
+        fn active(&self) -> bool {
+            false
+        }
+        fn leaving(&self) -> Option<TeamLeaving> {
+            self.leaving.get().then_some(TeamLeaving { what: TeamLeave::Quit, timed_out: true })
+        }
+        fn hold_quit(&mut self, _s: &mut Session) -> bool {
+            self.leaving.set(!self.done.get());
+            !self.done.get()
+        }
+        fn take_quit(&mut self) -> bool {
+            let go = self.leaving.get() && self.done.get();
+            if go {
+                self.leaving.set(false);
+            }
+            go
+        }
+    }
+
+    #[test]
+    fn quit_waits_for_edits_still_going_to_the_drive() {
+        let mut app = crate::FilmcraftApp::new(Session::default());
+        assert!(!intercept_quit(&mut app), "no team host: quit as before");
+        let host = Unsent::default();
+        let (done, leaving, acts) = (host.done.clone(), host.leaving.clone(), host.acts.clone());
+        app.hooks.team = Some(Box::new(host));
+        assert!(intercept_quit(&mut app), "held while edits are unsent");
+        // the dialog offers Wait, Leave Anyway and Cancel
+        let ctx = egui::Context::default();
+        ctx.run_ui(egui::RawInput::default(), |ui| show_leaving(&mut app, ui.ctx())).textures_delta.clear();
+        for id in ["team.leaving.wait", "team.leaving.anyway", "team.leaving.cancel"] {
+            assert!(app.auto.find(id).is_some(), "{id}");
+        }
+        assert!(acts.borrow().is_empty());
+        done.set(true);
+        assert!(leaving.get());
+        tick(&mut app, &ctx);
+        assert!(!leaving.get(), "the host's quit was taken: the window closes");
+        assert!(!intercept_quit(&mut app), "and is no longer held");
     }
 
     #[test]

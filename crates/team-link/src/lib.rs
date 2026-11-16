@@ -19,7 +19,7 @@ mod feed;
 mod link;
 mod uploads;
 
-pub use controller::{ControllerConfig, OpenTeamProject, Phase, TeamSessionController, default_cache_dir, open_in_browser};
+pub use controller::{ControllerConfig, LEAVE_WAIT, Leave, OpenTeamProject, Phase, TeamSessionController, default_cache_dir, open_in_browser};
 pub use downloader::DriveDownloader;
 pub use feed::FeedState;
 pub use link::{DriveTeamLink, LinkStatus, link_error};
@@ -27,6 +27,8 @@ pub use uploads::{FinishedUpload, MAX_UPLOADS, PendingUpload, TeamUploads, UPLOA
 
 #[cfg(test)]
 mod controller_tests;
+#[cfg(test)]
+mod leave_tests;
 #[cfg(test)]
 mod link_tests;
 #[cfg(test)]

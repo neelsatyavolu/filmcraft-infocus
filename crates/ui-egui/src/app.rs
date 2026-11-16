@@ -243,8 +243,9 @@ impl FilmcraftApp {
 
     /// Close-request handling and control-driven synthetic input, in the original order.
     fn logic_control(&mut self, ctx: &egui::Context) {
-        // Quitting with unsaved changes asks to save them first.
-        if ctx.input(|i| i.viewport().close_requested()) && panels::clip_dialogs::intercept_quit(self) {
+        // Quitting with unsaved changes asks to save them first; a team project's edits still
+        // going to the Drive are waited for (`team_ui::show_leaving`).
+        if ctx.input(|i| i.viewport().close_requested()) && (panels::clip_dialogs::intercept_quit(self) || crate::team_ui::intercept_quit(self)) {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
         }
         let had_synthetic = !self.synthetic.is_empty() || self.synthetic_pending_step.is_some();

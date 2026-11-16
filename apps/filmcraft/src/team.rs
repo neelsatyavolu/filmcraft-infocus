@@ -5,8 +5,8 @@
 use chrono::TimeZone;
 use filmcraft_engine::Session;
 use filmcraft_project::ItemId;
-use filmcraft_team_link::{ControllerConfig, Phase, TeamSessionController};
-use filmcraft_ui_egui::team_ui::{TeamAction, TeamOpenView, TeamPhase, TeamProjectRow, TeamUi, TeamView};
+use filmcraft_team_link::{ControllerConfig, Leave, Phase, TeamSessionController};
+use filmcraft_ui_egui::team_ui::{TeamAction, TeamLeave, TeamLeaving, TeamOpenView, TeamPhase, TeamProjectRow, TeamUi, TeamView};
 
 /// The team side of the app; `Err` when the controller could not be set up (shown in the panel).
 pub struct Team(Result<TeamSessionController, String>);
@@ -86,16 +86,44 @@ impl TeamUi for Team {
         let Ok(c) = self.0.as_mut() else { return };
         match action {
             TeamAction::SignIn => c.sign_in(),
-            TeamAction::SignOut => c.sign_out(s),
+            // both wait for edits still going to the Drive
+            TeamAction::SignOut => c.leave(s, Leave::SignOut),
             TeamAction::Refresh => c.refresh_projects(),
             TeamAction::CreateFromCurrent(name) => c.create_from_current(s, &name),
             TeamAction::Open(id) => c.open(&id),
-            TeamAction::Close => c.close(s),
+            TeamAction::Close => c.leave(s, Leave::Close),
             TeamAction::Keep(id) => c.keep(&id),
             TeamAction::SetKeepForever(id, keep) => c.set_keep_forever(&id, keep),
             TeamAction::RetryDownloads => c.retry_media(),
             TeamAction::ClearError => c.clear_error(),
+            TeamAction::LeaveWait => c.leave_wait(s),
+            TeamAction::LeaveAnyway => c.leave_anyway(s),
+            TeamAction::LeaveCancel => c.cancel_leave(),
         }
+    }
+
+    fn leaving(&self) -> Option<TeamLeaving> {
+        let (what, timed_out) = self.0.as_ref().ok()?.leaving()?;
+        let what = match what {
+            Leave::Close => TeamLeave::Close,
+            Leave::SignOut => TeamLeave::SignOut,
+            Leave::Quit => TeamLeave::Quit,
+        };
+        Some(TeamLeaving { what, timed_out })
+    }
+
+    fn hold_quit(&mut self, s: &mut Session) -> bool {
+        let Ok(c) = self.0.as_mut() else { return false };
+        if c.open_project().is_none() {
+            return false;
+        }
+        c.leave(s, Leave::Quit);
+        // left at once (nothing unsent): quit now
+        !c.take_quit()
+    }
+
+    fn take_quit(&mut self) -> bool {
+        self.0.as_mut().is_ok_and(TeamSessionController::take_quit)
     }
 
     fn export_missing(&mut self, s: &Session, sequences: &[ItemId]) -> Vec<ItemId> {
