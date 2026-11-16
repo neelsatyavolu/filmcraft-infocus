@@ -65,6 +65,9 @@ pub trait TeamLink: Send {
     /// Delete a held sequence on the Drive (its lock goes with it); `base_rev` is its revision.
     fn delete_sequence(&mut self, seq: ItemId, base_rev: u64);
     fn post_shared(&mut self, push: SharedPush);
+    /// The lock on `seq` is gone (expired, or a teammate has it now): forget its token without
+    /// asking the Drive, so the sequence is no longer treated as this Mac's.
+    fn forget_lock(&mut self, _seq: ItemId) {}
     /// Fetch the whole project again and report it as `SequenceUpdated` / `SharedUpdated`.
     fn refresh(&mut self);
     /// Outcomes of requests and teammates' updates since the last call.
@@ -740,6 +743,8 @@ impl Session {
         let had = t.held.remove(&id).is_some();
         t.requested.remove(&id);
         t.releasing.remove(&id);
+        // before any refetch: a link still holding the token would skip the Drive's version
+        t.link.forget_lock(id);
         if let Some(d) = t.deleting.remove(&id) {
             // deleted here but not on the Drive: it comes back as the Drive has it
             t.delete_in_flight.remove(&id);

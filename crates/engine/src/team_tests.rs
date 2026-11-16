@@ -22,6 +22,7 @@ enum Call {
     Delete(ItemId, u64),
     Shared(SharedPush),
     Refresh,
+    Forget(ItemId),
 }
 
 #[derive(Default)]
@@ -89,6 +90,9 @@ impl TeamLink for FakeLink {
             f.calls.push(Call::Shared(push));
             f.queued.push(LinkEvent::SharedPosted { rev });
         });
+    }
+    fn forget_lock(&mut self, seq: ItemId) {
+        self.with(|f| f.calls.push(Call::Forget(seq)));
     }
     fn refresh(&mut self) {
         self.with(|f| f.calls.push(Call::Refresh));
@@ -292,6 +296,24 @@ fn lost_lock_saves_recovered_copy() {
     s.poll_team(t1);
     s.poll_team(t1 + Duration::from_secs(2));
     assert!(calls(&fake).iter().any(|c| matches!(c, Call::Put(id, 0, _) if *id == copy)));
+}
+
+#[test]
+fn lock_taken_by_a_teammate_is_forgotten_before_refetching() {
+    // the Mac slept past the lock's expiry and a teammate took it: the link must drop its stale
+    // token first, or it keeps treating the sequence as this Mac's and never fetches theirs
+    let (mut s, fake, main, _) = team_demo();
+    s.team_take_lock(main).unwrap();
+    s.poll_team(Instant::now());
+    add_marker(&mut s, main, "unsaved work").unwrap();
+    calls(&fake);
+    fake.lock().unwrap().queued.push(LinkEvent::LockChanged { seq: main, holder: Some("Maya".into()) });
+    s.poll_team(later(0));
+    let sent = calls(&fake);
+    let forget = sent.iter().position(|c| *c == Call::Forget(main)).expect("the lost lock is forgotten");
+    let refresh = sent.iter().position(|c| *c == Call::Refresh).expect("the Drive's version is fetched");
+    assert!(forget < refresh, "{sent:?}");
+    assert!(s.project.sequences().any(|q| q.name == "Recovered – Main Edit"));
 }
 
 #[test]
