@@ -6,7 +6,7 @@ use filmcraft_project::ItemId;
 use serde_json::Value;
 use web_time::Instant;
 
-use super::{HEARTBEAT_EVERY, LOCK_EXPIRY, LockInfo, RETRY_AFTER, catch_up, send_sequences, send_shared, still_attached, tell};
+use super::{HEARTBEAT_EVERY, LOCK_EXPIRY, LockInfo, RETRY_AFTER, catch_up, send_deletes, send_sequences, send_shared, still_attached, tell};
 use crate::Session;
 
 /// Why the Drive refused or could not do a request.
@@ -53,6 +53,15 @@ pub enum LinkEvent {
         seq: ItemId,
         error: LinkError,
     },
+    /// This member's delete of `seq` was done; `rev` is its last revision.
+    SequenceDeleted {
+        seq: ItemId,
+        rev: u64,
+    },
+    SequenceDeleteFailed {
+        seq: ItemId,
+        error: LinkError,
+    },
     SharedPosted {
         rev: u64,
     },
@@ -65,6 +74,12 @@ pub enum LinkEvent {
         rev: u64,
         by: String,
         json: Value,
+    },
+    /// A teammate deleted a sequence (its lock goes with it).
+    SequenceRemoved {
+        seq: ItemId,
+        rev: u64,
+        by: String,
     },
     /// The shared part changed (the link fetched it).
     SharedUpdated {
@@ -107,6 +122,7 @@ impl Session {
         }
         send_sequences(self, now);
         send_shared(self, now);
+        send_deletes(self, now);
         if let Some(t) = self.team.as_mut() {
             let done: Vec<ItemId> = t.releasing.iter().filter(|id| !t.dirty.contains_key(id) && !t.in_flight.contains(id)).copied().collect();
             for id in done {
@@ -158,6 +174,54 @@ impl Session {
                 }
                 LinkError::LockLost | LinkError::Stale { .. } | LinkError::HeldBy { .. } | LinkError::ItemInUse { .. } => self.lock_lost(seq),
             },
+            LinkEvent::SequenceDeleted { seq, rev } => {
+                t.delete_in_flight.remove(&seq);
+                t.deleting.remove(&seq);
+                t.held.remove(&seq);
+                t.holders.remove(&seq);
+                t.revs.insert(seq, rev);
+                if t.local_new.contains(&seq) {
+                    // put back here (undo) while the delete was on its way: save it again
+                    t.requested.insert(seq);
+                    t.link.take_lock(seq);
+                } else {
+                    t.gone.insert(seq);
+                }
+            }
+            LinkEvent::SequenceDeleteFailed { seq, error } => {
+                t.delete_in_flight.remove(&seq);
+                match error {
+                    LinkError::Network(_) => {
+                        if let Some(d) = t.deleting.get_mut(&seq) {
+                            d.due = now + RETRY_AFTER;
+                        }
+                    }
+                    LinkError::UpdateRequired | LinkError::FilesChanged => self.sync_stopped(&error),
+                    LinkError::ItemInUse { .. } => {
+                        t.local_new.remove(&seq);
+                        if let Some(d) = t.deleting.remove(&seq) {
+                            let name = d.item.name.clone();
+                            self.put_back(d);
+                            if let Some(t) = self.team.as_mut() {
+                                t.dirty.insert(seq, now);
+                            }
+                            tell(self, format!("“{name}” is used in another sequence on the Drive, so it was not deleted"));
+                        }
+                    }
+                    LinkError::LockLost | LinkError::Stale { .. } | LinkError::HeldBy { .. } => self.lock_lost(seq),
+                }
+            }
+            LinkEvent::SequenceRemoved { seq, rev, by } => {
+                let name = self.project.item(seq).map(|i| i.name.clone());
+                match self.apply_remote_delete(seq, rev) {
+                    Ok(()) => {
+                        if let Some(name) = name.filter(|_| self.project.item(seq).is_none()) {
+                            self.log.push(crate::panels::Level::Info, "team", format!("{by} deleted “{name}”"));
+                        }
+                    }
+                    Err(e) => tell(self, format!("Could not apply {by}’s delete of sequence {}: {e}", seq.0)),
+                }
+            }
             LinkEvent::SharedPosted { rev } => {
                 if let Some(out) = t.shared_in_flight.take() {
                     for id in out.items {

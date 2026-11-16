@@ -18,8 +18,11 @@ pub enum TeamEvent {
     SequenceUpdated { seq: u64, rev: u64, by: String },
     /// A sequence lock was taken (`holder` set) or released (`None`).
     LockChanged { seq: u64, holder: Option<String> },
-    /// The shared part changed.
-    SharedUpdated { rev: u64 },
+    /// A sequence was deleted (its lock goes with it; a `lock_changed` follows). `rev` keeps
+    /// counting from the sequence's last revision.
+    SequenceDeleted { seq: u64, rev: u64, by: String },
+    /// The shared part changed; `fields` names the project-level fields the change replaced.
+    SharedUpdated { rev: u64, fields: Vec<String> },
     /// An event this client does not know (a newer server); safe to ignore.
     Other { event: String, data: String },
 }
@@ -125,6 +128,8 @@ struct LockChanged {
 #[derive(Deserialize)]
 struct SharedUpdated {
     rev: u64,
+    #[serde(default)]
+    fields: Vec<String>,
 }
 
 impl TeamEvent {
@@ -136,13 +141,17 @@ impl TeamEvent {
                 let d: SeqUpdated = serde_json::from_str(&ev.data).map_err(bad)?;
                 TeamEvent::SequenceUpdated { seq: d.seq, rev: d.rev, by: d.by }
             }
+            "sequence_deleted" => {
+                let d: SeqUpdated = serde_json::from_str(&ev.data).map_err(bad)?;
+                TeamEvent::SequenceDeleted { seq: d.seq, rev: d.rev, by: d.by }
+            }
             "lock_changed" => {
                 let d: LockChanged = serde_json::from_str(&ev.data).map_err(bad)?;
                 TeamEvent::LockChanged { seq: d.seq, holder: d.holder }
             }
             "shared_updated" => {
                 let d: SharedUpdated = serde_json::from_str(&ev.data).map_err(bad)?;
-                TeamEvent::SharedUpdated { rev: d.rev }
+                TeamEvent::SharedUpdated { rev: d.rev, fields: d.fields }
             }
             _ => TeamEvent::Other { event: ev.event, data: ev.data },
         })

@@ -40,9 +40,13 @@ Keep these small so upstream merges stay easy.
   (`team::before_command` / `team::after_command`), one call to `Session::poll_team` at the top of
   `poll_persistence`, and the module declarations in `lib.rs`. The app connects through the
   `TeamLink` trait (requests return at once; outcomes come back from `TeamLink::poll`), so the
-  engine never touches the network. Limits for now: deleting a sequence is refused in a team
-  project, and only items and bins are shared (settings, transcripts, source graphics and notes
-  stay on each Mac), because the Drive API has no route for them.
+  engine never touches the network. Deleting a sequence needs its lock: the delete goes to the
+  Drive once the pushes that stop other sequences nesting it are saved, and a sequence the Drive
+  refuses to delete (another sequence on the Drive nests it, or the lock was lost) comes back.
+  A teammate's delete removes the sequence here, from the undo history too. Project-level fields
+  (settings, colours, LUTs, transcripts, search bins, source graphics, narrations and notes) are
+  shared whole, the last writer winning per field; this Mac's scratch disks and ingest folder
+  stay on it. The project name is not shared: it is the project's folder name on the Drive.
 - Engine (`crates/engine/src/team_media.rs`): `TeamMedia` downloads originals on demand into
   `~/Library/Caches/InFocus Cut/media/<fingerprint>/original/` (at most two at once, paused
   during an export) through the app's `Downloader`, links them, and makes a ProRes 422 Proxy ½

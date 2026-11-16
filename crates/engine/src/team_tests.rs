@@ -19,6 +19,7 @@ enum Call {
     Heartbeat(ItemId),
     Release(ItemId),
     Put(ItemId, u64, Value),
+    Delete(ItemId, u64),
     Shared(SharedPush),
     Refresh,
 }
@@ -31,6 +32,8 @@ struct Fake {
     others: BTreeMap<ItemId, String>,
     /// Heartbeats get no answer (the Mac is asleep or offline).
     silent: bool,
+    /// The Drive's answer to a sequence delete (None: done).
+    refuse_delete: Option<LinkError>,
 }
 
 /// Answers every request at once, as a Drive that always agrees would.
@@ -68,6 +71,16 @@ impl TeamLink for FakeLink {
         self.with(|f| {
             f.calls.push(Call::Put(seq, base_rev, json));
             f.queued.push(LinkEvent::SequencePut { seq, rev: base_rev + 1 });
+        });
+    }
+    fn delete_sequence(&mut self, seq: ItemId, base_rev: u64) {
+        self.with(|f| {
+            f.calls.push(Call::Delete(seq, base_rev));
+            let ev = match f.refuse_delete.clone() {
+                Some(error) => LinkEvent::SequenceDeleteFailed { seq, error },
+                None => LinkEvent::SequenceDeleted { seq, rev: base_rev + 1 },
+            };
+            f.queued.push(ev);
         });
     }
     fn post_shared(&mut self, push: SharedPush) {
@@ -399,6 +412,22 @@ impl TeamLink for ServiceLink {
             v.broadcast(&self.me, &ev);
         }
     }
+    fn delete_sequence(&mut self, seq: ItemId, base_rev: u64) {
+        let mut v = self.svc.lock().unwrap();
+        let cur = v.seqs.get(&seq).map(|s| s.0).unwrap_or(0);
+        if v.locks.get(&seq) != Some(&self.me) {
+            v.reply(&self.me, LinkEvent::SequenceDeleteFailed { seq, error: LinkError::LockLost });
+        } else if base_rev != cur {
+            v.reply(&self.me, LinkEvent::SequenceDeleteFailed { seq, error: LinkError::Stale { rev: cur } });
+        } else {
+            v.seqs.remove(&seq);
+            v.locks.remove(&seq);
+            v.reply(&self.me, LinkEvent::SequenceDeleted { seq, rev: cur + 1 });
+            let ev = LinkEvent::SequenceRemoved { seq, rev: cur + 1, by: self.me.clone() };
+            v.broadcast(&self.me, &ev);
+            v.broadcast(&self.me, &LinkEvent::LockChanged { seq, holder: None });
+        }
+    }
     fn post_shared(&mut self, push: SharedPush) {
         let mut v = self.svc.lock().unwrap();
         if push.bins.is_some() && push.base_rev != v.shared_rev {
@@ -415,6 +444,9 @@ impl TeamLink for ServiceLink {
         }
         if let Some(b) = push.bins {
             v.shared["root"] = b;
+        }
+        for (key, value) in push.fields {
+            v.shared[key.as_str()] = value;
         }
         v.shared_rev += 1;
         let rev = v.shared_rev;
@@ -482,3 +514,6 @@ fn two_sessions_converge() {
     assert_eq!(da.sequences, db.sequences);
     assert_eq!(da.shared, db.shared);
 }
+
+#[path = "team_sync_tests.rs"]
+mod sync;

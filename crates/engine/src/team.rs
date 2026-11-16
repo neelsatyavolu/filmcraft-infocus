@@ -8,7 +8,11 @@
 //!
 //! - An edit that changes a sequence this member does not hold the lock for is taken back whole
 //!   (project and undo history as before) and fails with a reason that names the editor.
-//! - Edits of held sequences are pushed 1 s after the last one; shared items and bins at once.
+//! - Edits of held sequences are pushed 1 s after the last one; shared items, bins and
+//!   project-level fields (settings, colours, LUTs, transcripts, search bins, source graphics,
+//!   narrations, notes) at once.
+//! - Deleting a held sequence deletes it on the Drive (after the pushes that stop other sequences
+//!   nesting it); a teammate's delete removes it here.
 //! - Teammates' updates are written into the project and into every undo/redo snapshot, so undo
 //!   never takes back a teammate's work.
 //! - A lost lock keeps unsynced edits as a new sequence "Recovered – <name>".
@@ -39,13 +43,15 @@ pub const PUSH_DEBOUNCE: Duration = Duration::from_secs(1);
 /// A push that failed on the network is tried again after this long.
 pub const RETRY_AFTER: Duration = Duration::from_secs(5);
 
-/// Changes to the shared part: items merged by id, deletions, and the whole bin tree.
+/// Changes to the shared part: items merged by id, deletions, the whole bin tree, and
+/// project-level fields replaced whole (by their JSON key, [`filmcraft_team::SHARED_FIELDS`]).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SharedPush {
     pub base_rev: u64,
     pub upserts: BTreeMap<ItemId, Value>,
     pub deletes: Vec<ItemId>,
     pub bins: Option<Value>,
+    pub fields: BTreeMap<String, Value>,
 }
 
 /// The app's connection to the Drive. Every request method returns at once; outcomes arrive
@@ -56,6 +62,8 @@ pub trait TeamLink: Send {
     fn release(&mut self, seq: ItemId);
     /// Save a held sequence; `base_rev` is the revision it was edited from.
     fn put_sequence(&mut self, seq: ItemId, base_rev: u64, json: Value);
+    /// Delete a held sequence on the Drive (its lock goes with it); `base_rev` is its revision.
+    fn delete_sequence(&mut self, seq: ItemId, base_rev: u64);
     fn post_shared(&mut self, push: SharedPush);
     /// Fetch the whole project again and report it as `SequenceUpdated` / `SharedUpdated`.
     fn refresh(&mut self);
@@ -95,21 +103,33 @@ pub enum SequenceStatus {
     Free,
 }
 
-/// Item ids whose shared changes still have to be sent, and whether the bins changed.
+/// Item ids whose shared changes still have to be sent, whether the bins changed, and which
+/// project-level fields did.
 #[derive(Clone, Debug, Default)]
 struct SharedOut {
     items: BTreeSet<ItemId>,
     bins: bool,
+    fields: BTreeSet<String>,
 }
 
 impl SharedOut {
     fn absorb(&mut self, other: SharedOut) {
         self.items.extend(other.items);
         self.bins |= other.bins;
+        self.fields.extend(other.fields);
     }
     fn is_empty(&self) -> bool {
-        self.items.is_empty() && !self.bins
+        self.items.is_empty() && !self.bins && self.fields.is_empty()
     }
+}
+
+/// A held sequence deleted on this Mac that the Drive still has: when to send the delete, and the
+/// item and its bin, to put it back if the Drive refuses.
+#[derive(Clone, Debug)]
+struct PendingDelete {
+    due: Instant,
+    item: ProjectItem,
+    bin: Option<BinId>,
 }
 
 /// The team side of a session.
@@ -133,6 +153,12 @@ pub struct TeamState {
     dirty: BTreeMap<ItemId, Instant>,
     in_flight: BTreeSet<ItemId>,
     releasing: BTreeSet<ItemId>,
+    /// Held sequences deleted here whose delete has not been confirmed by the Drive.
+    deleting: BTreeMap<ItemId, PendingDelete>,
+    delete_in_flight: BTreeSet<ItemId>,
+    /// Sequences deleted on the Drive. `revs` keeps their last revision: the Drive keeps counting,
+    /// so one put back (undo) is saved from there.
+    gone: BTreeSet<ItemId>,
     /// Shared items the server has.
     known_shared: BTreeSet<ItemId>,
     shared_pending: SharedOut,
@@ -164,6 +190,9 @@ impl TeamState {
             dirty: BTreeMap::new(),
             in_flight: BTreeSet::new(),
             releasing: BTreeSet::new(),
+            deleting: BTreeMap::new(),
+            delete_in_flight: BTreeSet::new(),
+            gone: BTreeSet::new(),
             known_shared: BTreeSet::new(),
             shared_pending: SharedOut::default(),
             shared_in_flight: None,
@@ -198,7 +227,7 @@ impl TeamState {
     }
 
     fn known_sequence(&self, seq: ItemId) -> bool {
-        self.revs.contains_key(&seq) || self.holders.contains_key(&seq)
+        (self.revs.contains_key(&seq) || self.holders.contains_key(&seq)) && !self.gone.contains(&seq) && !self.deleting.contains_key(&seq)
     }
 }
 
@@ -251,6 +280,8 @@ struct Plan {
     refused: Vec<(Refusal, String)>,
     new_seqs: BTreeSet<ItemId>,
     dropped: BTreeSet<ItemId>,
+    /// Held sequences deleted here: deleted on the Drive too.
+    deleted: BTreeSet<ItemId>,
 }
 
 #[derive(Clone, Copy)]
@@ -279,8 +310,16 @@ fn check(team: &TeamState, before: &Project, after: &Project, changes: &ChangeSe
         } else if was && !is {
             if team.local_new.contains(&seq) {
                 plan.dropped.insert(seq);
+            } else if !team.held.contains_key(&seq) {
+                let why = match team.holders.get(&seq) {
+                    Some(h) => format!("{h} is editing “{}”", name(seq)),
+                    None => format!("Take the lock to delete “{}”", name(seq)),
+                };
+                plan.refused.push((Refusal::Sequence(seq), why));
+            } else if let Some(q) = after.sequences().find(|q| filmcraft_team::sequence_json(after, q.id).is_some_and(|j| references(&j, seq.0, 0))) {
+                plan.refused.push((Refusal::Sequence(seq), format!("“{}” is used in “{}”: remove it from that sequence first", name(seq), q.name)));
             } else {
-                plan.refused.push((Refusal::Sequence(seq), format!("Deleting “{}” is not available in a team project yet", name(seq))));
+                plan.deleted.insert(seq);
             }
         }
     }
@@ -308,13 +347,24 @@ fn references(v: &Value, id: u64, depth: usize) -> bool {
     }
 }
 
-/// Queue an accepted change: debounced pushes for sequences, shared items and bins at once.
+/// Queue an accepted change: debounced pushes for sequences; shared items, bins, fields and
+/// sequence deletes at once.
 fn record(s: &mut Session, before: &Project, changes: &ChangeSet, plan: &Plan, now: Instant) {
     let bins_changed = changes.shared_other && serde_json::to_value(&before.root).ok() != serde_json::to_value(&s.project.root).ok();
-    let other_changed = changes.shared_other && !bins_changed;
-    let deletes = changes.shared_items.iter().any(|i| before.item(*i).is_some() && s.project.item(*i).is_none());
+    let fields = if changes.shared_other { filmcraft_team::changed_fields(before, &s.project) } else { BTreeSet::new() };
+    let renamed = before.name != s.project.name;
+    let deletes = !plan.deleted.is_empty() || changes.shared_items.iter().any(|i| before.item(*i).is_some() && s.project.item(*i).is_none());
     let Some(t) = s.team.as_mut() else { return };
     for &seq in &changes.sequences {
+        if plan.deleted.contains(&seq) {
+            t.dirty.remove(&seq);
+            t.requested.remove(&seq);
+            t.releasing.remove(&seq);
+            if let Some(item) = before.item(seq) {
+                t.deleting.insert(seq, PendingDelete { due: now, item: item.clone(), bin: before.root.parent_of(seq) });
+            }
+            continue;
+        }
         if plan.dropped.contains(&seq) {
             t.local_new.remove(&seq);
             t.dirty.remove(&seq);
@@ -324,27 +374,44 @@ fn record(s: &mut Session, before: &Project, changes: &ChangeSet, plan: &Plan, n
             }
             continue;
         }
-        if plan.new_seqs.contains(&seq) && t.local_new.insert(seq) {
-            t.requested.insert(seq);
-            t.link.take_lock(seq);
+        if plan.new_seqs.contains(&seq) {
+            put_back_new(t, seq);
         }
         t.dirty.insert(seq, now + PUSH_DEBOUNCE);
     }
     t.shared_pending.items.extend(changes.shared_items.iter().copied());
     t.shared_pending.bins |= bins_changed;
+    t.shared_pending.fields.extend(fields);
     t.base = s.project.clone();
-    let tell = other_changed && !t.told_unshared;
+    let tell = renamed && !t.told_unshared;
     t.told_unshared |= tell;
     if deletes {
-        // the Drive refuses to delete an item a stored sequence still uses: save sequences first
+        // the Drive refuses to delete an item or sequence a stored sequence still uses: save
+        // sequences first
         for due in t.dirty.values_mut() {
             *due = now;
         }
         send_sequences(s, now);
     }
     send_shared(s, now);
+    send_deletes(s, now);
     if tell {
-        s.log.push(panels::Level::Info, "team", "Project settings, transcripts, source graphics and notes are kept on this Mac only for now");
+        s.log.push(panels::Level::Info, "team", "The project name is kept on this Mac only: a team project is named after its folder on the Drive");
+    }
+}
+
+/// A sequence that appeared here (new, or a deleted one back through undo): it is this member's
+/// to save. A delete not sent yet is simply dropped (the lock is still held).
+fn put_back_new(t: &mut TeamState, seq: ItemId) {
+    if t.deleting.contains_key(&seq) && !t.delete_in_flight.contains(&seq) {
+        t.deleting.remove(&seq);
+        return;
+    }
+    t.gone.remove(&seq);
+    if t.local_new.insert(seq) && !t.delete_in_flight.contains(&seq) {
+        // (with a delete in flight, the lock is asked for once the Drive answers it)
+        t.requested.insert(seq);
+        t.link.take_lock(seq);
     }
 }
 
@@ -418,6 +485,22 @@ fn send_sequences(s: &mut Session, now: Instant) {
     }
 }
 
+/// Send due sequence deletes once no sequence push is waiting or on its way (a push may be what
+/// stops another sequence nesting the deleted one, and the Drive checks that).
+fn send_deletes(s: &mut Session, now: Instant) {
+    let Some(t) = s.team.as_mut() else { return };
+    if t.problem.is_some() || !t.in_flight.is_empty() || t.dirty.keys().any(|id| t.held.contains_key(id)) {
+        return;
+    }
+    let due: Vec<ItemId> =
+        t.deleting.iter().filter(|(id, d)| d.due <= now && !t.delete_in_flight.contains(id) && t.held.contains_key(id)).map(|(id, _)| *id).collect();
+    for id in due {
+        t.delete_in_flight.insert(id);
+        let base = t.revs.get(&id).copied().unwrap_or(0);
+        t.link.delete_sequence(id, base);
+    }
+}
+
 /// Send queued shared changes (one request at a time; the item JSON is today's).
 fn send_shared(s: &mut Session, now: Instant) {
     let Some(t) = s.team.as_mut() else { return };
@@ -458,9 +541,19 @@ fn send_shared(s: &mut Session, now: Instant) {
             return;
         }
     };
+    let fields = match filmcraft_team::field_values(&s.project, &out.fields) {
+        Ok(f) => f,
+        Err(e) => {
+            let message = format!("Could not prepare project settings for the Drive: {e}");
+            t.shared_pending.absorb(out);
+            t.shared_retry_at = Some(now + RETRY_AFTER);
+            tell(s, message);
+            return;
+        }
+    };
     let bins = if out.bins { serde_json::to_value(&s.project.root).ok() } else { None };
-    let push = SharedPush { base_rev: t.shared_rev, upserts, deletes, bins };
-    if push.upserts.is_empty() && push.deletes.is_empty() && push.bins.is_none() {
+    let push = SharedPush { base_rev: t.shared_rev, upserts, deletes, bins, fields };
+    if push.upserts.is_empty() && push.deletes.is_empty() && push.bins.is_none() && push.fields.is_empty() {
         return;
     }
     t.shared_in_flight = Some(out);
@@ -543,9 +636,10 @@ impl Session {
         Ok(())
     }
 
-    /// The shared part at revision `rev` (items and bins) from the Drive: written into the
-    /// project and every undo/redo snapshot, without an undo step. Items with changes still on
-    /// their way to the Drive keep this Mac's version, and so do the bins while a bin change is.
+    /// The shared part at revision `rev` (items, bins and project-level fields) from the Drive:
+    /// written into the project and every undo/redo snapshot, without an undo step. Items and
+    /// fields with changes still on their way to the Drive keep this Mac's version, and so do the
+    /// bins while a bin change is. This Mac's scratch disks and ingest destination stay.
     pub fn apply_remote_shared(&mut self, rev: u64, shared: &Value) -> Result<()> {
         let t = self.team.as_ref().ok_or_else(not_team)?;
         if rev <= t.shared_rev {
@@ -569,6 +663,8 @@ impl Session {
         let gone: Vec<ItemId> = t.known_shared.iter().filter(|id| !remote_ids.contains(id) && !outgoing.items.contains(id)).copied().collect();
         // bins on their way to the Drive: keep this Mac's tree, plus what teammates added
         let root = if outgoing.bins { merge_bins(&self.project.root, &remote.root) } else { remote.root.clone() };
+        // fields on their way to the Drive keep this Mac's value (the last writer wins)
+        let skip_fields = outgoing.fields;
         let patch = |q: &mut Project| {
             for (id, it) in &items {
                 q.items.insert(*id, it.clone());
@@ -579,6 +675,7 @@ impl Session {
                 }
             }
             q.root = root.clone();
+            filmcraft_team::copy_fields(q, &remote, &skip_fields);
         };
         let mut p = (*self.project).clone();
         patch(&mut p);
@@ -600,6 +697,17 @@ impl Session {
         let had = t.held.remove(&id).is_some();
         t.requested.remove(&id);
         t.releasing.remove(&id);
+        if let Some(d) = t.deleting.remove(&id) {
+            // deleted here but not on the Drive: it comes back as the Drive has it
+            t.delete_in_flight.remove(&id);
+            t.revs.remove(&id);
+            t.local_new.remove(&id);
+            t.link.refresh();
+            let name = d.item.name.clone();
+            self.put_back(d);
+            tell(self, format!("You lost the lock on “{name}” before it was deleted on the Drive, so it is back"));
+            return;
+        }
         if t.local_new.contains(&id) {
             // never on the Drive: nobody else can have it, so just ask again
             t.requested.insert(id);
@@ -622,6 +730,69 @@ impl Session {
             Some(copy) => tell(self, format!("You lost the lock on “{name}”. Your unsynced edits are saved as “{copy}”")),
             None => tell(self, format!("You lost the lock on “{name}”; its unsynced edits could not be copied")),
         }
+    }
+
+    /// A teammate deleted sequence `id` on the Drive at revision `rev`: it leaves the project,
+    /// every undo/redo snapshot and the bins, without an undo step. Ignored for this member's
+    /// own delete and for an older revision than the one already here.
+    pub fn apply_remote_delete(&mut self, id: ItemId, rev: u64) -> Result<()> {
+        let t = self.team.as_mut().ok_or_else(not_team)?;
+        if t.deleting.contains_key(&id) || t.local_new.contains(&id) || t.revs.get(&id).is_some_and(|r| *r >= rev) {
+            return Ok(());
+        }
+        if self.project.item(id).is_some_and(|i| i.as_sequence().is_none()) {
+            return Err(EngineError::Other(format!("item {} is not a sequence", id.0)));
+        }
+        for set in [&mut t.requested, &mut t.in_flight, &mut t.releasing] {
+            set.remove(&id);
+        }
+        t.held.remove(&id);
+        t.holders.remove(&id);
+        t.dirty.remove(&id);
+        t.revs.insert(id, rev);
+        t.gone.insert(id);
+        let drop = |q: &mut Project| {
+            if q.item(id).is_some_and(|i| i.as_sequence().is_some()) {
+                q.items.remove(&id);
+                q.root.remove_item(id);
+            }
+        };
+        let mut p = (*self.project).clone();
+        drop(&mut p);
+        self.project = Arc::new(p);
+        patch_snapshots(&mut self.history, drop);
+        self.remote_applied();
+        Ok(())
+    }
+
+    /// Put a sequence whose delete the Drive refused back into the project (where it is missing)
+    /// and its bin, without an undo step; the bins go to the Drive again.
+    fn put_back(&mut self, d: PendingDelete) {
+        let id = d.item.id;
+        let restore = |q: &mut Project| {
+            if q.item(id).is_none() {
+                q.items.insert(id, d.item.clone());
+            }
+            if q.root.parent_of(id).is_none() && !q.root.children.contains(&BinEntry::Item(id)) {
+                match d.bin.and_then(|b| q.root.find_bin_mut(b)) {
+                    Some(b) => b.children.push(BinEntry::Item(id)),
+                    None => q.root.children.push(BinEntry::Item(id)),
+                }
+            }
+        };
+        let mut p = (*self.project).clone();
+        restore(&mut p);
+        self.project = Arc::new(p);
+        patch_snapshots(&mut self.history, restore);
+        let now = Instant::now();
+        if let Some(t) = self.team.as_mut() {
+            t.shared_pending.bins = true;
+            t.base = self.project.clone();
+        }
+        send_shared(self, now);
+        self.fix_state();
+        self.bump();
+        self.previews.live.publish_project(self.project.clone());
     }
 
     /// Copy sequence `id` as "Recovered – <name>" into the project and every snapshot, owned by

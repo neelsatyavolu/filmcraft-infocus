@@ -139,13 +139,18 @@ pub struct LockGrant {
 }
 
 /// A change to the shared part (`POST …/shared`). Upserts and deletes merge by id; `bins`, when set,
-/// replaces the whole root bin and needs `base_rev` to be current.
+/// replaces the whole root bin and needs `base_rev` to be current. `fields` replaces project-level
+/// fields whole, the last writer winning per field; the server takes only its allowlist
+/// (`settings`, `custom_colors`, `custom_color_names`, `luts`, `transcripts`, `search_bins`,
+/// `source_graphics`, `narrations`, `notes`) and refuses `null`. Leave this Mac's scratch disks
+/// and ingest destination out of `settings`.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct SharedChange {
     pub base_rev: u64,
     pub upserts: BTreeMap<u64, Value>,
     pub deletes: Vec<u64>,
     pub bins: Option<Value>,
+    pub fields: BTreeMap<String, Value>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -268,11 +273,26 @@ impl DriveClient {
         rev(&self.call(Method::Put, &seq_path(project, seq)?, Some(&body))?)
     }
 
+    /// Deletes a sequence this member holds the lock for (the lock goes with it). Returns the
+    /// sequence's last revision: revisions keep counting, so a sequence put back later with the
+    /// same id is saved with this as its `base_rev`. Errors: [`DriveError::LockLost`],
+    /// [`DriveError::Stale`], [`DriveError::ItemInUse`] (another sequence nests it),
+    /// [`DriveError::FilesChanged`].
+    pub fn delete_sequence(&self, project: &str, seq: u64, token: &str, base_rev: u64) -> Result<u64> {
+        rev(&self.lock_call(Method::Delete, &seq_path(project, seq)?, Some(&json!({ "token": token, "base_rev": base_rev })))?)
+    }
+
     /// Merges a change into the shared part. Returns the new shared revision.
     pub fn post_shared(&self, project: &str, change: &SharedChange) -> Result<u64> {
+        if change.fields.values().any(Value::is_null) {
+            return Err(DriveError::Invalid("a shared field can't be null".into()));
+        }
         let mut body = json!({ "base_rev": change.base_rev, "upserts": change.upserts, "deletes": change.deletes });
         if let Some(bins) = &change.bins {
             body["bins"] = bins.clone();
+        }
+        if !change.fields.is_empty() {
+            body["fields"] = json!(change.fields);
         }
         rev(&self.call(Method::Post, &format!("{}/shared", project_path(project)?), Some(&body))?)
     }

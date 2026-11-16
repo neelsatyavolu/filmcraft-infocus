@@ -323,8 +323,10 @@ fn list_and_create_and_shared_shapes() {
     assert_eq!(list[0].cleanup, None);
     assert_eq!(list[1].cleanup, Some(Cleanup { notice_sent_at: None, move_after: None, keep: true }));
     assert_eq!(c.create_project("A", None).unwrap(), CreatedProject { id: PID.into(), slot: 1 });
-    let change = SharedChange { base_rev: 5, upserts: [(9, json!({"id": 9}))].into(), deletes: vec![4], bins: None };
+    let change = SharedChange { base_rev: 5, upserts: [(9, json!({"id": 9}))].into(), deletes: vec![4], bins: None, fields: Default::default() };
     assert_eq!(c.post_shared(PID, &change).unwrap(), 6);
+    let nulled = SharedChange { fields: [("notes".to_string(), json!(null))].into(), ..Default::default() };
+    assert!(matches!(c.post_shared(PID, &nulled), Err(DriveError::Invalid(_))), "the server refuses null fields");
     assert!(c.keep(PID, true).unwrap());
     assert_eq!(c.open(PID).unwrap(), 12.0);
     c.export_begin(PID).unwrap();
@@ -333,6 +335,27 @@ fn list_and_create_and_shared_shapes() {
     assert_eq!(reqs[1].json(), json!({"name": "A", "app_version": "0.20.1", "schema_version": 17}));
     assert_eq!(reqs[2].json(), json!({"base_rev": 5, "upserts": {"9": {"id": 9}}, "deletes": [4]}));
     assert_eq!(reqs[5].path(), format!("/api/team/exports/{PID}/begin"));
+}
+
+#[test]
+fn delete_sequence_and_shared_fields_shapes() {
+    let server = MockServer::start(|req| match (req.method.as_str(), req.path()) {
+        ("DELETE", p) if p.ends_with("/sequences/7") => Reply::json(200, json!({"rev": 4})),
+        ("DELETE", p) if p.ends_with("/sequences/8") => Reply::json(409, json!({"error": "item_in_use", "message": "nested", "item": 8})),
+        ("POST", p) if p.ends_with("/shared") => Reply::json(200, json!({"rev": 2})),
+        _ => Reply::json(404, json!({"detail": "x"})),
+    });
+    let c = client(&server);
+    assert_eq!(c.delete_sequence(PID, 7, "tok", 3).unwrap(), 4);
+    assert!(matches!(c.delete_sequence(PID, 8, "tok", 1), Err(DriveError::ItemInUse { item: 8 })));
+    assert!(matches!(c.delete_sequence(PID, 0, "tok", 1), Err(DriveError::Invalid(_))));
+    let change = SharedChange { base_rev: 1, fields: [("notes".to_string(), json!("hi"))].into(), ..Default::default() };
+    assert_eq!(c.post_shared(PID, &change).unwrap(), 2);
+    let reqs = server.requests();
+    assert_eq!(reqs.len(), 3, "an invalid id never reaches the network");
+    assert_eq!(reqs[0].path(), format!("/api/team/projects/{PID}/sequences/7"));
+    assert_eq!(reqs[0].json(), json!({"token": "tok", "base_rev": 3}));
+    assert_eq!(reqs[2].json(), json!({"base_rev": 1, "upserts": {}, "deletes": [], "fields": {"notes": "hi"}}));
 }
 
 #[test]
@@ -351,6 +374,8 @@ fn hostile_ids_never_reach_the_network() {
 fn sse_parser_handles_split_chunks() {
     let stream = b": subscribed\r\n\r\nevent: sequence_updated\r\ndata: {\"seq\":7,\"rev\":3,\"by\":\"student1\"}\r\n\r\n\
                    : keepalive\n\nevent: lock_changed\ndata: {\"seq\":7,\"holder\":null}\n\nevent: shared_updated\rdata: {\"rev\":4}\r\r\
+                   event: sequence_deleted\ndata: {\"seq\":8,\"rev\":5,\"by\":\"student2\"}\n\n\
+                   event: shared_updated\ndata: {\"rev\":5,\"fields\":[\"notes\",\"settings\"]}\n\n\
                    event: note\ndata: a\ndata: b\n\n";
     let whole = SseParser::new().push(stream).unwrap();
     let mut split = Vec::new();
@@ -365,7 +390,9 @@ fn sse_parser_handles_split_chunks() {
         vec![
             TeamEvent::SequenceUpdated { seq: 7, rev: 3, by: "student1".into() },
             TeamEvent::LockChanged { seq: 7, holder: None },
-            TeamEvent::SharedUpdated { rev: 4 },
+            TeamEvent::SharedUpdated { rev: 4, fields: vec![] },
+            TeamEvent::SequenceDeleted { seq: 8, rev: 5, by: "student2".into() },
+            TeamEvent::SharedUpdated { rev: 5, fields: vec!["notes".into(), "settings".into()] },
             TeamEvent::Other { event: "note".into(), data: "a\nb".into() },
         ]
     );
@@ -391,7 +418,7 @@ fn events_stream_from_server() {
         )
     });
     let events: Vec<TeamEvent> = client(&server).events(PID).unwrap().map(|e| e.unwrap()).collect();
-    assert_eq!(events, vec![TeamEvent::LockChanged { seq: 2, holder: Some("student2".into()) }, TeamEvent::SharedUpdated { rev: 1 }]);
+    assert_eq!(events, vec![TeamEvent::LockChanged { seq: 2, holder: Some("student2".into()) }, TeamEvent::SharedUpdated { rev: 1, fields: vec![] }]);
     assert_eq!(server.requests()[0].header("accept"), Some("text/event-stream"));
 }
 
