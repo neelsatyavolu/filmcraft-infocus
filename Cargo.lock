@@ -2459,6 +2459,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "filmcraft-team"
+version = "0.20.1"
+dependencies = [
+ "filmcraft-format",
+ "filmcraft-media",
+ "filmcraft-project",
+ "filmcraft-time",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "filmcraft-testkit"
 version = "0.20.1"
 dependencies = [
