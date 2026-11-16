@@ -185,7 +185,7 @@ mod tests {
             record.borrow_mut().push(url.to_owned());
             Ok(())
         }));
-        let url = "https://github.com/storytold/filmcraft/releases/tag/v99.0.0";
+        let url = "https://github.com/neelsatyavolu/filmcraft-infocus/releases/tag/v99.0.0";
         app.updates_rt.updater.offer(craft_update::Release {
             tag: "v99.0.0".into(),
             version: craft_update::parse_version("99.0.0"),
@@ -220,6 +220,17 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn updates_come_from_this_fork_only() {
+        let app = &crate::UPDATE_APP;
+        assert_eq!(app.repo, "neelsatyavolu/filmcraft-infocus", "never upstream FilmCraft's releases");
+        assert_eq!(app.releases_url(), "https://github.com/neelsatyavolu/filmcraft-infocus/releases");
+        assert_eq!((app.id, app.name), ("infocus-cut", "InFocus Cut"));
+        assert_eq!(app.bundle_id(), "org.infocus.cut");
+        assert!(app.former_ids.is_empty(), "FilmCraft's release assets are never taken for this app's");
+    }
+
+    #[test]
     fn default_runtime_is_idle() {
         let rt = Runtime::default();
         assert!(!rt.manual_window_open);
@@ -239,8 +250,8 @@ mod tests {
         let release = craft_update::Release {
             tag: "v99.0.0".into(),
             version: craft_update::parse_version("99.0.0"),
-            name: "FilmCraft 99.0.0".into(),
-            html_url: "https://github.com/storytold/filmcraft/releases/tag/v99.0.0".into(),
+            name: "InFocus Cut 99.0.0".into(),
+            html_url: "https://github.com/neelsatyavolu/filmcraft-infocus/releases/tag/v99.0.0".into(),
             ..Default::default()
         };
         app.updates_rt.updater.offer(release);

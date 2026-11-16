@@ -95,6 +95,15 @@ Keep these small so upstream merges stay easy.
   FilmCraft licence and copyright notices stay. The ArtCraft Discord and website links (Help
   menu, About, Home, the header's Discord button) are gone; GitHub and Report an Issue go to
   this fork. File formats keep their FilmCraft names (`.fcproj` is a FilmCraft Project).
+- Updates and app data: Help ▸ Check for Updates (and the check at start) reads only this fork's
+  GitHub releases (`filmcraft_ui_egui::UPDATE_APP`: id `infocus-cut`, repo
+  `neelsatyavolu/filmcraft-infocus`, bundle id `org.infocus.cut`), never upstream FilmCraft's. A
+  release it can install names its assets `infocus-cut-<version>-<os>-<arch>.<ext>` with a
+  `SHA256SUMS.txt`; until there is one, a check finds nothing newer. On macOS the data folder
+  (preferences, logs, recovery, models, and the Drive `config.toml`) is
+  `~/Library/Application Support/InFocus Cut` (`autosave::MACOS_DATA_FOLDER`), fresh, never
+  shared with or copied from an upstream FilmCraft install. The Keychain item is service
+  `InFocus Cut`, account `drive`.
 
 ## Merging upstream
 
