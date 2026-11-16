@@ -1,0 +1,10 @@
+# InFocus Cut configuration example.
+# Copy to ~/Library/Application Support/InFocus Cut/config.toml and fill in your own hosts.
+# The build-time environment variable INFOCUS_DRIVE_URL is used when this file is absent.
+# These are placeholder values, not real hosts.
+
+# InFocus Drive over the internet.
+drive_url = "https://drive.example.com"
+
+# Optional: the same Drive on the local network. Used when it answers quickly.
+lan_url = "http://192.168.1.50:8790"

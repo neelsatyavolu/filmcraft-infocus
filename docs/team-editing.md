@@ -1,0 +1,50 @@
+# Team editing (InFocus Cut fork)
+
+InFocus Cut is a fork of FilmCraft that lets two or three members edit one project from their own
+Macs. Each sequence has one editor at a time (a lock); everyone else sees it read-only and gets
+updates live. Projects sync through InFocus Drive. The full design is in
+[team-editing-design.md](team-editing-design.md).
+
+## What the fork adds
+
+- `crates/project`: per-member id slots (`Project::set_id_slot`, `ID_SLOT_SHIFT`), so two members
+  never allocate the same item id. Slot 0 is the upstream behaviour.
+- `crates/team` (`filmcraft-team`): pure logic with no network and no UI. It splits a project into a
+  shared part and one part per sequence, merges them back, strips local paths and proxies, and
+  classifies which parts an edit changed. Later: the local media cache rules.
+- `crates/drive` (`filmcraft-drive`, planned): the InFocus Drive HTTP client and sign-in.
+- Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
+  [`config/infocus.example.toml`](../config/infocus.example.toml)) or the build environment
+  variable `INFOCUS_DRIVE_URL`. Hosts are never hard-coded.
+- The ArtCraft brand marks are removed (`docs/brand/` logos, the README header and footer logos,
+  and the wordmark in the About dialog and Home screen), as `docs/brand/LICENSE-brand.txt`
+  requires of forks.
+
+## Hooks into upstream code
+
+Keep these small so upstream merges stay easy.
+
+- Engine (planned): `Session::team`, a call to `team::after_command` after each journaled command,
+  `Session::apply_remote_sequence`, `Session::apply_remote_shared`, `Session::lock_lost` and
+  `Session::poll_team` (called from `poll_persistence`).
+- UI (planned): a Team Projects panel, lock badges on sequence tabs, and a guard on the export
+  entry point that fetches originals first.
+- Packaging (planned): app name "InFocus Cut" and its own bundle id.
+
+## Merging upstream
+
+```sh
+git fetch upstream
+git switch -c merge/upstream-YYYY-MM-DD feat/team-editing
+git merge upstream/main
+```
+
+Then check that no file in `docs/brand/` other than `LICENSE-brand.txt` came back, and that
+`crates/ui-egui/src/brand.rs` is still gone. Run `cargo fmt --all -- --check`, clippy with
+`-D warnings` and the tests for `filmcraft-project`, `filmcraft-team`, `filmcraft-engine` and
+`filmcraft-ui-egui`, then open a pull request into the fork.
+
+## Build time
+
+The first release build of the clean fork (`nice -n 15 env CARGO_BUILD_JOBS=6 cargo build -p filmcraft
+--release`, six jobs at low priority on a MacBook) took 4 min 43 s.
