@@ -311,7 +311,34 @@ impl Member {
             "list" => {
                 self.ctrl.refresh_projects();
                 self.wait("the project list", |m| m.ctrl.busy().is_none().then_some(Ok(Value::Null)))?;
-                Ok(json!(self.ctrl.projects().iter().map(|p| json!({"id": p.id, "name": p.name, "folder": p.folder})).collect::<Vec<_>>()))
+                let role = |p: &filmcraft_drive::ProjectSummary| format!("{:?}", p.role).to_lowercase();
+                Ok(json!(
+                    self.ctrl
+                        .projects()
+                        .iter()
+                        .map(|p| json!({"id": p.id, "name": p.name, "folder": p.folder, "role": role(p), "invited_by": p.invited_by}))
+                        .collect::<Vec<_>>()
+                ))
+            }
+            "invite" => {
+                // `invite <id> <user name>…`
+                let id = word(0)?.to_string();
+                let users: Vec<String> = words.iter().skip(1).map(|u| (*u).to_string()).collect();
+                if users.is_empty() {
+                    return Err("`invite` needs a project id and user names".into());
+                }
+                self.ctrl.invite(&id, &users);
+                self.wait("the invitations", |m| {
+                    m.ctrl.busy().is_none().then(|| m.ctrl.error().map_or(Ok(json!({"invited": users.len()})), |e| Err(e.to_string())))
+                })
+            }
+            "join" => {
+                // `join <id>`: accept the invitation; the project opens
+                let id = word(0)?.to_string();
+                let want = id.clone();
+                self.request("the project to join", |m| m.ctrl.join(&id), |m| m.open_id().as_deref() == Some(want.as_str()))?;
+                self.sync()?;
+                Ok(self.status())
             }
             "lock" => {
                 let seq = self.seq(word(0)?)?;

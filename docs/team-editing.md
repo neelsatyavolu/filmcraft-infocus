@@ -145,7 +145,7 @@ With `--control <port>` such a build also answers the `team.*` control methods
 `scripts/team-e2e.sh` runs two scripted members (`filmcraft-cli team session`, see
 `filmcraft-cli help`) against a real InFocus Drive on 127.0.0.1: the Drive's dev-only launcher
 `scripts/dev/team_e2e_server.py` (`INFOCUS_DEV_E2E=1`, fictional members `student1` and
-`student2`). It covers create and open with a media download, a refused lock, concurrent edits of
+`student2`). It covers create, a refused open before an invite, invite and join with a media download, a refused lock, concurrent edits of
 two sequences, two imports at once, a lost lock saved as "Recovered – …" and a sequence delete, and
 checks after each that both members' projects split identically. It needs an infocus-drive
 checkout with its `.venv` (`INFOCUS_DRIVE_REPO`, default `../infocus-drive`) and takes about 80 s.

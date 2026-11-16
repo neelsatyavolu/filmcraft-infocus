@@ -104,7 +104,7 @@ SUBCOMMANDS
                                 InFocus Cut team member for scripts: `team login --drive URL
                                 --token-file F [--device NAME]`, then `team session` (one command
                                 per stdin line, one JSON answer per line: create <name> <p.fcproj>,
-                                open <id>, list, lock/release <seq>, edit <seq> <new name>,
+                                open <id>, list, invite <id> <user>…, join <id>, lock/release <seq>, edit <seq> <new name>,
                                 exec <id> <json>, delete <seq>, import <file>, fetch, sync, status,
                                 split, freeze <secs>, quit), or one of them as `team <command>
                                 [<id>] …` (open <id> --out p.fcproj writes the merged project)

@@ -156,10 +156,15 @@ IFS= read -r -t 60 REPLY_JSON <&6 || die "student2's session did not start"
 # --- the scenario -------------------------------------------------------------------------------
 
 STEP="create and open"
-say "student1 creates the project; student2 opens it and downloads the media"
+say "student1 creates the project and invites student2, who joins and downloads the media"
 ok 1 create E2E "$WORK/start.fcproj"
 ID=$(result 'd["result"]["id"]')
-ok 2 open "$ID"
+ask 2 open "$ID"
+[ "$(result 'd["ok"]')" = False ] || die "student2 opened a project before being invited"
+ok 1 invite "$ID" student2
+ok 2 list
+check '[p["role"] for p in d["result"] if p["id"]=="'"$ID"'"] == ["invited"]' "student2 does not see the invitation: $(result 'd["result"]')"
+ok 2 join "$ID"
 SA=$(seq_id "Seq A"); SB=$(seq_id "Seq B")
 ok 2 fetch
 check '[m for m in d["result"]["media"] if m["name"]=="clip.'"$EXT"'" and m["path"] and m["path"].startswith("'"$WORK/m2/cache"'")] != []' \
