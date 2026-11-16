@@ -21,8 +21,10 @@ updates live. Projects sync through InFocus Drive. The full design is in
   project route, the change feed parser, resumable media downloads from the project's
   `<name> Media/` folder that only rename a `.partial` file once it is complete and checked, and
   resumable chunked media uploads into that folder that never overwrite (a name already there is
-  `DriveError::NameTaken`). Lock requests name the Mac
-  (`X-Drive-Device`), so a member's lock on one Mac is refused on their other Mac. Every team 409
+  `DriveError::NameTaken`). Lock requests, creating a project and opening it name the Mac
+  (`X-Drive-Device`), so a member's lock on one Mac is refused on their other Mac and each Mac
+  gets its own id slot. Shared posts carry the app and schema versions and at most 10,000 items
+  (the engine sends a bigger change in several). Every team 409
   maps to its own `DriveError` variant by the server's `error` code. On campus it uses the LAN address with a short-lived LAN
   token (the long-lived token never crosses the LAN) and falls back to the internet address.
 - `crates/team-link` (`filmcraft-team-link`, layer 5, no UI): connects a team session to the
@@ -43,6 +45,10 @@ updates live. Projects sync through InFocus Drive. The full design is in
   `drive:/` path. `TeamSessionController` is
   what the UI calls (sign in and out, list, create from the current project, open, keep, export
   guard); its network work runs on background threads and `poll` finishes it on the UI thread.
+  Close, Sign Out and Quit (`TeamSessionController::leave`) first send what is waiting and wait
+  for the session's team to be idle; after 10 s the app asks Wait or Leave Anyway.
+- Media cache index: each file keeps its `drive:/` path per team project (the same file is a
+  different path in each project's media folder); an older index's single path is moved over.
 - Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
   [`config/infocus.example.toml`](../config/infocus.example.toml)) or the build environment
   variable `INFOCUS_DRIVE_URL`. Hosts are never hard-coded.
