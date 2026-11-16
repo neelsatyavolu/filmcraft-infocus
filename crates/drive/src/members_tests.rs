@@ -97,3 +97,21 @@ fn full_team_and_last_member_are_their_own_errors() {
     assert_eq!(e.to_string(), "This project already has 12 people.");
     assert!(matches!(c.leave_project(PID), Err(DriveError::LastMember(_))));
 }
+
+#[test]
+fn presence_reads_online_and_last_seen_from_the_overview() {
+    let server = MockServer::start(|req| {
+        assert_eq!(req.path(), format!("/api/team/projects/{PID}/overview"));
+        Reply::json(
+            200,
+            json!({"id": PID, "members": [
+                {"username": "student1", "name": "Student One", "online": true, "last_seen": 1700000000.5, "editing": [3]},
+                {"username": "student2", "name": "Student Two", "online": false, "last_seen": 0.0},
+            ]}),
+        )
+    });
+    let people = client(&server).presence(PID).unwrap();
+    assert_eq!(people.len(), 2);
+    assert_eq!((people[0].online, people[0].last_seen), (Some(true), Some(1700000000.5)));
+    assert_eq!(people[1].online, Some(false));
+}

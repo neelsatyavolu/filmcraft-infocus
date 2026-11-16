@@ -113,6 +113,25 @@ fn example_config_parses() {
     let cfg = DriveConfig::from_toml(text).unwrap();
     assert_eq!(cfg.drive_url, "https://drive.example.com");
     assert_eq!(cfg.lan_url.as_deref(), Some("http://192.168.1.50:8790"));
+    assert_eq!(cfg.dashboard_url, "https://editing.example.com");
+}
+
+#[test]
+fn dashboard_defaults_and_is_checked() {
+    let cfg = DriveConfig::from_toml("drive_url = \"https://drive.example.com\"").unwrap();
+    assert_eq!(cfg.dashboard_url, DEFAULT_DASHBOARD_URL);
+    assert!(DriveConfig::from_toml("drive_url = \"https://drive.example.com\"\ndashboard_url = \"http://editing.example.com\"").is_err());
+    assert_eq!(cfg.with_dashboard("http://127.0.0.1:9000/editing/").unwrap().dashboard_url, "http://127.0.0.1:9000/editing");
+}
+
+#[test]
+fn account_keeps_the_name_and_drops_the_email() {
+    let server = MockServer::start(|_| {
+        Reply::json(200, json!({"authenticated": true, "nas_username": "student1", "name": "Student\u{7} One", "email": "student1@example.org"}))
+    });
+    let a = client(&server).account().unwrap();
+    assert_eq!((a.username.as_str(), a.name.as_str()), ("student1", "Student One"));
+    assert_eq!(client(&server).me().unwrap(), "student1");
 }
 
 #[test]
@@ -940,4 +959,14 @@ fn light_refetches_send_the_etag_and_read_304() {
     assert_eq!(paths[0], format!("/api/team/projects/{PID}/sequences/7"));
     assert_eq!(paths[3], format!("/api/team/projects/{PID}/shared"));
     assert!(matches!(c.get_sequence(PID, 0, None), Err(DriveError::Invalid(_))));
+}
+
+#[test]
+fn media_list_drops_paths_the_client_would_refuse() {
+    let server = MockServer::start(|req: &Req| {
+        assert_eq!(req.path(), format!("/api/team/projects/{PID}/media"));
+        Reply::json(200, json!({"files": [{"path": "Day 1/A001.mov", "size": 10, "mtime": 1.5}, {"path": "../etc/passwd", "size": 1}], "count": 2}))
+    });
+    let files = client(&server).list_media(PID).unwrap();
+    assert_eq!(files, vec![MediaFile { path: "Day 1/A001.mov".into(), size: 10, mtime: 1.5 }]);
 }

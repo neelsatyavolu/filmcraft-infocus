@@ -20,6 +20,8 @@ use crate::transfers::{Streams, Transfers};
 /// Largest id the server accepts (ids stay JSON-safe).
 pub const MAX_ID: u64 = (1 << 53) - 1;
 const API_TIMEOUT: Duration = Duration::from_secs(120);
+/// Longest display name kept from the Drive.
+const MAX_NAME_CHARS: usize = 80;
 
 /// This app's version and project schema, sent with every write so the server can refuse old apps.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -276,15 +278,24 @@ impl DriveClient {
 
     /// The signed-in member's Drive user name, the name lock holders and teammates' updates go by.
     pub fn me(&self) -> Result<String> {
+        self.account().map(|a| a.username)
+    }
+
+    /// Who is signed in: the Drive user name and the person's name (the user name when the
+    /// Drive has none). The email the Drive also sends is not kept.
+    pub fn account(&self) -> Result<Person> {
         let v: Value = http::parse(&self.call(Method::Get, "/api/me", None)?)?;
         if v.get("authenticated").and_then(Value::as_bool) == Some(false) {
             return Err(DriveError::Unauthorized("not signed in".into()));
         }
-        v.get("nas_username")
+        let username = v
+            .get("nas_username")
             .and_then(Value::as_str)
             .filter(|u| !u.is_empty())
             .map(str::to_string)
-            .ok_or_else(|| DriveError::BadResponse("the Drive did not say who is signed in".into()))
+            .ok_or_else(|| DriveError::BadResponse("the Drive did not say who is signed in".into()))?;
+        let name: String = v.get("name").and_then(Value::as_str).unwrap_or_default().chars().filter(|c| !c.is_control()).take(MAX_NAME_CHARS).collect();
+        Ok(Person { username, name: name.trim().to_string(), ..Person::default() })
     }
 
     pub fn list_projects(&self) -> Result<Vec<ProjectSummary>> {

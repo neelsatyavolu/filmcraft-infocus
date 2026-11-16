@@ -8,3 +8,7 @@ drive_url = "https://drive.example.com"
 
 # Optional: the same Drive on the local network. Used when it answers quickly.
 lan_url = "http://192.168.1.50:8790"
+
+# Optional: the team project dashboard website ("Open Dashboard" in the Team panel).
+# Default: https://editing.infocuspaly.com. The environment variable INFOCUS_EDITING_URL wins.
+dashboard_url = "https://editing.example.com"

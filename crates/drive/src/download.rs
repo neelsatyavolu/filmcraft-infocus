@@ -68,6 +68,21 @@ pub(crate) fn valid_media_path(path: &str) -> Result<&str> {
     if bad { Err(DriveError::Invalid(format!("media path {path:?}"))) } else { Ok(path) }
 }
 
+/// A file in a project's media folder (`GET …/media` without a path).
+#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+pub struct MediaFile {
+    /// The path inside `<name> Media/` (the form [`DriveClient::download_media`] takes).
+    pub path: String,
+    #[serde(default)]
+    pub size: u64,
+    /// Modification time (Unix seconds).
+    #[serde(default)]
+    pub mtime: f64,
+}
+
+/// Largest media list kept (the Drive stops listing well before this).
+const MAX_MEDIA_FILES: usize = 20_000;
+
 /// Where a response's bytes start and how long the whole file is.
 struct Span {
     start: u64,
@@ -75,6 +90,18 @@ struct Span {
 }
 
 impl DriveClient {
+    /// Every original in the project's media folder: what InFocus Cut uploaded and what members
+    /// put there from the Drive website. Paths the client would refuse are left out.
+    pub fn list_media(&self, project: &str) -> Result<Vec<MediaFile>> {
+        #[derive(serde::Deserialize)]
+        struct List {
+            #[serde(default)]
+            files: Vec<MediaFile>,
+        }
+        let list: List = http::parse(&self.call(crate::client::Method::Get, &format!("{}/media", project_path(project)?), None)?)?;
+        Ok(list.files.into_iter().filter(|f| valid_media_path(&f.path).is_ok()).take(MAX_MEDIA_FILES).collect())
+    }
+
     /// Downloads an original from the project's media folder (`media_path` is the path inside
     /// `<name> Media/`, see [`media_path_in`]) to `dest`, resuming `<dest>.partial` if it exists.
     /// Bytes go to `<dest>.partial`, which is renamed to `dest` only once complete and checked; the

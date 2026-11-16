@@ -31,12 +31,18 @@ pub enum Role {
 }
 
 /// A Drive member (`GET /api/team/people`, a project's members).
-#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
 pub struct Person {
     pub username: String,
     /// Display name (the user name when the Drive has none).
     #[serde(default)]
     pub name: String,
+    /// When the Drive last heard from them (Unix seconds), when it says.
+    #[serde(default)]
+    pub last_seen: Option<f64>,
+    /// Connected right now (an open change feed), when the Drive says.
+    #[serde(default)]
+    pub online: Option<bool>,
 }
 
 impl Person {
@@ -120,6 +126,18 @@ impl DriveClient {
     pub fn leave_project(&self, project: &str) -> Result<()> {
         self.call(Method::Post, &format!("{}/leave", project_path(project)?), None)?;
         Ok(())
+    }
+
+    /// The project's members with who is online and when each last opened it
+    /// (`GET …/overview`, the dashboard's view; the project list leaves these out).
+    pub fn presence(&self, project: &str) -> Result<Vec<Person>> {
+        #[derive(Deserialize)]
+        struct Overview {
+            #[serde(default)]
+            members: Vec<Person>,
+        }
+        let o: Overview = http::parse(&self.call(Method::Get, &format!("{}/overview", project_path(project)?), None)?)?;
+        Ok(o.members)
     }
 }
 

@@ -33,9 +33,9 @@ pub use auth::{
 pub use client::{
     AppInfo, Cleanup, CreatedProject, DriveClient, Fetched, LockGrant, LockState, MAX_ID, ProjectData, ProjectSummary, SequencePart, SharedChange, SharedPart,
 };
-pub use config::{DRIVE_URL_ENV, DriveConfig};
+pub use config::{DASHBOARD_URL_ENV, DEFAULT_DASHBOARD_URL, DRIVE_URL_ENV, DriveConfig};
 pub use device::{DEVICE_HEADER, MAX_DEVICE_LEN, local_device_name, sanitize_device_name};
-pub use download::{DRIVE_PREFIX, Expected, MEDIA_SUFFIX, media_folder, media_path_in, partial_path, sha256_hex};
+pub use download::{DRIVE_PREFIX, Expected, MEDIA_SUFFIX, MediaFile, media_folder, media_path_in, partial_path, sha256_hex};
 pub use error::{DriveError, Result};
 pub use events::{EventStream, SseEvent, SseParser, TeamEvent};
 pub use lan::{LAN_PROBE_TIMEOUT, LAN_TOKEN_PREFIX};
