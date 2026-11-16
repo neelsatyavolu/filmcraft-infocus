@@ -23,18 +23,18 @@ pub(crate) fn client(url: &str, token: &str) -> Arc<DriveClient> {
 }
 
 /// `GET /api/team/projects/{id}` with the given sequence revisions and shared revision.
-fn project(seqs: &[(u64, u64)], shared_rev: u64) -> Value {
+pub(crate) fn project(seqs: &[(u64, u64)], shared_rev: u64) -> Value {
     let sequences: BTreeMap<String, Value> =
         seqs.iter().map(|(id, rev)| (id.to_string(), json!({"rev": rev, "json": {"id": id, "name": format!("seq {id} v{rev}")}}))).collect();
     json!({"id": PID, "name": "A", "meta": {}, "shared": {"items": {}}, "sequences": sequences, "shared_rev": shared_rev, "locks": {}, "slot": 1})
 }
 
-fn known(seqs: &[(u64, u64)], shared_rev: u64) -> FeedState {
+pub(crate) fn known(seqs: &[(u64, u64)], shared_rev: u64) -> FeedState {
     FeedState { sequences: seqs.iter().copied().collect(), shared_rev, locks: BTreeMap::new() }
 }
 
 /// Polls the link until `n` events came or 10 s passed.
-fn events(link: &mut DriveTeamLink, n: usize) -> Vec<LinkEvent> {
+pub(crate) fn events(link: &mut DriveTeamLink, n: usize) -> Vec<LinkEvent> {
     let deadline = Instant::now() + Duration::from_secs(10);
     let mut out = Vec::new();
     while out.len() < n && Instant::now() < deadline {

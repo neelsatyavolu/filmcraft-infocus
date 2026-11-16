@@ -28,6 +28,8 @@ pub use uploads::{FinishedUpload, MAX_UPLOADS, PendingUpload, TeamUploads, UPLOA
 #[cfg(test)]
 mod controller_tests;
 #[cfg(test)]
+mod link_tests;
+#[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod upload_tests;

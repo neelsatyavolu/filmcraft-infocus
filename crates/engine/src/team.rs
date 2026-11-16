@@ -42,6 +42,9 @@ pub const LOCK_EXPIRY: Duration = Duration::from_secs(120);
 pub const PUSH_DEBOUNCE: Duration = Duration::from_secs(1);
 /// A push that failed on the network is tried again after this long.
 pub const RETRY_AFTER: Duration = Duration::from_secs(5);
+/// Most shared items one post sends (the Drive takes at most this many upserts and deletes per
+/// change); the rest follow in the next post.
+pub const MAX_SHARED_OPS: usize = 10_000;
 
 /// Changes to the shared part: items merged by id, deletions, the whole bin tree, and
 /// project-level fields replaced whole (by their JSON key, [`filmcraft_team::SHARED_FIELDS`]).
@@ -572,7 +575,10 @@ fn send_shared(s: &mut Session, now: Instant) {
     {
         return;
     }
-    let out = std::mem::take(&mut t.shared_pending);
+    let mut out = std::mem::take(&mut t.shared_pending);
+    if let Some(first_left) = out.items.iter().nth(MAX_SHARED_OPS).copied() {
+        t.shared_pending.items = out.items.split_off(&first_left);
+    }
     let mut mini = Project::new("");
     let mut deletes = Vec::new();
     for &id in &out.items {

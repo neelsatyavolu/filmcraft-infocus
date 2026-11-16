@@ -264,6 +264,43 @@ fn conflicts_map_to_their_variants() {
 }
 
 #[test]
+fn creating_and_opening_a_project_name_the_mac() {
+    // the Drive gives each of a member's Macs its own id slot, by this header
+    let server = MockServer::start(|req| match req.method.as_str() {
+        "POST" => Reply::json(200, json!({"id": PID, "slot": 2})),
+        _ => Reply::json(200, json!({"id": PID, "name": "A", "meta": {}, "shared": {}, "sequences": {}, "shared_rev": 0, "locks": {}, "slot": 2})),
+    });
+    let c = client(&server);
+    c.create_project("A", None).unwrap();
+    c.get_project(PID).unwrap();
+    let reqs = server.requests();
+    assert_eq!(reqs.len(), 2);
+    assert!(reqs.iter().all(|r| r.header("x-drive-device") == Some("Studio Mac")), "{reqs:?}");
+}
+
+#[test]
+fn drive_limits_map_to_their_variants() {
+    let cases = [
+        (409u16, json!({"error": "no_slots", "message": "This project has no room for another Mac"}), "slots"),
+        (429, json!({"error": "too_many_streams", "detail": "Too many open change feeds; close another InFocus Cut window"}), "streams"),
+        (400, json!({"error": "schema_unsupported", "detail": "update the Drive", "max_schema_version": 16}), "schema"),
+        (413, json!({"detail": "At most 10000 upserts and 10000 deletes per change"}), "large"),
+    ];
+    for (status, body, kind) in cases {
+        let server = MockServer::start(move |_| Reply::json(status, body.clone()));
+        let err = client(&server).post_shared(PID, &SharedChange::default()).unwrap_err();
+        let ok = match kind {
+            "slots" => matches!(&err, DriveError::NoSlots(m) if m.contains("no room")),
+            "streams" => matches!(&err, DriveError::TooManyStreams(m) if m.contains("change feeds")),
+            "schema" => matches!(err, DriveError::SchemaUnsupported { max_schema_version: 16 }),
+            _ => matches!(&err, DriveError::TooLarge(m) if m.contains("10000")),
+        };
+        assert!(ok, "{kind}: {err:?}");
+        assert!(!err.is_network(), "{kind}: not retried as a network problem");
+    }
+}
+
+#[test]
 fn http_statuses_map() {
     for (status, check) in [(401u16, "unauth"), (403, "forbidden"), (404, "missing"), (500, "other")] {
         let server = MockServer::start(move |_| Reply::json(status, json!({"detail": "msg"})));
@@ -333,7 +370,7 @@ fn list_and_create_and_shared_shapes() {
     c.export_end(PID).unwrap();
     let reqs = server.requests();
     assert_eq!(reqs[1].json(), json!({"name": "A", "app_version": "0.20.1", "schema_version": 17}));
-    assert_eq!(reqs[2].json(), json!({"base_rev": 5, "upserts": {"9": {"id": 9}}, "deletes": [4]}));
+    assert_eq!(reqs[2].json(), json!({"base_rev": 5, "upserts": {"9": {"id": 9}}, "deletes": [4], "app_version": "0.20.1", "schema_version": 17}));
     assert_eq!(reqs[5].path(), format!("/api/team/exports/{PID}/begin"));
 }
 
@@ -355,7 +392,7 @@ fn delete_sequence_and_shared_fields_shapes() {
     assert_eq!(reqs.len(), 3, "an invalid id never reaches the network");
     assert_eq!(reqs[0].path(), format!("/api/team/projects/{PID}/sequences/7"));
     assert_eq!(reqs[0].json(), json!({"token": "tok", "base_rev": 3}));
-    assert_eq!(reqs[2].json(), json!({"base_rev": 1, "upserts": {}, "deletes": [], "fields": {"notes": "hi"}}));
+    assert_eq!(reqs[2].json(), json!({"base_rev": 1, "upserts": {}, "deletes": [], "fields": {"notes": "hi"}, "app_version": "0.20.1", "schema_version": 17}));
 }
 
 #[test]

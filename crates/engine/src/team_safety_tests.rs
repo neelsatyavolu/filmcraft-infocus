@@ -127,3 +127,45 @@ fn a_lock_given_up_after_a_refused_push_is_released() {
     let refresh = sent.iter().position(|c| *c == Call::Refresh).expect("the Drive's version is fetched");
     assert!(release < refresh, "{sent:?}");
 }
+
+#[test]
+fn a_refusal_retrying_cannot_fix_stops_syncing_with_its_reason() {
+    let (mut s, fake, _, _) = team_demo();
+    s.execute("file.newAdjustmentLayer", json!({})).unwrap();
+    // the Drive refuses the post for good (instead of the fake's answer)
+    fake.lock().unwrap().queued.clear();
+    let why = "This InFocus Drive is older than InFocus Cut".to_string();
+    fake.lock().unwrap().queued.push(LinkEvent::SharedPostFailed { error: LinkError::Refused(why.clone()) });
+    s.poll_team(Instant::now());
+    let problem = s.team.as_ref().unwrap().problem.clone().unwrap_or_default();
+    assert!(problem.contains(&why), "{problem}");
+    calls(&fake);
+    s.poll_team(later(10));
+    assert!(!calls(&fake).iter().any(|c| matches!(c, Call::Shared(_))), "not tried again every few seconds");
+}
+
+#[test]
+fn a_big_shared_change_goes_in_posts_the_drive_accepts() {
+    let (mut s, fake, _, _) = team_demo();
+    let n = crate::team::MAX_SHARED_OPS + 5;
+    let kind = s.project.items.values().find(|i| i.as_media().is_some()).map(|i| i.kind.clone()).unwrap();
+    s.edit("Many clips", |p, _| {
+        for k in 0..n {
+            p.add_item(&format!("Clip {k}"), filmcraft_project::Label::Iris, kind.clone(), None);
+        }
+        Ok(())
+    })
+    .unwrap();
+    calls(&fake);
+    s.poll_team(Instant::now());
+    s.poll_team(Instant::now());
+    let posts: Vec<SharedPush> = calls(&fake)
+        .into_iter()
+        .filter_map(|c| match c {
+            Call::Shared(p) => Some(p),
+            _ => None,
+        })
+        .collect();
+    assert!(posts.iter().all(|p| p.upserts.len() + p.deletes.len() <= crate::team::MAX_SHARED_OPS), "every post is within the Drive's limit");
+    assert_eq!(posts.iter().map(|p| p.upserts.len()).sum::<usize>(), n, "and everything is sent");
+}

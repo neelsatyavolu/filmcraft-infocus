@@ -26,6 +26,9 @@ pub enum LinkError {
     UpdateRequired,
     /// The Drive could not be reached (the request is tried again).
     Network(String),
+    /// The Drive refused for a reason trying again won't fix (it is older than this app, a
+    /// request over its limits): syncing stops with this message.
+    Refused(String),
 }
 
 /// What the link reports back from [`TeamLink::poll`](super::TeamLink::poll).
@@ -183,7 +186,7 @@ impl Session {
                 }
             }
             // tried again in 20 s; the lock is lost after 120 s without success
-            LinkEvent::HeartbeatFailed { error: LinkError::Network(_), .. } => {}
+            LinkEvent::HeartbeatFailed { error: LinkError::Network(_) | LinkError::Refused(_), .. } => {}
             LinkEvent::HeartbeatFailed { seq, error: _ } => self.lock_lost(seq),
             LinkEvent::SequencePut { seq, rev } => {
                 t.in_flight.remove(&seq);
@@ -195,7 +198,7 @@ impl Session {
                     t.in_flight.remove(&seq);
                     t.dirty.entry(seq).or_insert(now + RETRY_AFTER);
                 }
-                LinkError::UpdateRequired | LinkError::FilesChanged => {
+                LinkError::UpdateRequired | LinkError::FilesChanged | LinkError::Refused(_) => {
                     t.in_flight.remove(&seq);
                     t.dirty.entry(seq).or_insert(now);
                     self.sync_stopped(&error);
@@ -224,7 +227,7 @@ impl Session {
                             d.due = now + RETRY_AFTER;
                         }
                     }
-                    LinkError::UpdateRequired | LinkError::FilesChanged => self.sync_stopped(&error),
+                    LinkError::UpdateRequired | LinkError::FilesChanged | LinkError::Refused(_) => self.sync_stopped(&error),
                     LinkError::ItemInUse { .. } => {
                         t.local_new.remove(&seq);
                         if let Some(d) = t.deleting.remove(&seq) {
@@ -287,7 +290,7 @@ impl Session {
                         let name = self.base_name(item);
                         tell(self, format!("“{name}” is still used by a sequence on the Drive, so it was not deleted there"));
                     }
-                    LinkError::UpdateRequired | LinkError::FilesChanged => {
+                    LinkError::UpdateRequired | LinkError::FilesChanged | LinkError::Refused(_) => {
                         t.shared_pending.absorb(out);
                         self.sync_stopped(&error);
                     }
@@ -328,6 +331,7 @@ impl Session {
     fn sync_stopped(&mut self, error: &LinkError) {
         let message = match error {
             LinkError::UpdateRequired => "This team project needs a newer InFocus Cut: update the app to keep syncing".to_string(),
+            LinkError::Refused(why) => format!("Syncing stopped: {why}"),
             _ => "The project's files on the Drive were changed outside InFocus Cut, so syncing stopped".to_string(),
         };
         if let Some(t) = self.team.as_mut() {

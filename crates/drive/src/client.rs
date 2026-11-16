@@ -49,7 +49,8 @@ impl AppInfo {
     pub fn schema_version(&self) -> u32 {
         self.schema_version
     }
-    /// The name sent as `X-Drive-Device` with lock requests (empty: no header).
+    /// The name sent as `X-Drive-Device` with lock requests and project creates and opens (empty:
+    /// no header).
     pub fn device(&self) -> &str {
         &self.device
     }
@@ -258,14 +259,14 @@ impl DriveClient {
         if let Some(p) = project {
             body["project"] = p.clone();
         }
-        http::parse(&self.call(Method::Post, "/api/team/projects", Some(&body))?)
+        http::parse(&self.device_call(Method::Post, "/api/team/projects", Some(&body))?)
     }
 
     /// The whole project. The Drive records this as an open (it restarts the 30-day cleanup
     /// clock): use it to open or refresh a project, and [`Self::get_sequence`] /
     /// [`Self::get_shared`] to follow changes.
     pub fn get_project(&self, project: &str) -> Result<ProjectData> {
-        http::parse(&self.call(Method::Get, &project_path(project)?, None)?)
+        http::parse(&self.device_call(Method::Get, &project_path(project)?, None)?)
     }
 
     /// One sequence and its revision, without recording an open (for change-feed refetches).
@@ -282,7 +283,7 @@ impl DriveClient {
 
     /// Takes a sequence lock; [`DriveError::HeldBy`] when a teammate holds it.
     pub fn take_lock(&self, project: &str, seq: u64) -> Result<LockGrant> {
-        http::parse(&self.lock_call(Method::Post, &format!("{}/lock", seq_path(project, seq)?), None)?)
+        http::parse(&self.device_call(Method::Post, &format!("{}/lock", seq_path(project, seq)?), None)?)
     }
 
     /// Extends a lock (every 20 s). Returns the new expiry; [`DriveError::LockLost`] when it is gone.
@@ -292,18 +293,18 @@ impl DriveClient {
             expires_at: f64,
         }
         let beat: Beat =
-            http::parse(&self.lock_call(Method::Post, &format!("{}/lock/heartbeat", seq_path(project, seq)?), Some(&json!({ "token": token })))?)?;
+            http::parse(&self.device_call(Method::Post, &format!("{}/lock/heartbeat", seq_path(project, seq)?), Some(&json!({ "token": token })))?)?;
         Ok(beat.expires_at)
     }
 
     pub fn release(&self, project: &str, seq: u64, token: &str) -> Result<()> {
-        self.lock_call(Method::Delete, &format!("{}/lock", seq_path(project, seq)?), Some(&json!({ "token": token })))?;
+        self.device_call(Method::Delete, &format!("{}/lock", seq_path(project, seq)?), Some(&json!({ "token": token })))?;
         Ok(())
     }
 
     /// Drive admins only.
     pub fn force_release(&self, project: &str, seq: u64) -> Result<()> {
-        self.lock_call(Method::Post, &format!("{}/lock/force", seq_path(project, seq)?), None)?;
+        self.device_call(Method::Post, &format!("{}/lock/force", seq_path(project, seq)?), None)?;
         Ok(())
     }
 
@@ -323,7 +324,7 @@ impl DriveClient {
     /// [`DriveError::Stale`], [`DriveError::ItemInUse`] (another sequence nests it),
     /// [`DriveError::FilesChanged`].
     pub fn delete_sequence(&self, project: &str, seq: u64, token: &str, base_rev: u64) -> Result<u64> {
-        rev(&self.lock_call(Method::Delete, &seq_path(project, seq)?, Some(&json!({ "token": token, "base_rev": base_rev })))?)
+        rev(&self.device_call(Method::Delete, &seq_path(project, seq)?, Some(&json!({ "token": token, "base_rev": base_rev })))?)
     }
 
     /// Merges a change into the shared part. Returns the new shared revision.
@@ -331,7 +332,10 @@ impl DriveClient {
         if change.fields.values().any(Value::is_null) {
             return Err(DriveError::Invalid("a shared field can't be null".into()));
         }
-        let mut body = json!({ "base_rev": change.base_rev, "upserts": change.upserts, "deletes": change.deletes });
+        let mut body = self.versions();
+        body["base_rev"] = json!(change.base_rev);
+        body["upserts"] = json!(change.upserts);
+        body["deletes"] = json!(change.deletes);
         if let Some(bins) = &change.bins {
             body["bins"] = bins.clone();
         }
@@ -386,8 +390,10 @@ impl DriveClient {
         self.request(method, path, body.map_or(Body::Empty, Body::Json), &[])
     }
 
-    /// A lock route: also names this Mac (`X-Drive-Device`).
-    fn lock_call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
+    /// A route that names this Mac (`X-Drive-Device`): locks (a member's lock on one Mac is
+    /// refused on their other Mac), and creating and opening a project (each Mac gets its own id
+    /// slot).
+    fn device_call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
         let device = self.app.device();
         let headers: Vec<(&str, String)> = if device.is_empty() { Vec::new() } else { vec![(DEVICE_HEADER, device.to_string())] };
         self.request(method, path, body.map_or(Body::Empty, Body::Json), &headers)

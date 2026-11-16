@@ -42,6 +42,18 @@ pub enum DriveError {
     /// Any other team conflict (409 `conflict`), with the server's message.
     #[error("{0}")]
     Conflict(String),
+    /// The project has no id slot left for another member or Mac (409 `no_slots`).
+    #[error("{0}")]
+    NoSlots(String),
+    /// The member has too many change feeds open (429 `too_many_streams`); polling covers it.
+    #[error("{0}")]
+    TooManyStreams(String),
+    /// The Drive doesn't know this app's project schema yet (400 `schema_unsupported`).
+    #[error("This InFocus Drive is older than InFocus Cut (it knows project schema {max_schema_version}): ask for the Drive to be updated")]
+    SchemaUnsupported { max_schema_version: u64 },
+    /// The request is over one of the Drive's limits (413).
+    #[error("Too much for InFocus Drive at once: {0}")]
+    TooLarge(String),
     /// This app is older than the project requires (426). Update InFocus Cut.
     #[error("Update InFocus Cut to edit this project (needs {min_app_version} or later)")]
     UpdateRequired { min_app_version: String, schema_version: u64 },

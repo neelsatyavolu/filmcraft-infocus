@@ -5,14 +5,14 @@
 //! tokens stay on the worker side (shared with the feed thread, which skips fetching sequences
 //! this Mac holds).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex, PoisonError};
 
-use filmcraft_drive::{DRIVE_PREFIX, DriveClient, DriveError, SharedChange};
+use filmcraft_drive::{DRIVE_PREFIX, DriveClient, DriveError, Fetched, SharedChange};
 use filmcraft_engine::team::{LinkError, LinkEvent, SharedPush, TeamLink};
 use filmcraft_project::{ItemId, MediaRef};
 use filmcraft_team::LocalMedia;
@@ -80,7 +80,14 @@ impl DriveTeamLink {
         let status = Arc::new(LinkStatus::default());
         let stop = Arc::new(AtomicBool::new(false));
         let tokens: Tokens = Arc::default();
-        let worker = Worker { client: client.clone(), project: project.to_string(), tokens: tokens.clone(), events: ev_tx.clone(), status: status.clone() };
+        let worker = Worker {
+            client: client.clone(),
+            project: project.to_string(),
+            tokens: tokens.clone(),
+            events: ev_tx.clone(),
+            status: status.clone(),
+            lost: Arc::default(),
+        };
         let (beat_tx, beat_rx) = channel();
         let beater = worker.clone();
         std::thread::Builder::new()
@@ -196,6 +203,7 @@ pub fn link_error(e: &DriveError) -> LinkError {
         DriveError::ItemInUse { item } => LinkError::ItemInUse { item: ItemId(*item) },
         DriveError::FilesChanged(_) => LinkError::FilesChanged,
         DriveError::UpdateRequired { .. } => LinkError::UpdateRequired,
+        DriveError::NoSlots(_) | DriveError::SchemaUnsupported { .. } | DriveError::TooLarge(_) => LinkError::Refused(e.to_string()),
         other => LinkError::Network(other.to_string()),
     }
 }
@@ -209,6 +217,15 @@ fn holder_name(holder: Option<&str>, device: Option<&str>) -> String {
     }
 }
 
+/// Saves and deletes whose answer never arrived (a network error after sending): the Drive may
+/// have done them, which a retry then finds out.
+#[derive(Default)]
+struct Unanswered {
+    /// The sequence JSON of each such save.
+    puts: BTreeMap<u64, Value>,
+    deletes: BTreeSet<u64>,
+}
+
 #[derive(Clone)]
 struct Worker {
     client: Arc<DriveClient>,
@@ -216,6 +233,7 @@ struct Worker {
     tokens: Tokens,
     events: Sender<LinkEvent>,
     status: Arc<LinkStatus>,
+    lost: Arc<Mutex<Unanswered>>,
 }
 
 impl Worker {
@@ -296,6 +314,20 @@ impl Worker {
                 let id = ItemId(seq);
                 match r {
                     Ok(grant) => {
+                        // the Drive's latest version first: a teammate's save this Mac missed (a
+                        // refetch that failed) would make the first push stale
+                        match c.get_sequence(p, seq, None) {
+                            Ok(Fetched::Fresh { value, .. }) => {
+                                self.emit(LinkEvent::SequenceUpdated { seq: id, rev: value.rev, by: String::new(), json: value.json });
+                            }
+                            Err(e) if e.is_network() => {
+                                // a release that fails leaves a lock that expires in 120 s
+                                let _ = c.release(p, seq, &grant.token);
+                                return self.emit(LinkEvent::LockFailed { seq: id, message: e.to_string() });
+                            }
+                            // not on the Drive yet (made here), or a Drive without the route
+                            Ok(Fetched::NotModified) | Err(_) => {}
+                        }
                         self.set_token(seq, Some(grant.token));
                         self.emit(LinkEvent::LockTaken { seq: id });
                     }
@@ -309,9 +341,10 @@ impl Worker {
             Cmd::Release(seq) => {
                 if let Some(token) = self.token(seq) {
                     self.set_token(seq, None);
-                    // a release that fails leaves a lock that expires in 120 s
+                    // a release that fails leaves a lock that expires in 120 s; one that already
+                    // expired is released too
                     let r = c.release(p, seq, &token);
-                    self.outcome(&r);
+                    self.outcome(&r.or_else(|e| if matches!(e, DriveError::LockLost) { Ok(()) } else { Err(e) }));
                 }
             }
             Cmd::Put { seq, base, json } => {
@@ -319,11 +352,25 @@ impl Worker {
                 let Some(token) = self.token(seq) else {
                     return self.emit(LinkEvent::SequencePutFailed { seq: id, error: LinkError::LockLost });
                 };
-                let r = c.put_sequence(p, seq, &token, base, &json);
+                let r = match c.put_sequence(p, seq, &token, base, &json) {
+                    Err(DriveError::Stale { rev }) => self.after_stale_put(seq, &token, &json).unwrap_or(Err(DriveError::Stale { rev })),
+                    other => other,
+                };
                 self.outcome(&r);
+                let mut lost = self.lost.lock().unwrap_or_else(PoisonError::into_inner);
                 match r {
-                    Ok(rev) => self.emit(LinkEvent::SequencePut { seq: id, rev }),
-                    Err(e) => self.failed_with_lock(seq, &e, |error| LinkEvent::SequencePutFailed { seq: id, error }),
+                    Ok(rev) => {
+                        lost.puts.remove(&seq);
+                        drop(lost);
+                        self.emit(LinkEvent::SequencePut { seq: id, rev });
+                    }
+                    Err(e) => {
+                        if e.is_network() {
+                            lost.puts.insert(seq, json);
+                        }
+                        drop(lost);
+                        self.failed_with_lock(seq, &e, |error| LinkEvent::SequencePutFailed { seq: id, error });
+                    }
                 }
             }
             Cmd::Delete { seq, base } => {
@@ -331,8 +378,20 @@ impl Worker {
                 let Some(token) = self.token(seq) else {
                     return self.emit(LinkEvent::SequenceDeleteFailed { seq: id, error: LinkError::LockLost });
                 };
-                let r = c.delete_sequence(p, seq, &token, base);
+                let retried = self.lost.lock().unwrap_or_else(PoisonError::into_inner).deletes.remove(&seq);
+                let r = match c.delete_sequence(p, seq, &token, base) {
+                    // the first try's answer was lost: when the sequence is gone the Drive did it
+                    // (and released the lock; a delete bumps the revision once)
+                    Err(e @ (DriveError::NotFound(_) | DriveError::LockLost | DriveError::Stale { .. })) if retried => match c.get_sequence(p, seq, None) {
+                        Err(DriveError::NotFound(_)) => Ok(base.saturating_add(1)),
+                        _ => Err(e),
+                    },
+                    other => other,
+                };
                 self.outcome(&r);
+                if r.as_ref().is_err_and(DriveError::is_network) {
+                    self.lost.lock().unwrap_or_else(PoisonError::into_inner).deletes.insert(seq);
+                }
                 match r {
                     Ok(rev) => {
                         self.set_token(seq, None);
@@ -366,6 +425,21 @@ impl Worker {
                     }
                 }
             }
+        }
+    }
+
+    /// A save refused as stale after one whose answer never arrived: when the Drive has what
+    /// this Mac sent, the save is done; when it has the unanswered save, this one goes on top of
+    /// it. None: really stale.
+    fn after_stale_put(&self, seq: u64, token: &str, json: &Value) -> Option<Result<u64, DriveError>> {
+        let unanswered = self.lost.lock().unwrap_or_else(PoisonError::into_inner).puts.get(&seq).cloned()?;
+        let Ok(Fetched::Fresh { value, .. }) = self.client.get_sequence(&self.project, seq, None) else { return None };
+        if value.json == *json {
+            Some(Ok(value.rev))
+        } else if value.json == unanswered {
+            Some(self.client.put_sequence(&self.project, seq, token, value.rev, json))
+        } else {
+            None
         }
     }
 

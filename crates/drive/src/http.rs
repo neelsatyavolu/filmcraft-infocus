@@ -75,7 +75,12 @@ pub(crate) fn error_for(status: u16, body: &[u8]) -> DriveError {
         401 => DriveError::Unauthorized(msg),
         403 => DriveError::Forbidden(msg),
         404 => DriveError::NotFound(msg),
+        400 if code(body).as_deref() == Some("schema_unsupported") => DriveError::SchemaUnsupported {
+            max_schema_version: serde_json::from_slice::<Value>(body).ok().and_then(|v| v.get("max_schema_version")?.as_u64()).unwrap_or(0),
+        },
         409 => conflict(body).unwrap_or(DriveError::Http { status, message: msg }),
+        413 => DriveError::TooLarge(msg),
+        429 => DriveError::TooManyStreams(msg),
         426 => {
             let v: Value = serde_json::from_slice(body).unwrap_or(Value::Null);
             DriveError::UpdateRequired {
@@ -90,7 +95,7 @@ pub(crate) fn error_for(status: u16, body: &[u8]) -> DriveError {
 /// The team API's 409 bodies: `{error: <code>, message, ...}` with the code `lock_held` (plus
 /// `holder`, `expires_at` and, for this member's own other Mac, `device`), `lock_lost`, `stale`
 /// (`rev`), `item_in_use` (`item`), `files_changed`, `name_taken`, `invalid_project` or `conflict`
-/// (`detail`). A body without a known code but with a `holder` is still a held lock.
+/// (`detail`) or `no_slots`. A body without a known code but with a `holder` is still a held lock.
 fn conflict(body: &[u8]) -> Option<DriveError> {
     let v: Value = serde_json::from_slice(body).ok()?;
     let obj = v.as_object()?;
@@ -110,9 +115,15 @@ fn conflict(body: &[u8]) -> Option<DriveError> {
         "name_taken" => DriveError::NameTaken(msg()),
         "invalid_project" => DriveError::InvalidProject(msg()),
         "conflict" => DriveError::Conflict(msg()),
+        "no_slots" => DriveError::NoSlots(msg()),
         _ if obj.contains_key("holder") => held(),
         _ => return None,
     })
+}
+
+/// The `error` code of an error body.
+fn code(body: &[u8]) -> Option<String> {
+    serde_json::from_slice::<Value>(body).ok()?.get("error")?.as_str().map(str::to_string)
 }
 
 /// Parses a 2xx JSON body.

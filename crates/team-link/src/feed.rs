@@ -133,7 +133,7 @@ impl Feed {
         };
         self.status.set_live(true);
         // catch up on what changed while the feed was down
-        self.fetch(None);
+        self.fetch_until_done(None);
         for ev in stream {
             if self.stopped() {
                 break;
@@ -220,27 +220,44 @@ impl Feed {
         };
     }
 
-    /// A light refetch failed: the network is retried by polling and the next catch-up; anything
-    /// else (the sequence was deleted meanwhile, or a Drive without these routes) is sorted out
-    /// by the whole project.
+    /// A light refetch failed (the network, the sequence deleted meanwhile, a Drive without these
+    /// routes): the whole project sorts it out, tried again until it arrives, or the change would
+    /// stay missing until the stream reconnects.
     fn light_failed(&mut self, e: DriveError, by: Option<(u64, &str)>) {
-        if e.is_network() {
-            self.status.set_error(Some(format!("Updates: {e}")));
-        } else {
-            self.fetch(by);
-        }
+        self.status.set_error(Some(format!("Updates: {e}")));
+        self.fetch_until_done(by);
     }
 
-    /// Fetches the project and reports what changed since the last look.
-    fn fetch(&mut self, by: Option<(u64, &str)>) {
+    /// Fetches the project and reports what changed since the last look. False when it failed.
+    fn fetch(&mut self, by: Option<(u64, &str)>) -> bool {
         match self.client.get_project(&self.project) {
             Ok(data) => {
                 let held = self.held();
                 for ev in self.known.advance(&data, by, &held) {
                     self.emit(ev);
                 }
+                true
             }
-            Err(e) => self.status.set_error(Some(format!("Updates: {e}"))),
+            Err(e) => {
+                self.status.set_error(Some(format!("Updates: {e}")));
+                false
+            }
+        }
+    }
+
+    /// [`Self::fetch`], tried again with backoff (1 s doubling to [`POLL_EVERY`]) until it works
+    /// or the link stops. Events arriving meanwhile wait in the stream.
+    fn fetch_until_done(&mut self, by: Option<(u64, &str)>) {
+        let mut wait = FIRST_BACKOFF;
+        while !self.fetch(by) {
+            let until = Instant::now() + wait;
+            while Instant::now() < until {
+                if self.stopped() {
+                    return;
+                }
+                std::thread::sleep(TICK);
+            }
+            wait = (wait * 2).min(POLL_EVERY);
         }
     }
 
