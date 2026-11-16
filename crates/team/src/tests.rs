@@ -214,3 +214,94 @@ fn test_shared_add_merges_concurrent() {
     assert_eq!(media_path(&q, from_b), "/Volumes/Drive/Team/Media/Interview.mov");
     assert_eq!(q.items.len(), base.items.len() + 2);
 }
+
+// ---- change classification ----
+
+fn ids(list: &[ItemId]) -> std::collections::BTreeSet<ItemId> {
+    list.iter().copied().collect()
+}
+
+#[test]
+fn unchanged_is_empty() {
+    let (p, _, _) = sample();
+    assert!(classify(&p, &p.clone()).is_empty());
+}
+
+#[test]
+fn detached_but_equal_sequence_is_unchanged() {
+    // `Arc::make_mut` copies the sequence without changing it; its unset (NaN) points must not
+    // make it look edited.
+    let (p, _, [s1, _]) = sample();
+    let mut q = p.clone();
+    q.sequence_mut(s1).unwrap();
+    assert!(classify(&p, &q).is_empty());
+}
+
+#[test]
+fn edit_in_sequence_marks_only_that_sequence() {
+    let (p, _, [s1, _]) = sample();
+    let mut q = p.clone();
+    q.sequence_mut(s1).unwrap().video_tracks[0].items.clear();
+    let c = classify(&p, &q);
+    assert_eq!(c.sequences, ids(&[s1]));
+    assert!(c.shared_items.is_empty());
+    assert!(!c.shared_other);
+}
+
+#[test]
+fn renaming_a_sequence_is_a_sequence_change() {
+    let (p, _, [_, s2]) = sample();
+    let mut q = p.clone();
+    q.items.get_mut(&s2).unwrap().name = "Teaser v2".into();
+    assert_eq!(classify(&p, &q).sequences, ids(&[s2]));
+}
+
+#[test]
+fn import_marks_shared_item() {
+    let (p, _, _) = sample();
+    let mut q = p.clone();
+    let new = q.add_item("A003.mov", Label::Iris, media("/Volumes/Drive/Team/Media/A003.mov"), None);
+    let c = classify(&p, &q);
+    assert_eq!(c.shared_items, ids(&[new]));
+    assert!(c.sequences.is_empty());
+    assert!(c.shared_other, "the new item is listed in the root bin");
+}
+
+#[test]
+fn removed_media_is_a_shared_item_change() {
+    let (p, [_, b, _], _) = sample();
+    let mut q = p.clone();
+    q.items.remove(&b);
+    assert_eq!(classify(&p, &q).shared_items, ids(&[b]));
+}
+
+#[test]
+fn bin_move_marks_shared_other() {
+    let (mut p, [a, ..], _) = sample();
+    let bin = p.add_bin("Selects", None);
+    let mut q = p.clone();
+    q.move_to_bin(&[a], Some(bin));
+    let c = classify(&p, &q);
+    assert!(c.shared_other);
+    assert!(c.sequences.is_empty());
+    assert!(c.shared_items.is_empty());
+}
+
+#[test]
+fn new_sequence_is_a_sequence_change() {
+    let (p, _, _) = sample();
+    let mut q = p.clone();
+    let s3 = q.new_sequence("Cutdown", SequenceSettings::default(), 1, 1, None);
+    let c = classify(&p, &q);
+    assert_eq!(c.sequences, ids(&[s3]));
+    assert!(c.shared_items.is_empty());
+}
+
+#[test]
+fn allocating_ids_alone_is_not_a_change() {
+    let (p, _, _) = sample();
+    let mut q = p.clone();
+    q.alloc_id();
+    q.set_id_slot(4).unwrap();
+    assert!(classify(&p, &q).is_empty());
+}
