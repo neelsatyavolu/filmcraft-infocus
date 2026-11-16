@@ -9,6 +9,7 @@ use serde_json::{Value, json};
 
 use crate::auth::TokenStore;
 use crate::config::DriveConfig;
+use crate::device::{DEVICE_HEADER, local_device_name, sanitize_device_name};
 use crate::error::{DriveError, Result};
 use crate::events::EventStream;
 use crate::http;
@@ -23,23 +24,34 @@ const API_TIMEOUT: Duration = Duration::from_secs(120);
 pub struct AppInfo {
     version: String,
     schema_version: u32,
+    device: String,
 }
 
 impl AppInfo {
-    /// `version` looks like `1.2.3` (one to four numeric parts), as the server requires.
+    /// `version` looks like `1.2.3` (one to four numeric parts), as the server requires. The device
+    /// name is this Mac's computer name ([`local_device_name`]); see [`AppInfo::with_device`].
     pub fn new(version: &str, schema_version: u32) -> Result<Self> {
         let parts: Vec<&str> = version.split('.').collect();
         let ok = (1..=4).contains(&parts.len()) && parts.iter().all(|p| (1..=6).contains(&p.len()) && p.bytes().all(|b| b.is_ascii_digit()));
         if !ok {
             return Err(DriveError::Invalid(format!("app version {version:?} must look like 1.2.3")));
         }
-        Ok(Self { version: version.to_string(), schema_version })
+        Ok(Self { version: version.to_string(), schema_version, device: local_device_name() })
+    }
+
+    /// The same app with another device name (sanitized like [`sanitize_device_name`]).
+    pub fn with_device(self, device: &str) -> Self {
+        Self { device: sanitize_device_name(device), ..self }
     }
     pub fn version(&self) -> &str {
         &self.version
     }
     pub fn schema_version(&self) -> u32 {
         self.schema_version
+    }
+    /// The name sent as `X-Drive-Device` with lock requests (empty: no header).
+    pub fn device(&self) -> &str {
+        &self.device
     }
 }
 
@@ -49,6 +61,21 @@ pub struct LockState {
     pub holder: String,
     /// Unix seconds.
     pub expires_at: f64,
+}
+
+/// Where a project stands in the Drive's daily cleanup (`cleanup` in the list and GET). The
+/// project list shows a warning while `move_after` is set; "Keep" is [`DriveClient::open`].
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct Cleanup {
+    /// Unix seconds when the "not opened for 23 days" notice went out.
+    #[serde(default)]
+    pub notice_sent_at: Option<f64>,
+    /// Earliest Unix seconds the project may move to `#recycle`.
+    #[serde(default)]
+    pub move_after: Option<f64>,
+    /// "Keep forever": cleanup never moves it.
+    #[serde(default)]
+    pub keep: bool,
 }
 
 /// One entry of `GET /api/team/projects`.
@@ -63,6 +90,9 @@ pub struct ProjectSummary {
     /// Unix seconds of the last open by anyone (0 when never).
     #[serde(default)]
     pub last_open: f64,
+    /// None when no cleanup notice is pending and the project isn't kept forever.
+    #[serde(default)]
+    pub cleanup: Option<Cleanup>,
 }
 
 /// Answer of `POST /api/team/projects`.
@@ -96,6 +126,9 @@ pub struct ProjectData {
     pub locks: BTreeMap<u64, LockState>,
     /// This member's id slot.
     pub slot: u16,
+    /// None when no cleanup notice is pending and the project isn't kept forever.
+    #[serde(default)]
+    pub cleanup: Option<Cleanup>,
 }
 
 /// A granted lock.
@@ -200,7 +233,7 @@ impl DriveClient {
 
     /// Takes a sequence lock; [`DriveError::HeldBy`] when a teammate holds it.
     pub fn take_lock(&self, project: &str, seq: u64) -> Result<LockGrant> {
-        http::parse(&self.call(Method::Post, &format!("{}/lock", seq_path(project, seq)?), None)?)
+        http::parse(&self.lock_call(Method::Post, &format!("{}/lock", seq_path(project, seq)?), None)?)
     }
 
     /// Extends a lock (every 20 s). Returns the new expiry; [`DriveError::LockLost`] when it is gone.
@@ -209,18 +242,19 @@ impl DriveClient {
         struct Beat {
             expires_at: f64,
         }
-        let beat: Beat = http::parse(&self.call(Method::Post, &format!("{}/lock/heartbeat", seq_path(project, seq)?), Some(&json!({ "token": token })))?)?;
+        let beat: Beat =
+            http::parse(&self.lock_call(Method::Post, &format!("{}/lock/heartbeat", seq_path(project, seq)?), Some(&json!({ "token": token })))?)?;
         Ok(beat.expires_at)
     }
 
     pub fn release(&self, project: &str, seq: u64, token: &str) -> Result<()> {
-        self.call(Method::Delete, &format!("{}/lock", seq_path(project, seq)?), Some(&json!({ "token": token })))?;
+        self.lock_call(Method::Delete, &format!("{}/lock", seq_path(project, seq)?), Some(&json!({ "token": token })))?;
         Ok(())
     }
 
     /// Drive admins only.
     pub fn force_release(&self, project: &str, seq: u64) -> Result<()> {
-        self.call(Method::Post, &format!("{}/lock/force", seq_path(project, seq)?), None)?;
+        self.lock_call(Method::Post, &format!("{}/lock/force", seq_path(project, seq)?), None)?;
         Ok(())
     }
 
@@ -249,7 +283,8 @@ impl DriveClient {
         Ok(v.get("keep").and_then(Value::as_bool).unwrap_or(keep))
     }
 
-    /// Resets the project's cleanup clock. Returns the last-open time.
+    /// Resets the project's cleanup clock (the "Keep" button on a cleanup notice). Returns the
+    /// last-open time.
     pub fn open(&self, project: &str) -> Result<f64> {
         let v: Value = http::parse(&self.call(Method::Post, &format!("{}/open", project_path(project)?), None)?)?;
         Ok(v.get("last_open").and_then(Value::as_f64).unwrap_or(0.0))
@@ -284,15 +319,27 @@ impl DriveClient {
 
     /// A JSON call with LAN fallback. Returns the body of a 2xx answer.
     pub(crate) fn call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
+        self.request(method, path, body.map_or(Body::Empty, Body::Json), &[])
+    }
+
+    /// A lock route: also names this Mac (`X-Drive-Device`).
+    fn lock_call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
+        let device = self.app.device();
+        let headers: Vec<(&str, String)> = if device.is_empty() { Vec::new() } else { vec![(DEVICE_HEADER, device.to_string())] };
+        self.request(method, path, body.map_or(Body::Empty, Body::Json), &headers)
+    }
+
+    /// Any API call with LAN fallback. Returns the body of a 2xx answer.
+    pub(crate) fn request(&self, method: Method, path: &str, body: Body<'_>, headers: &[(&str, String)]) -> Result<Vec<u8>> {
         let route = self.current();
-        let (status, bytes) = match self.call_on(&route, method, path, body) {
-            Ok((401, _)) if route.lan => self.call_on(&self.fall_back(), method, path, body).map_err(http::transport)?,
+        let (status, bytes) = match self.call_on(&route, method, path, body, headers) {
+            Ok((401, _)) if route.lan => self.call_on(&self.fall_back(), method, path, body, headers).map_err(http::transport)?,
             Ok(answer) => answer,
             Err(e) if route.lan => {
                 self.fall_back();
                 // Resend only what is safe: reads, or a request that never left this Mac.
                 if method == Method::Get || http::never_sent(&e) {
-                    self.call_on(&self.current(), method, path, body).map_err(http::transport)?
+                    self.call_on(&self.current(), method, path, body, headers).map_err(http::transport)?
                 } else {
                     return Err(http::transport(e));
                 }
@@ -302,14 +349,29 @@ impl DriveClient {
         if (200..300).contains(&status) { Ok(bytes) } else { Err(http::error_for(status, &bytes)) }
     }
 
-    fn call_on(&self, route: &Route, method: Method, path: &str, body: Option<&Value>) -> std::result::Result<(u16, Vec<u8>), ureq::Error> {
+    fn call_on(
+        &self,
+        route: &Route,
+        method: Method,
+        path: &str,
+        body: Body<'_>,
+        headers: &[(&str, String)],
+    ) -> std::result::Result<(u16, Vec<u8>), ureq::Error> {
         let url = format!("{}{path}", route.base);
         let auth = format!("Bearer {}", route.bearer);
+        // Raw bodies (upload chunks) can be large and slow: no overall timeout for them.
+        let agent = if matches!(body, Body::Bytes(_)) { &self.stream } else { &self.api };
         let mut resp = match method {
-            Method::Get => self.api.get(&url).header("Authorization", &auth).call()?,
-            Method::Post => send_json(self.api.post(&url).header("Authorization", &auth), body)?,
-            Method::Put => send_json(self.api.put(&url).header("Authorization", &auth), body)?,
-            Method::Delete => send_json(self.api.delete(&url).header("Authorization", &auth).force_send_body(), body)?,
+            Method::Get => {
+                let mut req = agent.get(&url).header("Authorization", &auth);
+                for (k, v) in headers {
+                    req = req.header(*k, v);
+                }
+                req.call()?
+            }
+            Method::Post => send(with_headers(agent.post(&url).header("Authorization", &auth), headers), body)?,
+            Method::Put => send(with_headers(agent.put(&url).header("Authorization", &auth), headers), body)?,
+            Method::Delete => send(with_headers(agent.delete(&url).header("Authorization", &auth).force_send_body(), headers), body)?,
         };
         let status = resp.status().as_u16();
         let bytes = resp.body_mut().with_config().limit(http::MAX_JSON_BYTES).read_to_vec()?;
@@ -336,10 +398,30 @@ impl DriveClient {
     }
 }
 
-fn send_json(req: ureq::RequestBuilder<ureq::typestate::WithBody>, body: Option<&Value>) -> std::result::Result<ureq::http::Response<ureq::Body>, ureq::Error> {
+/// A request body.
+#[derive(Clone, Copy)]
+pub(crate) enum Body<'a> {
+    Empty,
+    Json(&'a Value),
+    /// `application/x-www-form-urlencoded` fields.
+    Form(&'a [(&'a str, &'a str)]),
+    /// Raw octets.
+    Bytes(&'a [u8]),
+}
+
+fn with_headers(mut req: ureq::RequestBuilder<ureq::typestate::WithBody>, headers: &[(&str, String)]) -> ureq::RequestBuilder<ureq::typestate::WithBody> {
+    for (k, v) in headers {
+        req = req.header(*k, v);
+    }
+    req
+}
+
+fn send(req: ureq::RequestBuilder<ureq::typestate::WithBody>, body: Body<'_>) -> std::result::Result<ureq::http::Response<ureq::Body>, ureq::Error> {
     match body {
-        Some(v) => req.header("Content-Type", "application/json").send(v.to_string().as_bytes()),
-        None => req.send_empty(),
+        Body::Json(v) => req.header("Content-Type", "application/json").send(v.to_string().as_bytes()),
+        Body::Form(fields) => req.send_form(fields.iter().copied()),
+        Body::Bytes(bytes) => req.header("Content-Type", "application/octet-stream").send(bytes),
+        Body::Empty => req.send_empty(),
     }
 }
 
@@ -360,7 +442,7 @@ fn project_id(id: &str) -> Result<&str> {
     }
 }
 
-fn project_path(id: &str) -> Result<String> {
+pub(crate) fn project_path(id: &str) -> Result<String> {
     Ok(format!("/api/team/projects/{}", project_id(id)?))
 }
 

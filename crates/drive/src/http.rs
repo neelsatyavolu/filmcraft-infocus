@@ -61,10 +61,11 @@ pub(crate) fn read_body(mut resp: ureq::http::Response<ureq::Body>) -> Result<(u
     Ok((status, bytes))
 }
 
-/// The human message in an error body: FastAPI's `detail` or the team API's `error`.
+/// The human message in an error body: the team API's `message`, FastAPI's `detail`, or a bare
+/// `error`.
 pub(crate) fn message(body: &[u8]) -> Option<String> {
     let v: Value = serde_json::from_slice(body).ok()?;
-    ["detail", "error"].iter().find_map(|k| v.get(*k).and_then(Value::as_str).map(str::to_string))
+    ["message", "detail", "error"].iter().find_map(|k| v.get(*k).and_then(Value::as_str).map(str::to_string))
 }
 
 /// Maps a non-2xx answer to an error.
@@ -86,24 +87,30 @@ pub(crate) fn error_for(status: u16, body: &[u8]) -> DriveError {
     }
 }
 
-/// The team API's 409 bodies: `{holder, expires_at}` (lock taken), `{error: "lock lost"}`,
-/// `{error: "stale", rev}`, `{error: "item is used by a sequence", item}` and the hash check's
-/// `{error: "project files were changed outside InFocus Cut"}`.
+/// The team API's 409 bodies: `{error: <code>, message, ...}` with the code `lock_held` (plus
+/// `holder`, `expires_at` and, for this member's own other Mac, `device`), `lock_lost`, `stale`
+/// (`rev`), `item_in_use` (`item`), `files_changed`, `name_taken`, `invalid_project` or `conflict`
+/// (`detail`). A body without a known code but with a `holder` is still a held lock.
 fn conflict(body: &[u8]) -> Option<DriveError> {
     let v: Value = serde_json::from_slice(body).ok()?;
     let obj = v.as_object()?;
-    if obj.contains_key("holder") {
-        return Some(DriveError::HeldBy {
-            holder: obj.get("holder").and_then(Value::as_str).map(str::to_string),
-            expires_at: obj.get("expires_at").and_then(Value::as_f64).unwrap_or(0.0),
-        });
-    }
-    let error = obj.get("error").and_then(Value::as_str)?;
-    Some(match error {
-        "lock lost" => DriveError::LockLost,
+    let text = |k: &str| obj.get(k).and_then(Value::as_str).map(str::to_string);
+    let msg = || text("message").or_else(|| text("detail")).unwrap_or_else(|| "Conflict".into());
+    let held = || DriveError::HeldBy {
+        holder: text("holder"),
+        expires_at: obj.get("expires_at").and_then(Value::as_f64).unwrap_or(0.0),
+        device: text("device").filter(|d| !d.is_empty()),
+    };
+    Some(match obj.get("error").and_then(Value::as_str).unwrap_or("") {
+        "lock_held" => held(),
+        "lock_lost" => DriveError::LockLost,
         "stale" => DriveError::Stale { rev: obj.get("rev").and_then(Value::as_u64).unwrap_or(0) },
-        "item is used by a sequence" => DriveError::ItemInUse { item: obj.get("item").and_then(Value::as_u64).unwrap_or(0) },
-        e if e.contains("changed outside") => DriveError::FilesChanged(e.to_string()),
+        "item_in_use" => DriveError::ItemInUse { item: obj.get("item").and_then(Value::as_u64).unwrap_or(0) },
+        "files_changed" => DriveError::FilesChanged(msg()),
+        "name_taken" => DriveError::NameTaken(msg()),
+        "invalid_project" => DriveError::InvalidProject(msg()),
+        "conflict" => DriveError::Conflict(msg()),
+        _ if obj.contains_key("holder") => held(),
         _ => return None,
     })
 }

@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
-use crate::client::DriveClient;
+use crate::client::{DriveClient, project_path};
 use crate::error::{DriveError, Result};
 use crate::http;
 
@@ -40,13 +40,32 @@ fn with_suffix(dest: &Path, suffix: &str) -> PathBuf {
     dest.with_file_name(name)
 }
 
-/// The Drive path of a `drive:/…` reference (or of a plain Drive-relative path).
-fn drive_rel(drive_path: &str) -> Result<&str> {
-    let rel = drive_path.strip_prefix(DRIVE_PREFIX).unwrap_or(drive_path).trim_start_matches('/');
-    if rel.is_empty() || rel.split('/').any(|p| p == "..") || rel.contains('\0') {
-        return Err(DriveError::Invalid(format!("Drive path {drive_path:?}")));
-    }
-    Ok(rel)
+/// Suffix of a project's media folder: `Team Projects/<name>.fcteam` keeps its originals in
+/// `Team Projects/<name> Media/`.
+pub const MEDIA_SUFFIX: &str = " Media";
+
+/// The project's media folder (`Team Projects/<name> Media`) for its folder
+/// (`Team Projects/<name>.fcteam`), or None when `folder` is not a `.fcteam` folder.
+pub fn media_folder(folder: &str) -> Option<String> {
+    let stem = folder.trim_end_matches('/').strip_suffix(".fcteam")?;
+    (!stem.is_empty() && !stem.ends_with('/')).then(|| format!("{stem}{MEDIA_SUFFIX}"))
+}
+
+/// The path inside the project's media folder of a team media reference
+/// (`drive:/Team Projects/<name> Media/Day 2/A001.mov` → `Day 2/A001.mov`), the form
+/// [`DriveClient::download_media`] takes. None when the reference is outside that folder or invalid.
+pub fn media_path_in(folder: &str, drive_ref: &str) -> Option<String> {
+    let media = media_folder(folder)?;
+    let full = drive_ref.strip_prefix(DRIVE_PREFIX).unwrap_or(drive_ref).trim_start_matches('/');
+    let rel = full.strip_prefix(media.as_str())?.strip_prefix('/')?;
+    valid_media_path(rel).ok().map(str::to_string)
+}
+
+/// A path inside the media folder: `/`-separated, no empty, `.` or `..` parts, no backslash or
+/// control characters (the server refuses the same).
+fn valid_media_path(path: &str) -> Result<&str> {
+    let bad = path.is_empty() || path.split('/').any(|p| p.is_empty() || p == "." || p == "..") || path.chars().any(|c| c == '\\' || c.is_control());
+    if bad { Err(DriveError::Invalid(format!("media path {path:?}"))) } else { Ok(path) }
 }
 
 /// Where a response's bytes start and how long the whole file is.
@@ -56,11 +75,21 @@ struct Span {
 }
 
 impl DriveClient {
-    /// Downloads a Drive file to `dest`, resuming `<dest>.partial` if it exists. `on_progress(done,
-    /// total)` runs as bytes arrive; returning `false` stops with [`DriveError::Cancelled`] and keeps
-    /// the partial file. Returns the file size.
-    pub fn download(&self, drive_path: &str, dest: &Path, expected: &Expected, on_progress: &mut dyn FnMut(u64, u64) -> bool) -> Result<u64> {
-        let rel = drive_rel(drive_path)?;
+    /// Downloads an original from the project's media folder (`media_path` is the path inside
+    /// `<name> Media/`, see [`media_path_in`]) to `dest`, resuming `<dest>.partial` if it exists.
+    /// Bytes go to `<dest>.partial`, which is renamed to `dest` only once complete and checked; the
+    /// caller must not rename it again. `on_progress(done, total)` runs as bytes arrive; returning
+    /// `false` stops with [`DriveError::Cancelled`] and keeps the partial file. Returns the size.
+    pub fn download_media(
+        &self,
+        project: &str,
+        media_path: &str,
+        dest: &Path,
+        expected: &Expected,
+        on_progress: &mut dyn FnMut(u64, u64) -> bool,
+    ) -> Result<u64> {
+        let rel = valid_media_path(media_path)?;
+        let route = format!("{}/media", project_path(project)?);
         let partial = partial_path(dest);
         let mut file = OpenOptions::new().create(true).read(true).append(true).open(&partial)?;
         let mut have = file.metadata()?.len();
@@ -78,7 +107,7 @@ impl DriveClient {
                 headers.push(("If-Range", tag.trim().to_string()));
             }
         }
-        let mut resp = self.open_stream(&format!("/api/download?{query}"), &headers)?;
+        let mut resp = self.open_stream(&format!("{route}?{query}"), &headers)?;
         let status = resp.status().as_u16();
         let span = match status {
             206 if have > 0 => content_range(&resp)?,

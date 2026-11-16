@@ -17,9 +17,10 @@ pub enum DriveError {
     /// The project, sequence or file does not exist (404).
     #[error("Not found: {0}")]
     NotFound(String),
-    /// Someone else holds the sequence lock (409 on take).
-    #[error("{} is editing this sequence", holder.as_deref().unwrap_or("Someone"))]
-    HeldBy { holder: Option<String>, expires_at: f64 },
+    /// Someone else holds the sequence lock (409 on take). `device` is set only when the holder is
+    /// this member on another Mac (the server keeps a teammate's device name private).
+    #[error("{}", held_by_message(holder.as_deref(), device.as_deref()))]
+    HeldBy { holder: Option<String>, expires_at: f64, device: Option<String> },
     /// The lock token is no longer current: it expired or an admin released it (409).
     #[error("The lock on this sequence was lost")]
     LockLost,
@@ -32,6 +33,15 @@ pub enum DriveError {
     /// The project's files were changed outside InFocus Cut, so the server refuses them (409).
     #[error("{0}")]
     FilesChanged(String),
+    /// Another team project already has this name (409).
+    #[error("{0}")]
+    NameTaken(String),
+    /// The project's metadata on the Drive is damaged (409).
+    #[error("{0}")]
+    InvalidProject(String),
+    /// Any other team conflict (409 `conflict`), with the server's message.
+    #[error("{0}")]
+    Conflict(String),
     /// This app is older than the project requires (426). Update InFocus Cut.
     #[error("Update InFocus Cut to edit this project (needs {min_app_version} or later)")]
     UpdateRequired { min_app_version: String, schema_version: u64 },
@@ -68,6 +78,13 @@ impl DriveError {
     /// True for errors that mean the connection itself failed (so another route may work).
     pub fn is_network(&self) -> bool {
         matches!(self, DriveError::Network(_))
+    }
+}
+
+fn held_by_message(holder: Option<&str>, device: Option<&str>) -> String {
+    match device {
+        Some(device) => format!("You are editing this sequence on {device}"),
+        None => format!("{} is editing this sequence", holder.unwrap_or("Someone")),
     }
 }
 

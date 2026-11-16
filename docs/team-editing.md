@@ -14,8 +14,11 @@ updates live. Projects sync through InFocus Drive. The full design is in
   classifies which parts an edit changed. Later: the local media cache rules.
 - `crates/drive` (`filmcraft-drive`, layer 5, no UI): the InFocus Drive client. Browser sign-in
   with PKCE (token in the Keychain, service `InFocus Cut`, account `drive`), one method per team
-  project route, the change feed parser, and resumable downloads that only rename a `.partial`
-  file once it is complete and checked. On campus it uses the LAN address with a short-lived LAN
+  project route, the change feed parser, resumable media downloads from the project's
+  `<name> Media/` folder that only rename a `.partial` file once it is complete and checked, and
+  resumable chunked media uploads into that folder. Lock requests name the Mac
+  (`X-Drive-Device`), so a member's lock on one Mac is refused on their other Mac. Every team 409
+  maps to its own `DriveError` variant by the server's `error` code. On campus it uses the LAN address with a short-lived LAN
   token (the long-lived token never crosses the LAN) and falls back to the internet address.
 - Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
   [`config/infocus.example.toml`](../config/infocus.example.toml)) or the build environment
