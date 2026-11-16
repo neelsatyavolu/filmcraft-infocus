@@ -26,7 +26,9 @@ pub use auth::{
     KEYCHAIN_ACCOUNT, KEYCHAIN_SERVICE, KeychainStore, LOGIN_TIMEOUT, LoginOptions, MemoryStore, SignedIn, TOKEN_PREFIX, TokenStore, login, logout,
     pkce_challenge,
 };
-pub use client::{AppInfo, Cleanup, CreatedProject, DriveClient, LockGrant, LockState, MAX_ID, ProjectData, ProjectSummary, SequencePart, SharedChange};
+pub use client::{
+    AppInfo, Cleanup, CreatedProject, DriveClient, Fetched, LockGrant, LockState, MAX_ID, ProjectData, ProjectSummary, SequencePart, SharedChange, SharedPart,
+};
 pub use config::{DRIVE_URL_ENV, DriveConfig};
 pub use device::{DEVICE_HEADER, MAX_DEVICE_LEN, local_device_name, sanitize_device_name};
 pub use download::{DRIVE_PREFIX, Expected, MEDIA_SUFFIX, media_folder, media_path_in, partial_path, sha256_hex};

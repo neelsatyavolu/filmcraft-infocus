@@ -111,6 +111,22 @@ pub struct SequencePart {
     pub json: Value,
 }
 
+/// `GET …/shared`: the shared part and its revision.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct SharedPart {
+    pub rev: u64,
+    pub shared: Value,
+}
+
+/// The answer to a conditional GET (`If-None-Match`).
+#[derive(Debug, Clone, PartialEq)]
+pub enum Fetched<T> {
+    /// 304: unchanged since the ETag that was sent.
+    NotModified,
+    /// The part, with the ETag to send next time.
+    Fresh { value: T, etag: Option<String> },
+}
+
 /// `GET /api/team/projects/{id}`: the whole project (the server also records the open).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct ProjectData {
@@ -245,8 +261,23 @@ impl DriveClient {
         http::parse(&self.call(Method::Post, "/api/team/projects", Some(&body))?)
     }
 
+    /// The whole project. The Drive records this as an open (it restarts the 30-day cleanup
+    /// clock): use it to open or refresh a project, and [`Self::get_sequence`] /
+    /// [`Self::get_shared`] to follow changes.
     pub fn get_project(&self, project: &str) -> Result<ProjectData> {
         http::parse(&self.call(Method::Get, &project_path(project)?, None)?)
+    }
+
+    /// One sequence and its revision, without recording an open (for change-feed refetches).
+    /// With `etag` (from the last answer) an unchanged sequence is [`Fetched::NotModified`].
+    /// [`DriveError::NotFound`] once it was deleted.
+    pub fn get_sequence(&self, project: &str, seq: u64, etag: Option<&str>) -> Result<Fetched<SequencePart>> {
+        self.get_cached(&seq_path(project, seq)?, etag)
+    }
+
+    /// The shared part and its revision, without recording an open (for change-feed refetches).
+    pub fn get_shared(&self, project: &str, etag: Option<&str>) -> Result<Fetched<SharedPart>> {
+        self.get_cached(&format!("{}/shared", project_path(project)?), etag)
     }
 
     /// Takes a sequence lock; [`DriveError::HeldBy`] when a teammate holds it.
@@ -409,6 +440,33 @@ impl DriveClient {
         let status = resp.status().as_u16();
         let bytes = resp.body_mut().with_config().limit(http::MAX_JSON_BYTES).read_to_vec()?;
         Ok((status, bytes))
+    }
+
+    /// A JSON GET with `If-None-Match` and LAN fallback.
+    fn get_cached<T: serde::de::DeserializeOwned>(&self, path: &str, etag: Option<&str>) -> Result<Fetched<T>> {
+        let headers: Vec<(&str, String)> = etag.map(|e| vec![("If-None-Match", e.to_string())]).unwrap_or_default();
+        let route = self.current();
+        let resp = match self.get_on(&route, path, &headers) {
+            Ok(resp) if route.lan && resp.status().as_u16() == 401 => self.get_on(&self.fall_back(), path, &headers).map_err(http::transport)?,
+            Ok(resp) => resp,
+            Err(_) if route.lan => self.get_on(&self.fall_back(), path, &headers).map_err(http::transport)?,
+            Err(e) => return Err(http::transport(e)),
+        };
+        let tag = resp.headers().get("etag").and_then(|v| v.to_str().ok()).map(str::to_string);
+        let (status, bytes) = http::read_body(resp)?;
+        match status {
+            304 => Ok(Fetched::NotModified),
+            200..=299 => Ok(Fetched::Fresh { value: http::parse(&bytes)?, etag: tag }),
+            _ => Err(http::error_for(status, &bytes)),
+        }
+    }
+
+    fn get_on(&self, route: &Route, path: &str, headers: &[(&str, String)]) -> std::result::Result<ureq::http::Response<ureq::Body>, ureq::Error> {
+        let mut req = self.api.get(format!("{}{path}", route.base)).header("Authorization", format!("Bearer {}", route.bearer));
+        for (k, v) in headers {
+            req = req.header(*k, v);
+        }
+        req.call()
     }
 
     /// A streaming GET (event feed, downloads) with LAN fallback. Any status is returned.

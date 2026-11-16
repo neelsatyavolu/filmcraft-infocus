@@ -866,3 +866,29 @@ fn media_exists_asks_for_one_byte() {
     assert!(!c.media_exists(PID, "A002.mov").unwrap());
     assert!(matches!(c.media_exists(PID, "../x"), Err(DriveError::Invalid(_))));
 }
+
+#[test]
+fn light_refetches_send_the_etag_and_read_304() {
+    let server = MockServer::start(|req: &Req| {
+        let etag = vec![("ETag".to_string(), "\"3-abc\"".to_string())];
+        let fresh = req.header("if-none-match") != Some("\"3-abc\"");
+        match req.path() {
+            p if p.ends_with("/sequences/7") && fresh => Reply::Full(200, etag, json!({"seq": 7, "rev": 3, "json": {"id": 7}}).to_string().into_bytes()),
+            p if p.ends_with("/sequences/7") || p.ends_with("/shared") && !fresh => Reply::Full(304, etag, vec![]),
+            p if p.ends_with("/sequences/8") => Reply::json(404, json!({"detail": "Sequence not found"})),
+            p if p.ends_with("/shared") => Reply::Full(200, etag, json!({"rev": 3, "shared": {"items": {}}}).to_string().into_bytes()),
+            _ => Reply::json(404, json!({"detail": "x"})),
+        }
+    });
+    let c = client(&server);
+    let got = c.get_sequence(PID, 7, None).unwrap();
+    assert_eq!(got, Fetched::Fresh { value: SequencePart { rev: 3, json: json!({"id": 7}) }, etag: Some("\"3-abc\"".into()) });
+    assert_eq!(c.get_sequence(PID, 7, Some("\"3-abc\"")).unwrap(), Fetched::NotModified);
+    assert!(matches!(c.get_sequence(PID, 8, None), Err(DriveError::NotFound(_))), "deleted");
+    assert!(matches!(c.get_shared(PID, None).unwrap(), Fetched::Fresh { value: SharedPart { rev: 3, .. }, .. }));
+    assert_eq!(c.get_shared(PID, Some("\"3-abc\"")).unwrap(), Fetched::NotModified);
+    let paths: Vec<String> = server.requests().iter().map(|r| r.path().to_string()).collect();
+    assert_eq!(paths[0], format!("/api/team/projects/{PID}/sequences/7"));
+    assert_eq!(paths[3], format!("/api/team/projects/{PID}/shared"));
+    assert!(matches!(c.get_sequence(PID, 0, None), Err(DriveError::Invalid(_))));
+}

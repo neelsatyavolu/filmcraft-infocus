@@ -27,9 +27,11 @@ updates live. Projects sync through InFocus Drive. The full design is in
   token (the long-lived token never crosses the LAN) and falls back to the internet address.
 - `crates/team-link` (`filmcraft-team-link`, layer 5, no UI): connects a team session to the
   Drive. `DriveTeamLink` is the engine's `TeamLink`: requests run in order on a worker thread
-  that keeps the lock tokens, and a feed thread follows the change feed, fetches the project when
-  a teammate saved something, reconnects with backoff when the stream ends and polls every 5 s
-  while it is down. `DriveDownloader` is `TeamMedia`'s `Downloader`. `TeamUploads` uploads
+  that keeps the lock tokens, and a feed thread follows the change feed, fetches only the
+  sequence or shared part a teammate saved (`GET …/sequences/{seq}` and `GET …/shared` with
+  `If-None-Match`, which don't count as opening the project), reconnects with backoff when the
+  stream ends, and polls the whole project every 5 s while it is down (the whole project is
+  also how it catches up after connecting, since only it lists sequences and locks). `DriveDownloader` is `TeamMedia`'s `Downloader`. `TeamUploads` uploads
   the member's own media (a project just made a team project, and anything imported into an open
   one) into `<name> Media/<bin path>/`, two at a time, paused during an export; a name a teammate
   already used gets a number (`A001 (2).mov`). The queue and session ids are in

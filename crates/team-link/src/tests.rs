@@ -144,25 +144,41 @@ fn feed_fetches_on_events_and_reconnects() {
                 "event: lock_changed\ndata: {\"seq\":2,\"holder\":\"student2\"}\n\n",
                 "event: sequence_updated\ndata: {\"seq\":7,\"rev\":2,\"by\":\"student2\"}\n\n",
                 "event: sequence_deleted\ndata: {\"seq\":9,\"rev\":4,\"by\":\"student2\"}\n\n",
+                "event: shared_updated\ndata: {\"rev\":5}\n\n",
             ];
+            // keep-alives hold the stream open a while after the events
+            let pings = std::iter::repeat_n(": ping\n\n", 20);
             return Reply::Chunks(
                 200,
                 vec![("Content-Type".into(), "text/event-stream".into())],
-                chunks.iter().map(|c| c.as_bytes().to_vec()).collect(),
+                chunks.into_iter().chain(pings).map(|c| c.as_bytes().to_vec()).collect(),
                 Duration::from_millis(30),
             );
+        }
+        // a teammate's save is fetched alone, by the routes that don't record an open
+        if req.path().ends_with("/sequences/7") {
+            return Reply::json(200, json!({"seq": 7, "rev": 2, "json": {"id": 7, "name": "seq 7 v2"}}));
+        }
+        if req.path().ends_with("/shared") {
+            return Reply::json(200, json!({"rev": 5, "shared": {"items": {}}}));
         }
         // the first fetch (catching up at connect) still has the old parts
         if g.fetch_add(1, Ordering::SeqCst) == 0 { Reply::json(200, project(&[(7, 1), (9, 3)], 0)) } else { Reply::json(200, project(&[(7, 2)], 0)) }
     });
     let mut link = DriveTeamLink::start(client(&server.url, "ifd_test"), PID, known(&[(7, 1), (9, 3)], 0), Arc::default());
-    let got = events(&mut link, 3);
+    let got = events(&mut link, 4);
+    assert_eq!(gets.load(Ordering::SeqCst), 1, "the whole project only to catch up at connect");
     assert!(got.contains(&LinkEvent::LockChanged { seq: ItemId(2), holder: Some("student2".into()) }), "{got:?}");
     assert!(
         got.iter().any(|e| matches!(e, LinkEvent::SequenceUpdated { seq: ItemId(7), rev: 2, by, json } if by == "student2" && json["name"] == "seq 7 v2")),
         "{got:?}"
     );
     assert!(got.iter().any(|e| matches!(e, LinkEvent::SequenceRemoved { seq: ItemId(9), rev: 4, .. })), "{got:?}");
+    assert!(got.iter().any(|e| matches!(e, LinkEvent::SharedUpdated { rev: 5, .. })), "{got:?}");
+    let reqs = server.requests();
+    assert!(reqs.iter().any(|r| r.path() == format!("/api/team/projects/{PID}/sequences/7")));
+    assert!(reqs.iter().any(|r| r.path() == format!("/api/team/projects/{PID}/shared")));
+
     assert!(until(10, || streams.load(Ordering::SeqCst) >= 2), "the feed reconnects after the stream ends");
 }
 

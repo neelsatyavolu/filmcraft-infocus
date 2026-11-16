@@ -84,7 +84,16 @@ impl DriveTeamLink {
             .spawn(move || worker.run(cmd_rx))
             .map_err(|e| status.set_error(Some(format!("Could not start the Drive connection: {e}"))))
             .ok();
-        let feed = feed::Feed { client, project: project.to_string(), tokens, events: ev_tx, status: status.clone(), stop: stop.clone(), known };
+        let feed = feed::Feed {
+            client,
+            project: project.to_string(),
+            tokens,
+            events: ev_tx,
+            status: status.clone(),
+            stop: stop.clone(),
+            known,
+            etags: BTreeMap::new(),
+        };
         std::thread::Builder::new()
             .name("team-feed".into())
             .spawn(move || feed.run())

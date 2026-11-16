@@ -1,5 +1,8 @@
-//! The change feed thread: follows `GET …/events`, fetches the project when a teammate saved
-//! something, and turns what changed into the engine's `LinkEvent`s. When the stream ends or
+//! The change feed thread: follows `GET …/events`, fetches what a teammate saved (only that
+//! sequence, `GET …/sequences/{seq}`, or the shared part, `GET …/shared`, each with its ETag so an
+//! unchanged part costs a 304), and turns what changed into the engine's `LinkEvent`s. These light
+//! routes don't count as opening the project; the whole project (`GET …/{id}`) is fetched only to
+//! catch up after connecting and while polling, which need its sequence list and locks. When the stream ends or
 //! cannot be opened it reconnects with backoff (1 s doubling to 60 s) and polls the project every
 //! 5 s in between, so updates still arrive while the feed is down.
 
@@ -10,7 +13,7 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, PoisonError};
 use std::time::{Duration, Instant};
 
-use filmcraft_drive::{DriveClient, ProjectData, TeamEvent};
+use filmcraft_drive::{DriveClient, DriveError, Fetched, ProjectData, TeamEvent};
 use filmcraft_engine::team::LinkEvent;
 use filmcraft_project::ItemId;
 
@@ -90,6 +93,8 @@ pub(crate) struct Feed {
     pub status: Arc<LinkStatus>,
     pub stop: Arc<AtomicBool>,
     pub known: FeedState,
+    /// The last ETag of each part fetched on its own (`seq:<id>`, `shared`).
+    pub etags: BTreeMap<String, String>,
 }
 
 impl Feed {
@@ -151,11 +156,12 @@ impl Feed {
                 if ours || self.known.sequences.get(&seq).is_some_and(|r| *r >= rev) {
                     self.known.sequences.insert(seq, rev);
                 } else {
-                    self.fetch(Some((seq, by.as_str())));
+                    self.fetch_sequence(seq, &by);
                 }
             }
             TeamEvent::SequenceDeleted { seq, rev, by } => {
                 self.known.sequences.remove(&seq);
+                self.etags.remove(&format!("seq:{seq}"));
                 self.emit(LinkEvent::SequenceRemoved { seq: ItemId(seq), rev, by });
             }
             TeamEvent::LockChanged { seq, holder } => {
@@ -167,10 +173,61 @@ impl Feed {
             }
             TeamEvent::SharedUpdated { rev, .. } => {
                 if rev > self.known.shared_rev {
-                    self.fetch(None);
+                    self.fetch_shared();
                 }
             }
             TeamEvent::Other { .. } => {}
+        }
+    }
+
+    /// Fetches sequence `seq` that `by` saved and reports it when it is newer. A route the Drive
+    /// doesn't answer (an older Drive) falls back to the whole project.
+    fn fetch_sequence(&mut self, seq: u64, by: &str) {
+        let key = format!("seq:{seq}");
+        match self.client.get_sequence(&self.project, seq, self.etags.get(&key).map(String::as_str)) {
+            Ok(Fetched::Fresh { value, etag }) => {
+                self.remember(key, etag);
+                let newer = self.known.sequences.get(&seq).is_none_or(|r| *r < value.rev);
+                if newer && !self.held().contains(&seq) {
+                    self.known.sequences.insert(seq, value.rev);
+                    self.emit(LinkEvent::SequenceUpdated { seq: ItemId(seq), rev: value.rev, by: by.to_string(), json: value.json });
+                }
+            }
+            Ok(Fetched::NotModified) => {}
+            Err(e) => self.light_failed(e, Some((seq, by))),
+        }
+    }
+
+    /// Fetches the shared part and reports it when it is newer.
+    fn fetch_shared(&mut self) {
+        match self.client.get_shared(&self.project, self.etags.get("shared").map(String::as_str)) {
+            Ok(Fetched::Fresh { value, etag }) => {
+                self.remember("shared".into(), etag);
+                if value.rev > self.known.shared_rev {
+                    self.known.shared_rev = value.rev;
+                    self.emit(LinkEvent::SharedUpdated { rev: value.rev, shared: value.shared });
+                }
+            }
+            Ok(Fetched::NotModified) => {}
+            Err(e) => self.light_failed(e, None),
+        }
+    }
+
+    fn remember(&mut self, key: String, etag: Option<String>) {
+        match etag {
+            Some(tag) => self.etags.insert(key, tag),
+            None => self.etags.remove(&key),
+        };
+    }
+
+    /// A light refetch failed: the network is retried by polling and the next catch-up; anything
+    /// else (the sequence was deleted meanwhile, or a Drive without these routes) is sorted out
+    /// by the whole project.
+    fn light_failed(&mut self, e: DriveError, by: Option<(u64, &str)>) {
+        if e.is_network() {
+            self.status.set_error(Some(format!("Updates: {e}")));
+        } else {
+            self.fetch(by);
         }
     }
 
