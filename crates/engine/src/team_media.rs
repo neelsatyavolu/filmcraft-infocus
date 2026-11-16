@@ -32,8 +32,9 @@ use serde_json::json;
 
 use crate::{Session, panels};
 
-/// Downloads running at once.
-pub const MAX_DOWNLOADS: usize = 2;
+/// Downloads running at once (each big one fetches a few ranges in parallel; the Drive client
+/// caps the streams).
+pub const MAX_DOWNLOADS: usize = 3;
 /// The proxy preset for team media (ProRes 422 Proxy, ½ size).
 pub const PROXY_PRESET: &str = "prores_proxy_half";
 
@@ -83,6 +84,8 @@ pub struct TeamMedia {
     index: CacheIndex,
     cap_bytes: u64,
     wanted: BTreeSet<ItemId>,
+    /// Wanted items to fetch before the others (the sequence in front, the Source monitor).
+    first: BTreeSet<ItemId>,
     active: Vec<Active>,
     proxying: BTreeMap<ItemId, Proxying>,
     failed: BTreeMap<ItemId, String>,
@@ -112,6 +115,7 @@ impl TeamMedia {
             index,
             cap_bytes: CACHE_CAP_BYTES,
             wanted: BTreeSet::new(),
+            first: BTreeSet::new(),
             active: Vec::new(),
             proxying: BTreeMap::new(),
             failed: BTreeMap::new(),
@@ -145,6 +149,24 @@ impl TeamMedia {
         self.save(s);
     }
 
+    /// `items` were imported from `path`, an original this Mac fetched from `drive_ref` (a file a
+    /// teammate put in the media folder from the Drive website): recorded in the cache index like
+    /// a download (so `TeamLink::media_ref` gives the items' Drive path and it is never uploaded
+    /// again), and its proxy is made.
+    pub fn record_fetched(&mut self, s: &mut Session, items: &[ItemId], drive_ref: &str, path: &Path, bytes: u64) {
+        for &item in items {
+            let identity = s.project.item(item).and_then(|it| it.as_media()).and_then(|m| m.identity);
+            let fp = Fingerprint::for_media(identity.as_ref(), drive_ref);
+            self.linked(s, item, drive_ref, &fp, path, bytes);
+        }
+    }
+
+    /// Where an original fetched from `drive_ref` goes before it has an item:
+    /// `<cache>/<fingerprint of the Drive path>/original/<file name>`.
+    pub fn fetch_dest(&self, drive_ref: &str) -> PathBuf {
+        Fingerprint::for_media(None, drive_ref).dir(&self.cache_dir).join(ORIGINAL_DIR).join(file_name(drive_ref))
+    }
+
     /// The media items to have on this Mac (replaces the previous set). Items no longer wanted
     /// stop downloading; their partial files stay for later.
     pub fn ensure(&mut self, items: BTreeSet<ItemId>) {
@@ -156,9 +178,16 @@ impl TeamMedia {
         self.wanted = items;
     }
 
-    /// [`TeamMedia::ensure`] with what the session's open sequences and Source monitor use.
+    /// Of the wanted items, these download first (replaces the previous set).
+    pub fn ensure_first(&mut self, items: BTreeSet<ItemId>) {
+        self.first = items;
+    }
+
+    /// [`TeamMedia::ensure`] with what the session's open sequences and Source monitor use, the
+    /// sequence in front and the Source monitor first.
     pub fn ensure_open(&mut self, s: &Session) {
         self.ensure(cache::wanted(&s.project, &s.state.open_sequences, s.state.source_item));
+        self.ensure_first(front_media(s));
     }
 
     /// Stop running downloads (kept for resuming) and start none, or carry on.
@@ -211,7 +240,9 @@ impl TeamMedia {
             return;
         }
         let busy: BTreeSet<ItemId> = self.active.iter().map(|a| a.item).collect();
-        let todo: Vec<ItemId> = self.wanted.iter().copied().filter(|i| !busy.contains(i) && !self.failed.contains_key(i)).collect();
+        let ready = |i: &ItemId| !busy.contains(i) && !self.failed.contains_key(i);
+        let (first, rest): (Vec<ItemId>, Vec<ItemId>) = self.wanted.iter().copied().filter(ready).partition(|i| self.first.contains(i));
+        let todo: Vec<ItemId> = first.into_iter().chain(rest).collect();
         for item in todo {
             if self.active.len() >= MAX_DOWNLOADS {
                 break;
@@ -419,6 +450,11 @@ impl TeamMedia {
             s.log.push(panels::Level::Warning, "team", format!("Could not save the media cache index: {e}"));
         }
     }
+}
+
+/// The media of the sequence in front and the Source monitor: downloaded before the rest.
+pub fn front_media(s: &Session) -> BTreeSet<ItemId> {
+    cache::wanted(&s.project, s.state.active_sequence.as_slice(), s.state.source_item)
 }
 
 /// Points `items` at the member's own file `path` on this Mac without an undo step and without

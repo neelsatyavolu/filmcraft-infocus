@@ -213,21 +213,39 @@ impl Downloader for Gate {
 }
 
 #[test]
-fn max_two_concurrent() {
+fn at_most_max_downloads_at_once() {
     let root = tmp_dir("team-media-two");
-    let (mut s, items, _) = team_session(3);
+    let (mut s, items, _) = team_session(MAX_DOWNLOADS + 1);
     let gate = Arc::new(Gate::default());
     let mut m = TeamMedia::new(root.clone(), PID, gate.clone());
     m.ensure_open(&s);
     m.poll(&mut s);
     assert_eq!(m.progress().len(), MAX_DOWNLOADS);
-    poll_until(&mut m, &mut s, |_, _| gate.started.load(Ordering::SeqCst) == 2);
+    poll_until(&mut m, &mut s, |_, _| gate.started.load(Ordering::SeqCst) == MAX_DOWNLOADS);
     std::thread::sleep(Duration::from_millis(50));
     m.poll(&mut s);
-    assert_eq!(gate.started.load(Ordering::SeqCst), 2, "the third waits");
+    assert_eq!(gate.started.load(Ordering::SeqCst), MAX_DOWNLOADS, "the last one waits");
     gate.release();
     poll_until(&mut m, &mut s, |_, s| items.iter().all(|&i| !media_path(s, i).starts_with("drive:/")));
-    assert_eq!(gate.started.load(Ordering::SeqCst), 3);
+    assert_eq!(gate.started.load(Ordering::SeqCst), MAX_DOWNLOADS + 1);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn front_media_downloads_first() {
+    let root = tmp_dir("team-media-first");
+    let (mut s, items, _) = team_session(MAX_DOWNLOADS + 2);
+    let gate = Arc::new(Gate::default());
+    let mut m = TeamMedia::new(root.clone(), PID, gate.clone());
+    m.ensure(items.iter().copied().collect());
+    let last = *items.last().unwrap();
+    m.ensure_first([last].into_iter().collect());
+    m.poll(&mut s);
+    let running: Vec<ItemId> = m.progress().into_iter().map(|(i, _)| i).collect();
+    assert_eq!(running.len(), MAX_DOWNLOADS);
+    assert!(running.contains(&last), "the front sequence's clip is among the first: {running:?}");
+    gate.release();
+    poll_until(&mut m, &mut s, |_, s| items.iter().all(|&i| !media_path(s, i).starts_with("drive:/")));
     let _ = std::fs::remove_dir_all(&root);
 }
 
