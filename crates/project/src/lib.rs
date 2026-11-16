@@ -83,6 +83,23 @@ id_type!(ClipId);
 id_type!(TransitionId);
 id_type!(MarkerId);
 
+/// Team projects (InFocus Cut): each member allocates ids in their own slot, `slot << ID_SLOT_SHIFT`
+/// up to the next slot's base, so two members never hand out the same id. Slot 0 holds the ids of
+/// a single-user project.
+pub const ID_SLOT_SHIFT: u32 = 40;
+/// The highest slot. Every id stays below `(MAX_ID_SLOT + 1) << ID_SLOT_SHIFT` = 2^50, well under
+/// 2^53, so ids stay exact as JSON numbers.
+pub const MAX_ID_SLOT: u16 = 1023;
+
+/// Why [`Project::set_id_slot`] refused a slot.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
+pub enum IdSlotError {
+    #[error("id slot {0} is out of range (1 to {MAX_ID_SLOT}, or 0 for a single-user project)")]
+    OutOfRange(u16),
+    #[error("id slot {0} has no free ids left")]
+    Full(u16),
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Project {
     pub name: String,
@@ -120,6 +137,10 @@ pub struct Project {
     /// instructions for whoever opens it next, frame numbers and the like. Schema v15.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub notes: String,
+    /// This member's id slot in a team project (0 = single user). Never saved: each Mac sets its
+    /// own with [`Project::set_id_slot`] after loading.
+    #[serde(skip)]
+    pub id_slot: u16,
 }
 
 impl Default for Project {
@@ -149,7 +170,37 @@ impl Project {
             source_graphics: BTreeMap::new(),
             narrations: BTreeMap::new(),
             notes: String::new(),
+            id_slot: 0,
         }
+    }
+
+    /// Allocate ids from `slot` from now on: `next_id` moves past the largest id already in that
+    /// slot's range, and to the slot's first id (`base | 1`) when the range is empty. Slot 0 keeps upstream
+    /// behaviour (a `next_id` already in range is kept). Fails without changing anything for a
+    /// slot above [`MAX_ID_SLOT`] or one whose range is used up.
+    pub fn set_id_slot(&mut self, slot: u16) -> Result<(), IdSlotError> {
+        if slot > MAX_ID_SLOT {
+            return Err(IdSlotError::OutOfRange(slot));
+        }
+        let base = u64::from(slot) << ID_SLOT_SHIFT;
+        let lo = base + 1;
+        let hi = (u64::from(slot) + 1) << ID_SLOT_SHIFT;
+        let mut max_in_slot = None;
+        self.visit_ids(&mut |id| {
+            if (lo..hi).contains(&id) {
+                max_in_slot = max_in_slot.max(Some(id));
+            }
+        });
+        let mut next = max_in_slot.map_or(lo, |m| m + 1);
+        if (lo..hi).contains(&self.next_id) {
+            next = next.max(self.next_id);
+        }
+        if next >= hi {
+            return Err(IdSlotError::Full(slot));
+        }
+        self.id_slot = slot;
+        self.next_id = next;
+        Ok(())
     }
 
     pub fn alloc_id(&mut self) -> u64 {
@@ -164,7 +215,13 @@ impl Project {
     /// counts, so there is always one.
     pub fn max_id(&self) -> u64 {
         let mut max = 0;
-        let mut see = |id: u64| max = max.max(id);
+        self.visit_ids(&mut |id| max = max.max(id));
+        max
+    }
+
+    /// Call `see` with every id in the project, of any kind (see [`Project::max_id`]).
+    fn visit_ids(&self, see: &mut dyn FnMut(u64)) {
+        let mut see = |id: u64| see(id);
         let mut bins = vec![&self.root];
         while let Some(bin) = bins.pop() {
             see(bin.id.0);
@@ -221,7 +278,6 @@ impl Project {
                 _ => {}
             }
         }
-        max
     }
 
     /// Add an item to a bin (root when None / not found).

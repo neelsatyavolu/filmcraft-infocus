@@ -409,3 +409,60 @@ fn sequence_display_format_round_trips_and_old_files_load_as_timecode() {
     let old: SequenceSettings = serde_json::from_value(v).unwrap();
     assert_eq!(old.display, TimeDisplay::Timecode);
 }
+
+// ---- id slots (team projects) ----
+
+#[test]
+fn slot_zero_keeps_legacy_ids() {
+    let mut p = Project::new("Legacy");
+    p.next_id = 48;
+    p.set_id_slot(0).unwrap();
+    assert_eq!(p.id_slot, 0);
+    assert_eq!(p.alloc_id(), 48);
+    assert_eq!(p.alloc_id(), 49);
+}
+
+#[test]
+fn slot_ids_start_at_base() {
+    let (mut p, _, _) = demo_project();
+    p.set_id_slot(3).unwrap();
+    assert_eq!(p.alloc_id(), 3u64 << ID_SLOT_SHIFT | 1);
+}
+
+#[test]
+fn slots_never_collide() {
+    let (p, _, _) = demo_project();
+    let (mut a, mut b) = (p.clone(), p);
+    a.set_id_slot(1).unwrap();
+    b.set_id_slot(2).unwrap();
+    let ids_a: std::collections::BTreeSet<u64> = (0..1000).map(|_| a.alloc_id()).collect();
+    let ids_b: std::collections::BTreeSet<u64> = (0..1000).map(|_| b.alloc_id()).collect();
+    assert_eq!(ids_a.len(), 1000);
+    assert_eq!(ids_b.len(), 1000);
+    assert!(ids_a.is_disjoint(&ids_b));
+    assert!(ids_a.iter().chain(&ids_b).all(|&id| id < 1u64 << 53));
+}
+
+#[test]
+fn slot_survives_reload_via_set() {
+    let (mut p, _, _) = demo_project();
+    p.set_id_slot(2).unwrap();
+    let mine = p.add_bin("Mine", None);
+    // a teammate in a higher slot pushed later, so the shared next_id points into slot 5
+    p.next_id = 5u64 << ID_SLOT_SHIFT | 77;
+    let json = serde_json::to_string(&p).unwrap();
+    let mut q: Project = serde_json::from_str(&json).unwrap();
+    assert_eq!(q.id_slot, 0, "the slot is never saved");
+    q.set_id_slot(2).unwrap();
+    let next = q.alloc_id();
+    assert_eq!(next, mine.0 + 1);
+    assert!(next < 3u64 << ID_SLOT_SHIFT);
+}
+
+#[test]
+fn slot_out_of_range_is_refused() {
+    let mut p = Project::new("P");
+    assert!(p.set_id_slot(MAX_ID_SLOT + 1).is_err());
+    assert_eq!(p.id_slot, 0);
+    assert_eq!(p.next_id, 1);
+}
