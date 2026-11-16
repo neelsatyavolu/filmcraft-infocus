@@ -934,6 +934,11 @@ pub const NATIVE_APP_MENU: [&str; 4] = ["Settings", "Hide FilmCraft", "Hide Othe
 
 pub fn menu_items(app: &FilmcraftApp) -> Vec<MenuItem> {
     let mut v = menu_items_for(&app.session);
+    if app.hooks.team.is_none() {
+        // team editing needs the desktop app's Drive connection
+        let team = panel_command_id(PanelKind::Team);
+        v.retain(|it| it.id != team);
+    }
     for it in &mut v {
         it.label = app.ui.language.tr(&it.label).to_string();
         match it.id.as_str() {

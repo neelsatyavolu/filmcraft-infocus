@@ -267,6 +267,7 @@ impl FilmcraftApp {
         self.frames.set_context(ctx);
         self.frames.pump(std::time::Duration::from_millis(if self.playback.playing { 24 } else { 40 }));
         self.session.poll_persistence();
+        crate::team_ui::tick(self, ctx);
         panels::trim_monitor::advance_at(self, now);
         if self.session.trim_play.active() {
             ctx.request_repaint();

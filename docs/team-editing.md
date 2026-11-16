@@ -60,8 +60,13 @@ Keep these small so upstream merges stay easy.
   proxy in `…/proxy/` with the existing proxy job. These links stay on the Mac: they are written
   into the project and its undo snapshots without an undo step (`Session::patch_local`) and are
   never sent to the Drive.
-- UI (planned): a Team Projects panel, lock badges on sequence tabs, and a guard on the export
-  entry point that fetches originals first.
+- UI (`crates/ui-egui`): the Team panel (`panels/team.rs`) draws a `TeamView` and sends
+  `TeamAction`s through the object-safe `team_ui::TeamUi` trait. The desktop app plugs in
+  `apps/filmcraft/src/team.rs` (over `TeamSessionController`) as `HostHooks::team`; without it (the
+  web app) the panel is left out of the Window menu and nothing team-related runs. One call in
+  `logic_background` (`team_ui::tick`) polls it every frame.
+- Planned: lock badges on sequence tabs, and a guard on the export entry point that fetches
+  originals first.
 - Packaging (planned): app name "InFocus Cut" and its own bundle id.
 
 ## Merging upstream
