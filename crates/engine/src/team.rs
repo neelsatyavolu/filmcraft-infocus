@@ -65,9 +65,6 @@ pub trait TeamLink: Send {
     /// Delete a held sequence on the Drive (its lock goes with it); `base_rev` is its revision.
     fn delete_sequence(&mut self, seq: ItemId, base_rev: u64);
     fn post_shared(&mut self, push: SharedPush);
-    /// The lock on `seq` is gone (expired, or a teammate has it now): forget its token without
-    /// asking the Drive, so the sequence is no longer treated as this Mac's.
-    fn forget_lock(&mut self, _seq: ItemId) {}
     /// Fetch the whole project again and report it as `SequenceUpdated` / `SharedUpdated`.
     fn refresh(&mut self);
     /// Outcomes of requests and teammates' updates since the last call.
@@ -184,6 +181,12 @@ pub struct TeamState {
     gone: BTreeSet<ItemId>,
     /// Shared items the server has.
     known_shared: BTreeSet<ItemId>,
+    /// The shared revision each item this Mac sent (or deleted) was saved at: an older shared
+    /// part that arrives later can't know about it, so it neither deletes nor reverts it.
+    posted_at: BTreeMap<ItemId, u64>,
+    /// The highest `next_id` this session reached. Undo and redo bring back a snapshot's older
+    /// `next_id`, whose ids may already be on the Drive, so it never goes below this.
+    id_high: u64,
     shared_pending: SharedOut,
     shared_in_flight: Option<SharedOut>,
     shared_retry_at: Option<Instant>,
@@ -218,6 +221,8 @@ impl TeamState {
             delete_in_flight: BTreeSet::new(),
             gone: BTreeSet::new(),
             known_shared: BTreeSet::new(),
+            posted_at: BTreeMap::new(),
+            id_high: 0,
             shared_pending: SharedOut::default(),
             shared_in_flight: None,
             shared_retry_at: None,
@@ -433,6 +438,7 @@ fn record(s: &mut Session, before: &Project, changes: &ChangeSet, plan: &Plan, n
     }
     send_shared(s, now);
     send_deletes(s, now);
+    keep_ids_ahead(s, false);
     if tell {
         s.log.push(panels::Level::Info, "team", "The project name is kept on this Mac only: a team project is named after its folder on the Drive");
     }
@@ -505,6 +511,22 @@ fn still_attached(s: &mut Session) -> bool {
     }
     s.detach_team();
     false
+}
+
+/// Keeps `next_id` past every id this member may have handed out, without an undo step. Undo and
+/// redo bring back a snapshot's older `next_id` (its ids may already be on the Drive); with
+/// `scan`, ids in this member's slot that arrived from the Drive count too (this member's other
+/// Mac, on a Drive that gives a member one slot for all their Macs).
+fn keep_ids_ahead(s: &mut Session, scan: bool) {
+    let Some(t) = s.team.as_mut() else { return };
+    let mut target = t.id_high.max(s.project.next_id);
+    if scan && let Some(max) = s.project.max_id_in_slot(t.slot) {
+        target = target.max(max.saturating_add(1));
+    }
+    t.id_high = target;
+    if s.project.next_id < target {
+        s.patch_local(|q| q.next_id = q.next_id.max(target));
+    }
 }
 
 /// Push held sequences whose debounce has passed.
@@ -608,6 +630,7 @@ impl Session {
         self.history.clear();
         team.base = self.project.clone();
         team.epoch = self.document_epoch;
+        team.id_high = self.project.next_id;
         team.known_shared = self.project.items.values().filter(|i| i.as_sequence().is_none()).map(|i| i.id).collect();
         self.team = Some(team);
         Ok(())
@@ -622,14 +645,45 @@ impl Session {
         self.attach_team(team)
     }
 
-    /// Leave team mode: held locks are released (unsynced edits stay in this project only).
+    /// Leave team mode: what is due goes to the Drive first (the link sends it before the
+    /// releases, though nobody hears how it went), then held locks are released. Edits that
+    /// could not be sent stay in this project only: wait for [`TeamState::idle`] before this.
     pub fn detach_team(&mut self) {
+        if self.team.as_ref().is_some_and(|t| t.epoch == self.document_epoch) {
+            let now = Instant::now();
+            if let Some(t) = self.team.as_mut() {
+                for due in t.dirty.values_mut() {
+                    *due = now;
+                }
+            }
+            send_sequences(self, now);
+            send_shared(self, now);
+        }
         if let Some(mut t) = self.team.take() {
             let held: Vec<ItemId> = t.held.keys().copied().collect();
             for id in held {
                 t.link.release(id);
             }
         }
+    }
+
+    /// Send what is waiting for the Drive now instead of after its debounce or retry wait (before
+    /// leaving the project: the app then waits for [`TeamState::idle`]).
+    pub fn team_flush(&mut self) {
+        let now = Instant::now();
+        catch_up(self, now);
+        let Some(t) = self.team.as_mut() else { return };
+        for due in t.dirty.values_mut() {
+            *due = now;
+        }
+        for d in t.deleting.values_mut() {
+            d.due = now;
+        }
+        t.shared_retry_at = None;
+        if t.lock_retry_at.is_some() {
+            t.lock_retry_at = Some(now);
+        }
+        self.poll_team(now);
     }
 
     /// The sequence tab state of `seq` (None outside a team project).
@@ -699,7 +753,9 @@ impl Session {
     /// The shared part at revision `rev` (items, bins and project-level fields) from the Drive:
     /// written into the project and every undo/redo snapshot, without an undo step. Items and
     /// fields with changes still on their way to the Drive keep this Mac's version, and so do the
-    /// bins while a bin change is. This Mac's scratch disks and ingest destination stay.
+    /// bins while a bin change is; so do items this Mac saved at a newer revision than `rev`. An
+    /// item a teammate deleted that a sequence this member edits still uses stays, and goes to the
+    /// Drive again. This Mac's scratch disks and ingest destination stay.
     pub fn apply_remote_shared(&mut self, rev: u64, shared: &Value) -> Result<()> {
         let t = self.team.as_ref().ok_or_else(not_team)?;
         if rev <= t.shared_rev {
@@ -714,15 +770,29 @@ impl Session {
         if let Some(f) = &t.shared_in_flight {
             outgoing.absorb(f.clone());
         }
+        // saved here after `rev`: the Drive's version at `rev` is older than this Mac's
+        let newer_here: BTreeSet<ItemId> = t.posted_at.iter().filter(|(_, r)| **r > rev).map(|(id, _)| *id).collect();
         let remote_ids: BTreeSet<ItemId> = remote.items.values().filter(|i| i.as_sequence().is_none()).map(|i| i.id).collect();
         let mut items = BTreeMap::new();
-        for id in remote_ids.iter().filter(|id| !outgoing.items.contains(id)) {
+        for id in remote_ids.iter().filter(|id| !outgoing.items.contains(id) && !newer_here.contains(id)) {
             let Some(it) = remote.item(*id) else { continue };
             items.insert(*id, keep_local_media(&**link, self.project.item(*id), it));
         }
-        let gone: Vec<ItemId> = t.known_shared.iter().filter(|id| !remote_ids.contains(id) && !outgoing.items.contains(id)).copied().collect();
+        let deleted: Vec<ItemId> =
+            t.known_shared.iter().filter(|id| !remote_ids.contains(id) && !outgoing.items.contains(id) && !newer_here.contains(id)).copied().collect();
+        // a teammate deleted an item a sequence this member edits uses (unsynced here, so the Drive
+        // didn't see it): it stays, and goes to the Drive again
+        let editing: Vec<Value> =
+            self.project.sequences().filter(|q| t.may_edit(q.id)).filter_map(|q| filmcraft_team::sequence_json(&self.project, q.id)).collect();
+        let (kept, gone): (Vec<ItemId>, Vec<ItemId>) =
+            deleted.into_iter().partition(|id| self.project.item(*id).is_some() && editing.iter().any(|j| references(j, id.0, 0)));
         // bins on their way to the Drive: keep this Mac's tree, plus what teammates added
-        let root = if outgoing.bins { merge_bins(&self.project.root, &remote.root) } else { remote.root.clone() };
+        let mut root = if outgoing.bins { merge_bins(&self.project.root, &remote.root) } else { remote.root.clone() };
+        for id in &kept {
+            if root.parent_of(*id).is_none() && !root.children.contains(&BinEntry::Item(*id)) {
+                root.children.push(BinEntry::Item(*id));
+            }
+        }
         // fields on their way to the Drive keep this Mac's value (the last writer wins)
         let skip_fields = outgoing.fields;
         let patch = |q: &mut Project| {
@@ -741,11 +811,29 @@ impl Session {
         patch(&mut p);
         self.project = Arc::new(p);
         patch_snapshots(&mut self.history, patch);
+        let project = self.project.clone();
         if let Some(t) = self.team.as_mut() {
             t.shared_rev = rev;
             t.known_shared = remote_ids;
+            for id in &newer_here {
+                if project.item(*id).is_some_and(|i| i.as_sequence().is_none()) {
+                    t.known_shared.insert(*id);
+                } else {
+                    t.known_shared.remove(id);
+                }
+            }
+            t.posted_at.retain(|_, r| *r > rev);
+            if !kept.is_empty() {
+                t.shared_pending.items.extend(kept.iter().copied());
+                t.shared_pending.bins = true;
+            }
         }
         self.remote_applied();
+        if !kept.is_empty() {
+            let names: Vec<String> = kept.iter().filter_map(|id| self.project.item(*id).map(|i| format!("“{}”", i.name))).collect();
+            self.log.push(panels::Level::Info, "team", format!("Kept {} that a teammate deleted: a sequence you are editing uses it", names.join(", ")));
+            send_shared(self, Instant::now());
+        }
         Ok(())
     }
 
@@ -757,8 +845,10 @@ impl Session {
         let had = t.held.remove(&id).is_some();
         t.requested.remove(&id);
         t.releasing.remove(&id);
-        // before any refetch: a link still holding the token would skip the Drive's version
-        t.link.forget_lock(id);
+        // before any refetch: a link still holding the token would skip the Drive's version. The
+        // Drive may still count the lock as this Mac's (a refused push), so it is released, not
+        // left to expire while teammates wait.
+        t.link.release(id);
         if let Some(d) = t.deleting.remove(&id) {
             // deleted here but not on the Drive: it comes back as the Drive has it
             t.delete_in_flight.remove(&id);
@@ -920,6 +1010,7 @@ impl Session {
         self.fix_state();
         self.bump();
         self.previews.live.publish_project(self.project.clone());
+        keep_ids_ahead(self, true);
     }
 }
 

@@ -91,6 +91,12 @@ pub const ID_SLOT_SHIFT: u32 = 40;
 /// 2^53, so ids stay exact as JSON numbers.
 pub const MAX_ID_SLOT: u16 = 1023;
 
+/// The ids `slot` hands out: `(slot << ID_SLOT_SHIFT) + 1` up to (not including) the next slot's base.
+fn slot_range(slot: u16) -> (u64, u64) {
+    let base = u64::from(slot) << ID_SLOT_SHIFT;
+    (base + 1, (u64::from(slot) + 1) << ID_SLOT_SHIFT)
+}
+
 /// Why [`Project::set_id_slot`] refused a slot.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum IdSlotError {
@@ -182,16 +188,8 @@ impl Project {
         if slot > MAX_ID_SLOT {
             return Err(IdSlotError::OutOfRange(slot));
         }
-        let base = u64::from(slot) << ID_SLOT_SHIFT;
-        let lo = base + 1;
-        let hi = (u64::from(slot) + 1) << ID_SLOT_SHIFT;
-        let mut max_in_slot = None;
-        self.visit_ids(&mut |id| {
-            if (lo..hi).contains(&id) {
-                max_in_slot = max_in_slot.max(Some(id));
-            }
-        });
-        let mut next = max_in_slot.map_or(lo, |m| m + 1);
+        let (lo, hi) = slot_range(slot);
+        let mut next = self.max_id_in_slot(slot).map_or(lo, |m| m + 1);
         if (lo..hi).contains(&self.next_id) {
             next = next.max(self.next_id);
         }
@@ -201,6 +199,19 @@ impl Project {
         self.id_slot = slot;
         self.next_id = next;
         Ok(())
+    }
+
+    /// The largest id in use (or only referenced) in `slot`'s range, None when it has none. A team
+    /// member's ids arriving from elsewhere (their other Mac) must not be handed out again here.
+    pub fn max_id_in_slot(&self, slot: u16) -> Option<u64> {
+        let (lo, hi) = slot_range(slot);
+        let mut max = None;
+        self.visit_ids(&mut |id| {
+            if (lo..hi).contains(&id) {
+                max = max.max(Some(id));
+            }
+        });
+        max
     }
 
     pub fn alloc_id(&mut self) -> u64 {

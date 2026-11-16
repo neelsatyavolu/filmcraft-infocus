@@ -106,19 +106,21 @@ fn link_requests_carry_tokens_and_map_answers() {
 }
 
 #[test]
-fn forgotten_lock_is_refetched_and_not_used() {
+fn given_up_lock_is_released_refetched_and_not_used() {
     let server = lock_server();
     let mut link = DriveTeamLink::start(client(&server.url, "ifd_test"), PID, known(&[(7, 3)], 0), Arc::default());
     link.take_lock(ItemId(7));
     assert_eq!(events(&mut link, 1), vec![LinkEvent::LockTaken { seq: ItemId(7) }]);
-    // a teammate has it now: the refetch reports the Drive's version, and a late push has no token
-    link.forget_lock(ItemId(7));
+    // given up (a refused push): the refetch reports the Drive's version, and a late push has no token
+    link.release(ItemId(7));
     link.refresh();
     link.put_sequence(ItemId(7), 3, json!({"id": 7}));
     let got = events(&mut link, 2);
     assert!(got.iter().any(|e| matches!(e, LinkEvent::SequenceUpdated { seq: ItemId(7), rev: 3, .. })), "{got:?}");
     assert!(got.contains(&LinkEvent::SequencePutFailed { seq: ItemId(7), error: LinkError::LockLost }), "{got:?}");
-    assert!(!server.requests().iter().any(|r| r.method == "PUT"), "the stale token is never sent");
+    let reqs = server.requests();
+    assert!(!reqs.iter().any(|r| r.method == "PUT"), "the stale token is never sent");
+    assert!(reqs.iter().any(|r| r.method == "DELETE" && r.path().ends_with("/sequences/7/lock")), "the lock is released on the Drive");
 }
 
 #[test]

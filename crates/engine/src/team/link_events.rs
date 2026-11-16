@@ -258,6 +258,7 @@ impl Session {
                         } else {
                             t.known_shared.remove(&id);
                         }
+                        t.posted_at.insert(id, rev);
                     }
                 }
                 if rev > t.shared_rev.saturating_add(1) {

@@ -22,7 +22,6 @@ enum Call {
     Delete(ItemId, u64),
     Shared(SharedPush),
     Refresh,
-    Forget(ItemId),
 }
 
 #[derive(Default)]
@@ -35,6 +34,8 @@ struct Fake {
     silent: bool,
     /// The Drive's answer to a sequence delete (None: done).
     refuse_delete: Option<LinkError>,
+    /// The revision a shared post gets (None: the next one).
+    post_rev: Option<u64>,
 }
 
 /// Answers every request at once, as a Drive that always agrees would.
@@ -86,13 +87,10 @@ impl TeamLink for FakeLink {
     }
     fn post_shared(&mut self, push: SharedPush) {
         self.with(|f| {
-            let rev = push.base_rev + 1;
+            let rev = f.post_rev.unwrap_or(push.base_rev + 1);
             f.calls.push(Call::Shared(push));
             f.queued.push(LinkEvent::SharedPosted { rev });
         });
-    }
-    fn forget_lock(&mut self, seq: ItemId) {
-        self.with(|f| f.calls.push(Call::Forget(seq)));
     }
     fn refresh(&mut self) {
         self.with(|f| f.calls.push(Call::Refresh));
@@ -299,9 +297,10 @@ fn lost_lock_saves_recovered_copy() {
 }
 
 #[test]
-fn lock_taken_by_a_teammate_is_forgotten_before_refetching() {
+fn lock_taken_by_a_teammate_is_given_up_before_refetching() {
     // the Mac slept past the lock's expiry and a teammate took it: the link must drop its stale
-    // token first, or it keeps treating the sequence as this Mac's and never fetches theirs
+    // token first (a release does), or it keeps treating the sequence as this Mac's and never
+    // fetches theirs
     let (mut s, fake, main, _) = team_demo();
     s.team_take_lock(main).unwrap();
     s.poll_team(Instant::now());
@@ -310,7 +309,7 @@ fn lock_taken_by_a_teammate_is_forgotten_before_refetching() {
     fake.lock().unwrap().queued.push(LinkEvent::LockChanged { seq: main, holder: Some("Maya".into()) });
     s.poll_team(later(0));
     let sent = calls(&fake);
-    let forget = sent.iter().position(|c| *c == Call::Forget(main)).expect("the lost lock is forgotten");
+    let forget = sent.iter().position(|c| *c == Call::Release(main)).expect("the lost lock is given up");
     let refresh = sent.iter().position(|c| *c == Call::Refresh).expect("the Drive's version is fetched");
     assert!(forget < refresh, "{sent:?}");
     assert!(s.project.sequences().any(|q| q.name == "Recovered – Main Edit"));
@@ -553,6 +552,9 @@ fn two_sessions_converge() {
 
 #[path = "team_sync_tests.rs"]
 mod sync;
+
+#[path = "team_safety_tests.rs"]
+mod safety;
 
 /// A lock this member holds on another Mac reads as their own, not "You on Lab Mac is editing".
 #[test]

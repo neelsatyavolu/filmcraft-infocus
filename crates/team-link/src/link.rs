@@ -52,17 +52,8 @@ impl LinkStatus {
 enum Cmd {
     Take(u64),
     Release(u64),
-    /// The lock is gone: drop its token without asking the Drive.
-    Forget(u64),
-    Put {
-        seq: u64,
-        base: u64,
-        json: Value,
-    },
-    Delete {
-        seq: u64,
-        base: u64,
-    },
+    Put { seq: u64, base: u64, json: Value },
+    Delete { seq: u64, base: u64 },
     Shared(SharedPush),
     Refresh,
 }
@@ -168,9 +159,6 @@ impl TeamLink for DriveTeamLink {
             notes.lock().unwrap_or_else(PoisonError::into_inner).mark(&mut push.upserts);
         }
         self.send(Cmd::Shared(push));
-    }
-    fn forget_lock(&mut self, seq: ItemId) {
-        self.send(Cmd::Forget(seq.0));
     }
     fn refresh(&mut self) {
         self.send(Cmd::Refresh);
@@ -326,7 +314,6 @@ impl Worker {
                     self.outcome(&r);
                 }
             }
-            Cmd::Forget(seq) => self.set_token(seq, None),
             Cmd::Put { seq, base, json } => {
                 let id = ItemId(seq);
                 let Some(token) = self.token(seq) else {
