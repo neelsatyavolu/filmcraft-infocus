@@ -31,6 +31,9 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
     let mut elems: Elems = Vec::new();
     let mut actions: Vec<TeamAction> = Vec::new();
     egui::ScrollArea::vertical().id_salt("team-panel-scroll").auto_shrink([false, false]).show(ui, |ui| {
+        if view.phase == TeamPhase::SignedOut {
+            return signed_out(ui, &t, &view, &mut elems, &mut actions);
+        }
         account_row(ui, &t, &view, &mut elems, &mut actions);
         if let Some(e) = &view.error {
             error_row(ui, &t, e, &mut elems, &mut actions);
@@ -42,8 +45,7 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
             });
         }
         match view.phase {
-            TeamPhase::SignedOut => signed_out(ui, &t, &mut elems, &mut actions),
-            TeamPhase::Connecting => {}
+            TeamPhase::SignedOut | TeamPhase::Connecting => {}
             TeamPhase::SignedIn => {
                 if let Some(open) = &view.open {
                     open_project(ui, &t, open, &mut elems, &mut actions);
@@ -99,16 +101,36 @@ fn error_row(ui: &mut egui::Ui, t: &Tokens, error: &str, elems: &mut Elems, acti
     ui.add_space(4.0);
 }
 
-fn signed_out(ui: &mut egui::Ui, t: &Tokens, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
-    ui.add_space(6.0);
-    ui.label(RichText::new(tl!("Sign in to InFocus Drive to edit projects with your team.")).color(t.text_dim));
-    ui.add_space(6.0);
-    let r = ui.button(tl!("Sign In…"));
-    elems.push(("team.signIn".into(), r.rect, "Sign In…".into()));
-    if r.clicked() {
-        actions.push(TeamAction::SignIn);
-    }
-    ui.label(RichText::new(tl!("Your browser opens to finish signing in.")).small().color(t.text_faint));
+/// Signed out: one short block in the middle of the panel, as other panels show their empty
+/// state, so the panel isn't a line at the top over empty space.
+fn signed_out(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
+    // centred on the block's height last frame; a narrow panel scrolls instead of cutting it off
+    let height_id = egui::Id::unique("team-signed-out-height");
+    let block = ui.data(|d| d.get_temp::<f32>(height_id)).unwrap_or(110.0);
+    ui.add_space(((ui.available_height() - block) / 2.0).max(0.0));
+    let r = ui.vertical_centered(|ui| {
+        let status = tl!("Not signed in");
+        let r = ui.label(RichText::new(status).strong().color(t.text));
+        elems.push(("team.status".into(), r.rect, status.into()));
+        ui.label(RichText::new(tl!("Sign in to InFocus Drive to edit projects with your team.")).color(t.text_dim));
+        if let Some(e) = &view.error {
+            let r = ui.add(egui::Label::new(RichText::new(e).color(t.danger)).wrap());
+            elems.push(("team.error".into(), r.rect, e.clone()));
+            let r = ui.small_button(tl!("Dismiss"));
+            elems.push(("team.error.dismiss".into(), r.rect, "Dismiss".into()));
+            if r.clicked() {
+                actions.push(TeamAction::ClearError);
+            }
+        }
+        ui.add_space(8.0);
+        let r = ui.button(tl!("Sign In…"));
+        elems.push(("team.signIn".into(), r.rect, "Sign In…".into()));
+        if r.clicked() {
+            actions.push(TeamAction::SignIn);
+        }
+        ui.label(RichText::new(tl!("Your browser opens to finish signing in.")).small().color(t.text_faint));
+    });
+    ui.data_mut(|d| d.insert_temp(height_id, r.response.rect.height()));
 }
 
 fn open_project(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
