@@ -214,6 +214,11 @@ impl TeamMedia {
             let identity = s.project.item(item).and_then(|i| i.as_media()).and_then(|m| m.identity);
             let fp = Fingerprint::for_media(identity.as_ref(), &drive_ref);
             let dest = fp.dir(&self.cache_dir).join(ORIGINAL_DIR).join(file_name(&drive_ref));
+            if self.active.iter().any(|a| a.dest == dest) {
+                // another item's download is writing this file's `.partial`: this item is linked
+                // when it finishes (or by the next poll)
+                continue;
+            }
             if dest.is_file() {
                 // downloaded before (this project or another): link it without fetching again
                 let bytes = std::fs::metadata(&dest).map_or(0, |m| m.len());
@@ -351,8 +356,11 @@ impl TeamMedia {
         let mut in_use: BTreeSet<Fingerprint> = self.active.iter().map(|a| a.fp.clone()).chain(self.proxying.values().map(|p| p.fp.clone())).collect();
         for item in keep_items {
             let Some(MediaRef::File { path }) = s.project.item(item).and_then(|i| i.as_media()).map(|m| &m.media) else { continue };
-            let found =
-                self.index.entries.iter().find(|(_, e)| e.drive_ref.as_deref() == Some(path) || e.original.as_ref().is_some_and(|f| f.path == Path::new(path)));
+            let found = self
+                .index
+                .entries
+                .iter()
+                .find(|(_, e)| e.drive_refs.values().any(|r| r == path) || e.original.as_ref().is_some_and(|f| f.path == Path::new(path)));
             if let Some((fp, _)) = found {
                 in_use.insert(fp.clone());
             }
@@ -382,7 +390,7 @@ impl TeamMedia {
             .entries
             .values()
             .flat_map(|e| {
-                let back = e.drive_ref.clone().map(|path| MediaRef::File { path });
+                let back = e.drive_refs.get(&self.project).cloned().map(|path| MediaRef::File { path });
                 let original = e.original.iter().filter(|f| removed.contains(&f.path)).map(move |f| (file_ref(&f.path), back.clone(), false));
                 let proxy = e.proxy.iter().filter(|f| removed.contains(&f.path)).map(|f| (file_ref(&f.path), None, true));
                 original.chain(proxy).collect::<Vec<_>>()

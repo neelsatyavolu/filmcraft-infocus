@@ -61,6 +61,8 @@ enum Cmd {
 /// A team session's connection to the Drive. Dropping it stops its threads (the worker after
 /// the requests already queued, such as the releases `detach_team` sends).
 pub struct DriveTeamLink {
+    /// The team project's Drive id.
+    project: String,
     cmds: Sender<Cmd>,
     beats: Sender<u64>,
     events: Receiver<LinkEvent>,
@@ -115,7 +117,7 @@ impl DriveTeamLink {
             .spawn(move || feed.run())
             .map_err(|e| status.set_error(Some(format!("Could not start the change feed: {e}"))))
             .ok();
-        Self { cmds: cmd_tx, beats: beat_tx, events: ev_rx, index, status, stop, notes: None }
+        Self { project: project.to_string(), cmds: cmd_tx, beats: beat_tx, events: ev_rx, index, status, stop, notes: None }
     }
 
     /// Shares who is uploading what: this member's uploading items are marked in what the link
@@ -186,7 +188,7 @@ impl TeamLink for DriveTeamLink {
         if path.starts_with(DRIVE_PREFIX) {
             return Some(path.clone());
         }
-        self.index.lock().unwrap_or_else(PoisonError::into_inner).drive_ref_of(Path::new(path)).map(str::to_string)
+        self.index.lock().unwrap_or_else(PoisonError::into_inner).drive_ref_of(&self.project, Path::new(path)).map(str::to_string)
     }
     fn resolve(&self, drive_path: &str) -> LocalMedia {
         self.index.lock().unwrap_or_else(PoisonError::into_inner).resolve(drive_path)

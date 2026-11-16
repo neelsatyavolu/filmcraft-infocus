@@ -331,6 +331,6 @@ fn a_new_team_project_uploads_its_media_and_shares_the_drive_path() {
     let here = s.project.item(item).and_then(|i| i.as_media()).map(|m| m.media.clone());
     assert_eq!(here, Some(MediaRef::File { path: clip.to_string_lossy().into_owned() }), "this Mac keeps playing its own file");
     let media = c.media().unwrap();
-    assert_eq!(media.index().drive_ref_of(&clip), Some(drive_ref), "never downloaded again here");
+    assert_eq!(media.index().drive_ref_of(PID, &clip), Some(drive_ref), "never downloaded again here");
     assert!(c.uploads().unwrap().pending().is_empty());
 }

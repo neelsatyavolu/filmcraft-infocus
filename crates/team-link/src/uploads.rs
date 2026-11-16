@@ -170,7 +170,7 @@ impl TeamUploads {
         }
         for item in project.items.values() {
             let Some(src) = local_file(project, item.id) else { continue };
-            if index.drive_ref_of(src).is_some() {
+            if index.drive_ref_of(&self.project, src).is_some() {
                 continue;
             }
             if let Some(u) = self.pending.iter_mut().find(|u| u.src == src) {

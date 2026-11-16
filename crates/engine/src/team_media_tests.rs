@@ -316,3 +316,26 @@ fn over_the_cap_originals_go_first_and_open_media_stays() {
     assert_eq!(media_path(&s, items[2]), drive_ref(2));
     let _ = std::fs::remove_dir_all(&root);
 }
+
+#[test]
+fn two_items_of_one_file_download_it_once() {
+    // two items using the same Drive file (imported twice): one download into one `.partial`
+    let root = tmp_dir("team-media-same-file");
+    let (mut s, items, _) = team_session(2);
+    let mut p = (*s.project).clone();
+    let first = p.item(items[0]).unwrap().as_media().unwrap().clone();
+    if let Some(m) = p.item_mut(items[1]).and_then(|i| i.as_media_mut()) {
+        m.media = first.media.clone();
+        m.identity = first.identity;
+    }
+    s.project = Arc::new(p);
+    let gate = Arc::new(Gate::default());
+    let mut m = TeamMedia::new(root.clone(), PID, gate.clone());
+    m.ensure_open(&s);
+    m.poll(&mut s);
+    assert_eq!(m.progress().len(), 1, "the second item waits for the first one's download");
+    gate.release();
+    poll_until(&mut m, &mut s, |_, s| items.iter().all(|&i| !media_path(s, i).starts_with("drive:/")));
+    assert_eq!(gate.started.load(Ordering::SeqCst), 1);
+    let _ = std::fs::remove_dir_all(&root);
+}

@@ -235,10 +235,10 @@ impl TeamSessionController {
     /// their `drive:/` paths through this Mac's cache index), for comparing members' copies.
     pub fn team_doc(&self, s: &Session) -> Result<TeamDoc, String> {
         let o = self.open.as_ref().ok_or("no team project is open")?;
-        let index = o.media.index();
+        let (index, project) = (o.media.index(), o.info.id.as_str());
         let media_ref = |m: &MediaRef| match m {
             MediaRef::File { path } if path.starts_with(DRIVE_PREFIX) => Some(path.clone()),
-            MediaRef::File { path } => index.drive_ref_of(std::path::Path::new(path)).map(str::to_string),
+            MediaRef::File { path } => index.drive_ref_of(project, std::path::Path::new(path)).map(str::to_string),
             _ => None,
         };
         filmcraft_team::split(&s.project, &media_ref).map_err(|e| e.to_string())

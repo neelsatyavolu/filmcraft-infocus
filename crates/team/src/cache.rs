@@ -93,9 +93,14 @@ pub struct CachedFile {
 /// What this Mac has of one media file.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CacheEntry {
-    /// The `drive:/` path it was downloaded from (to undo a link when the file goes).
+    /// Its `drive:/` path in each team project that uses it (to give its items their Drive path,
+    /// and to undo a link when the file goes): the same file is a different path in each
+    /// project's media folder.
     #[serde(default)]
-    pub drive_ref: Option<String>,
+    pub drive_refs: BTreeMap<String, String>,
+    /// An older index's single `drive:/` path; [`CacheIndex::load`] moves it into `drive_refs`.
+    #[serde(default, rename = "drive_ref", skip_serializing)]
+    pub legacy_drive_ref: Option<String>,
     #[serde(default)]
     pub original: Option<CachedFile>,
     #[serde(default)]
@@ -137,7 +142,23 @@ impl CacheIndex {
     /// The index in `cache`, or an empty one when there is none or it is damaged (the files it
     /// listed are then only removed by hand; nothing is lost from the project).
     pub fn load(cache: &Path) -> Self {
-        std::fs::read(cache.join(INDEX_FILE)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+        let mut idx: Self = std::fs::read(cache.join(INDEX_FILE)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default();
+        idx.migrate();
+        idx
+    }
+
+    /// An older index kept one `drive:/` path per file, the last project's: it is taken for every
+    /// project the file lists. Where that was another project's path, that project's items
+    /// don't resolve to it, so the file is downloaded (or uploaded) again for it, which records
+    /// the right path.
+    fn migrate(&mut self) {
+        for e in self.entries.values_mut() {
+            if let Some(r) = e.legacy_drive_ref.take()
+                && e.drive_refs.is_empty()
+            {
+                e.drive_refs = e.projects.iter().map(|p| (p.clone(), r.clone())).collect();
+            }
+        }
     }
 
     /// Writes the index to `cache` (a temporary file, then a rename, so a crash never leaves half
@@ -163,7 +184,7 @@ impl CacheIndex {
     fn entry(&mut self, fp: &Fingerprint, project: &str, drive_ref: &str, now: u64) -> &mut CacheEntry {
         let e = self.entries.entry(fp.clone()).or_default();
         e.projects.insert(project.to_string());
-        e.drive_ref = Some(drive_ref.to_string());
+        e.drive_refs.insert(project.to_string(), drive_ref.to_string());
         e.last_used = e.last_used.max(now);
         e
     }
@@ -210,18 +231,19 @@ impl CacheIndex {
 
     /// This Mac's copies of a `drive:/` media file.
     pub fn resolve(&self, drive_ref: &str) -> LocalMedia {
-        self.entries.values().find(|e| e.drive_ref.as_deref() == Some(drive_ref)).map_or_else(LocalMedia::default, |e| LocalMedia {
+        self.entries.values().find(|e| e.drive_refs.values().any(|r| r == drive_ref)).map_or_else(LocalMedia::default, |e| LocalMedia {
             original: e.original.as_ref().map(|f| f.path.clone()),
             proxy: e.proxy.as_ref().map(|f| f.path.clone()),
         })
     }
 
-    /// The `drive:/` path of a cached original or proxy.
-    pub fn drive_ref_of(&self, local: &Path) -> Option<&str> {
+    /// The `drive:/` path in team project `project` of a cached original or proxy (None: not on
+    /// the Drive for that project, even when another project has it).
+    pub fn drive_ref_of(&self, project: &str, local: &Path) -> Option<&str> {
         self.entries
             .values()
-            .find(|e| e.original.as_ref().is_some_and(|f| f.path == local) || e.proxy.as_ref().is_some_and(|f| f.path == local))
-            .and_then(|e| e.drive_ref.as_deref())
+            .filter(|e| e.original.as_ref().is_some_and(|f| f.path == local) || e.proxy.as_ref().is_some_and(|f| f.path == local))
+            .find_map(|e| e.drive_refs.get(project).map(String::as_str))
     }
 }
 

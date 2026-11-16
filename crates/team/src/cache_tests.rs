@@ -135,7 +135,7 @@ fn index_round_trips_and_forgets_removed_files() {
     assert_eq!(CacheIndex::load(&dir), idx);
     let r = "drive:/Team Projects/P Media/2.mov";
     assert_eq!(idx.resolve(r).original, Some(PathBuf::from("/cache/2/original")));
-    assert_eq!(idx.drive_ref_of(Path::new("/cache/2/proxy")), Some(r));
+    assert_eq!(idx.drive_ref_of("p", Path::new("/cache/2/proxy")), Some(r));
     idx.forget(&BTreeSet::from([PathBuf::from("/cache/2/original"), PathBuf::from("/cache/3/original"), PathBuf::from("/cache/3/proxy")]));
     assert_eq!(idx.resolve(r).original, None);
     assert_eq!(idx.resolve(r).proxy, Some(PathBuf::from("/cache/2/proxy")));
@@ -182,10 +182,41 @@ fn uploaded_originals_are_never_evicted() {
     assert!(!idle.contains(&own.path), "{idle:?}");
     assert!(idle.contains(&PathBuf::from("/cache/1/proxy")));
     assert_eq!(idx.resolve("drive:/Team Projects/P Media/1.mov").original, Some(own.path.clone()), "it stands in for a download");
-    assert_eq!(idx.drive_ref_of(&own.path), Some("drive:/Team Projects/P Media/1.mov"));
+    assert_eq!(idx.drive_ref_of("p", &own.path), Some("drive:/Team Projects/P Media/1.mov"));
     // a later download of the same media is a cache file again
     idx.record_original(&fp(1), "p", "drive:/Team Projects/P Media/1.mov", file("1/original", 50 * GB), now);
     assert!(!idx.entries[&fp(1)].external);
     let saved = serde_json::to_string(&idx).unwrap();
     assert!(!saved.contains("external"), "the flag is written only when set");
+}
+
+#[test]
+fn the_same_file_in_two_projects_keeps_each_projects_drive_path() {
+    let mut idx = CacheIndex::default();
+    let (p_ref, q_ref) = ("drive:/Team Projects/P Media/a.mov", "drive:/Team Projects/Q Media/a.mov");
+    idx.record_original(&fp(1), "p", p_ref, file("1/original", GB), 10);
+    // the same content downloaded again for project q links the same file
+    idx.record_original(&fp(1), "q", q_ref, file("1/original", GB), 20);
+    let local = Path::new("/cache/1/original");
+    assert_eq!(idx.drive_ref_of("p", local), Some(p_ref), "p's items keep p's path, not q's");
+    assert_eq!(idx.drive_ref_of("q", local), Some(q_ref));
+    assert_eq!(idx.drive_ref_of("r", local), None, "not on the Drive for a project that never had it");
+    assert_eq!(idx.resolve(p_ref).original, Some(local.to_path_buf()));
+    assert_eq!(idx.resolve(q_ref).original, Some(local.to_path_buf()));
+}
+
+#[test]
+fn an_older_index_keeps_its_drive_paths() {
+    let dir = std::env::temp_dir().join(format!("filmcraft-team-cache-old-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let old = r#"{"entries": {"00000000000000ff-255": {"drive_ref": "drive:/Team Projects/P Media/a.mov",
+        "original": {"path": "/cache/a", "bytes": 5}, "last_used": 3, "projects": ["p"]}}, "project_last_open": {"p": 3}}"#;
+    std::fs::write(dir.join(INDEX_FILE), old).unwrap();
+    let idx = CacheIndex::load(&dir);
+    assert_eq!(idx.drive_ref_of("p", Path::new("/cache/a")), Some("drive:/Team Projects/P Media/a.mov"));
+    assert_eq!(idx.resolve("drive:/Team Projects/P Media/a.mov").original, Some(PathBuf::from("/cache/a")));
+    idx.save(&dir).unwrap();
+    assert_eq!(CacheIndex::load(&dir), idx, "and saves them in the new form");
+    let _ = std::fs::remove_dir_all(&dir);
 }

@@ -181,3 +181,19 @@ fn refusals_trying_again_wont_fix_stop_syncing() {
     }
     assert!(matches!(link_error(&DriveError::TooManyStreams("x".into())), LinkError::Network(_)));
 }
+
+#[test]
+fn media_ref_is_the_open_projects_drive_path() {
+    use filmcraft_project::MediaRef;
+    use filmcraft_team::cache::{CacheIndex, CachedFile, Fingerprint};
+    let mut idx = CacheIndex::default();
+    let fp = Fingerprint::of_drive_path("x");
+    let local = std::path::PathBuf::from("/cache/x/original/a.mov");
+    idx.record_original(&fp, "another-project", "drive:/Team Projects/Other Media/a.mov", CachedFile { path: local.clone(), bytes: 1 }, 1);
+    let index = Arc::new(Mutex::new(idx));
+    let link = DriveTeamLink::start(client("http://127.0.0.1:9", "ifd_test"), PID, Default::default(), index.clone());
+    let media = MediaRef::File { path: local.to_string_lossy().into_owned() };
+    assert_eq!(link.media_ref(&media), None, "another project's path never goes into this one");
+    index.lock().unwrap().record_original(&fp, PID, "drive:/Team Projects/A Media/a.mov", CachedFile { path: local, bytes: 1 }, 2);
+    assert_eq!(link.media_ref(&media).as_deref(), Some("drive:/Team Projects/A Media/a.mov"));
+}
