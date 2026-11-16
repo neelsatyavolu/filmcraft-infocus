@@ -11,8 +11,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use filmcraft_drive::{
-    AppInfo, Cleanup, DriveClient, DriveConfig, DriveError, KeychainStore, LoginOptions, ProjectData, ProjectSummary, TokenStore, local_device_name, login,
-    logout,
+    AppInfo, Cleanup, DriveClient, DriveConfig, DriveError, LoginOptions, Person, ProjectData, ProjectSummary, TokenStore, local_device_name, login, logout,
 };
 use filmcraft_engine::Session;
 use filmcraft_engine::panels::Level;
@@ -27,6 +26,14 @@ use crate::downloader::DriveDownloader;
 use crate::feed::FeedState;
 use crate::link::{DriveTeamLink, LinkStatus};
 use crate::uploads::{TeamUploads, UploadNotes, mark_project, uploadable};
+
+mod members;
+
+pub use members::MAX_FOOTAGE_FILES;
+
+/// How often the project list is fetched again while signed in, so new invitations and
+/// teammates' locks show up without pressing Refresh (one small request).
+pub const LIST_REFRESH: Duration = Duration::from_secs(30);
 
 /// Where this Mac's team media lives: `~/Library/Caches/InFocus Cut/media`.
 pub fn default_cache_dir() -> PathBuf {
@@ -67,8 +74,8 @@ impl ControllerConfig {
         Ok(Self {
             drive: DriveConfig::load().map_err(|e| e.to_string()),
             app,
-            store: Arc::new(KeychainStore),
-            cache_dir: default_cache_dir(),
+            store: crate::dev::token_store(),
+            cache_dir: crate::dev::cache_dir().unwrap_or_else(default_cache_dir),
             open_browser: Arc::new(open_in_browser),
             login,
         })
@@ -139,10 +146,14 @@ enum Outcome {
     NoToken,
     SignedOut,
     Projects(Vec<ProjectSummary>),
+    /// Drive members who can be invited.
+    People(Vec<Person>),
+    /// Joined project `id`: open it.
+    Joined(String),
     /// A project to attach: to the current session project (created from it, at that document
     /// epoch) or merged from the Drive.
     Ready {
-        summary: ProjectSummary,
+        summary: Box<ProjectSummary>,
         data: Box<ProjectData>,
         current: Option<u64>,
     },
@@ -178,6 +189,12 @@ pub struct TeamSessionController {
     leave_wait: Duration,
     /// Quit may go ahead (the team project was left).
     quit_ready: bool,
+    /// Drive members who can be invited (loaded after sign-in).
+    people: Vec<Person>,
+    /// The project just created here: the panel offers to invite teammates to it.
+    invite_prompt: Option<String>,
+    /// When the project list was last asked for.
+    listed_at: Option<Instant>,
 }
 
 impl TeamSessionController {
@@ -195,6 +212,9 @@ impl TeamSessionController {
             leaving: None,
             leave_wait: LEAVE_WAIT,
             quit_ready: false,
+            people: Vec::new(),
+            invite_prompt: None,
+            listed_at: None,
         };
         if let Ok(drive) = c.cfg.drive.clone() {
             let (store, app) = (c.cfg.store.clone(), c.cfg.app.clone());
@@ -225,6 +245,10 @@ impl TeamSessionController {
     }
     pub fn clear_error(&mut self) {
         self.error = None;
+    }
+    /// Shows `message` in the panel like a failure of the controller's own.
+    pub fn report(&mut self, message: String) {
+        self.error = Some(message);
     }
     /// The team projects from the last [`Self::refresh_projects`] (with cleanup status).
     pub fn projects(&self) -> &[ProjectSummary] {
@@ -305,6 +329,8 @@ impl TeamSessionController {
         self.client = None;
         self.me = None;
         self.projects.clear();
+        self.people.clear();
+        self.invite_prompt = None;
         self.phase = Phase::SignedOut;
         let Ok(drive) = self.cfg.drive.clone() else { return };
         let store = self.cfg.store.clone();
@@ -385,6 +411,7 @@ impl TeamSessionController {
 
     pub fn refresh_projects(&mut self) {
         let Some(client) = self.client.clone() else { return };
+        self.listed_at = Some(Instant::now());
         self.spawn("Loading team projects", move || client.list_projects().map_or_else(failed, Outcome::Projects));
     }
 
@@ -411,12 +438,10 @@ impl TeamSessionController {
                     id: created.id.clone(),
                     name: name.clone(),
                     folder: format!("Team Projects/{name}.fcteam"),
-                    locks: Default::default(),
-                    last_open: 0.0,
-                    cleanup: None,
+                    ..ProjectSummary::default()
                 });
                 let data = client.get_project(&created.id)?;
-                Ok(Outcome::Ready { summary, data: Box::new(data), current: Some(epoch) })
+                Ok(Outcome::Ready { summary: Box::new(summary), data: Box::new(data), current: Some(epoch) })
             };
             run().unwrap_or_else(failed)
         });
@@ -430,7 +455,7 @@ impl TeamSessionController {
             let run = || -> Result<Outcome, DriveError> {
                 let summary = client.list_projects()?.into_iter().find(|p| p.id == id).ok_or_else(|| DriveError::NotFound("team project".into()))?;
                 let data = client.get_project(&id)?;
-                Ok(Outcome::Ready { summary, data: Box::new(data), current: None })
+                Ok(Outcome::Ready { summary: Box::new(summary), data: Box::new(data), current: None })
             };
             run().unwrap_or_else(failed)
         });
@@ -505,6 +530,7 @@ impl TeamSessionController {
         for out in done {
             self.finish(out, s);
         }
+        self.refresh_now_and_then();
         if let Some(l) = self.leaving.as_mut() {
             if s.team.as_ref().is_none_or(TeamState::idle) {
                 let what = l.what;
@@ -577,12 +603,18 @@ impl TeamSessionController {
                 self.phase = Phase::SignedIn;
                 self.error = None;
                 self.refresh_projects();
+                self.load_people();
             }
             Outcome::NoToken => self.phase = Phase::SignedOut,
             Outcome::SignedOut => {}
             Outcome::Projects(list) => self.projects = list,
+            Outcome::People(list) => self.people = list,
+            Outcome::Joined(id) => {
+                self.refresh_projects();
+                self.open(&id);
+            }
             Outcome::Ready { summary, data, current } => {
-                if let Err(e) = self.attach(s, summary, *data, current) {
+                if let Err(e) = self.attach(s, *summary, *data, current) {
                     self.error = Some(e);
                 }
             }
@@ -651,6 +683,9 @@ impl TeamSessionController {
         }
         if let Err(e) = open.media.clean_up(s, now) {
             s.log.push(Level::Warning, "team", format!("Could not clean up the media cache: {e}"));
+        }
+        if current.is_some() {
+            self.invite_prompt = Some(open.info.id.clone());
         }
         self.open = Some(open);
         self.error = None;

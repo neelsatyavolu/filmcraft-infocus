@@ -14,6 +14,7 @@ use crate::error::{DriveError, Result};
 use crate::events::EventStream;
 use crate::http;
 use crate::lan::{self, Route};
+use crate::members::{Invite, Person, Role};
 
 /// Largest id the server accepts (ids stay JSON-safe).
 pub const MAX_ID: u64 = (1 << 53) - 1;
@@ -79,8 +80,8 @@ pub struct Cleanup {
     pub keep: bool,
 }
 
-/// One entry of `GET /api/team/projects`.
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+/// One entry of `GET /api/team/projects`. The member fields default for an older Drive.
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
 pub struct ProjectSummary {
     pub id: String,
     pub name: String,
@@ -94,6 +95,22 @@ pub struct ProjectSummary {
     /// None when no cleanup notice is pending and the project isn't kept forever.
     #[serde(default)]
     pub cleanup: Option<Cleanup>,
+    /// The signed-in member's place in it ([`Role::Open`] for an older project or Drive).
+    #[serde(default)]
+    pub role: Role,
+    #[serde(default)]
+    pub members: Vec<Person>,
+    /// Pending invites (an invitee sees only their own).
+    #[serde(default)]
+    pub invites: Vec<Invite>,
+    /// Who invited the signed-in member (while [`Role::Invited`]).
+    #[serde(default)]
+    pub invited_by: Option<String>,
+    /// Files in the project's media folder, and their total size in bytes.
+    #[serde(default)]
+    pub media_count: u64,
+    #[serde(default)]
+    pub media_bytes: u64,
 }
 
 /// Answer of `POST /api/team/projects`.
@@ -393,7 +410,7 @@ impl DriveClient {
     /// A route that names this Mac (`X-Drive-Device`): locks (a member's lock on one Mac is
     /// refused on their other Mac), and creating and opening a project (each Mac gets its own id
     /// slot).
-    fn device_call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
+    pub(crate) fn device_call(&self, method: Method, path: &str, body: Option<&Value>) -> Result<Vec<u8>> {
         let device = self.app.device();
         let headers: Vec<(&str, String)> = if device.is_empty() { Vec::new() } else { vec![(DEVICE_HEADER, device.to_string())] };
         self.request(method, path, body.map_or(Body::Empty, Body::Json), &headers)

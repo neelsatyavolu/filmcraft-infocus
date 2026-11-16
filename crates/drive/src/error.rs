@@ -45,6 +45,12 @@ pub enum DriveError {
     /// The project has no id slot left for another member or Mac (409 `no_slots`).
     #[error("{0}")]
     NoSlots(String),
+    /// The project already has as many members and invites as the Drive allows (409 `team_full`).
+    #[error("{0}")]
+    TeamFull(String),
+    /// The last member of a project can't leave it (409 `last_member`).
+    #[error("{0}")]
+    LastMember(String),
     /// The member has too many change feeds open (429 `too_many_streams`); polling covers it.
     #[error("{0}")]
     TooManyStreams(String),

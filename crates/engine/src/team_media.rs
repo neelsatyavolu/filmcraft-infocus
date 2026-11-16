@@ -186,6 +186,12 @@ impl TeamMedia {
             .collect()
     }
 
+    /// Proxies this Mac is making for downloaded originals: (item, fraction done 0..=1). They
+    /// leave the list when the proxy is attached (or failed; see the session log).
+    pub fn proxy_progress(&self, s: &Session) -> Vec<(ItemId, f32)> {
+        self.proxying.iter().map(|(item, px)| (*item, s.jobs.iter().find(|j| j.id == px.job).map_or(0.0, |j| j.progress.fraction().clamp(0.0, 1.0)))).collect()
+    }
+
     /// Downloads that failed, with the reason. They are not tried again until [`Self::retry`].
     pub fn failures(&self) -> Vec<(ItemId, String)> {
         self.failed.iter().map(|(i, e)| (*i, e.clone())).collect()

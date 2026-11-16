@@ -95,7 +95,8 @@ pub(crate) fn error_for(status: u16, body: &[u8]) -> DriveError {
 /// The team API's 409 bodies: `{error: <code>, message, ...}` with the code `lock_held` (plus
 /// `holder`, `expires_at` and, for this member's own other Mac, `device`), `lock_lost`, `stale`
 /// (`rev`), `item_in_use` (`item`), `files_changed`, `name_taken`, `invalid_project` or `conflict`
-/// (`detail`) or `no_slots`. A body without a known code but with a `holder` is still a held lock.
+/// (`detail`), `no_slots`, `team_full` or `last_member`; another code with a `message` is a
+/// [`DriveError::Conflict`]. A body without a known code but with a `holder` is still a held lock.
 fn conflict(body: &[u8]) -> Option<DriveError> {
     let v: Value = serde_json::from_slice(body).ok()?;
     let obj = v.as_object()?;
@@ -116,7 +117,11 @@ fn conflict(body: &[u8]) -> Option<DriveError> {
         "invalid_project" => DriveError::InvalidProject(msg()),
         "conflict" => DriveError::Conflict(msg()),
         "no_slots" => DriveError::NoSlots(msg()),
+        "team_full" => DriveError::TeamFull(msg()),
+        "last_member" => DriveError::LastMember(msg()),
         _ if obj.contains_key("holder") => held(),
+        // any other team refusal with a message the member can read
+        code if !code.is_empty() && text("message").is_some() => DriveError::Conflict(msg()),
         _ => return None,
     })
 }

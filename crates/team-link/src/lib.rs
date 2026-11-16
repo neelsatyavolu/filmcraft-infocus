@@ -9,17 +9,20 @@
 //! - [`TeamUploads`]: uploads the member's own media into the project's media folder (resumable,
 //!   at most two at once, paused during an export), so teammates can download it.
 //! - [`TeamSessionController`]: what the UI calls: sign in and out, list, create, open and keep
-//!   projects, and the export guard. Its network work runs on background threads; the UI calls
+//!   projects, people, invites, joining and leaving, adding footage, and the export guard. Its network work runs on background threads; the UI calls
 //!   [`TeamSessionController::poll`] once per frame.
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 
 mod controller;
+pub mod dev;
 mod downloader;
 mod feed;
 mod link;
 mod uploads;
 
-pub use controller::{ControllerConfig, LEAVE_WAIT, Leave, OpenTeamProject, Phase, TeamSessionController, default_cache_dir, open_in_browser};
+pub use controller::{
+    ControllerConfig, LEAVE_WAIT, LIST_REFRESH, Leave, MAX_FOOTAGE_FILES, OpenTeamProject, Phase, TeamSessionController, default_cache_dir, open_in_browser,
+};
 pub use downloader::DriveDownloader;
 pub use feed::FeedState;
 pub use link::{DriveTeamLink, LinkStatus, link_error};
@@ -31,6 +34,8 @@ mod controller_tests;
 mod leave_tests;
 #[cfg(test)]
 mod link_tests;
+#[cfg(test)]
+mod members_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

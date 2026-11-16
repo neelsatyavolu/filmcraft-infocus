@@ -54,28 +54,46 @@ impl TokenStore for MemoryStore {
     }
 }
 
-/// The macOS Keychain (generic password, service `InFocus Cut`, account `drive`).
-#[derive(Debug, Default, Clone, Copy)]
-pub struct KeychainStore;
+/// The macOS Keychain (generic password, service `InFocus Cut`, account `drive` by default).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeychainStore {
+    account: String,
+}
+
+impl Default for KeychainStore {
+    fn default() -> Self {
+        Self { account: KEYCHAIN_ACCOUNT.to_string() }
+    }
+}
+
+impl KeychainStore {
+    /// The token under another Keychain account (a development copy of the app with its own data
+    /// folder signs in separately).
+    pub fn with_account(account: &str) -> Self {
+        Self { account: account.to_string() }
+    }
+    pub fn account(&self) -> &str {
+        &self.account
+    }
+}
 
 #[cfg(target_os = "macos")]
 impl TokenStore for KeychainStore {
     fn load(&self) -> Result<Option<String>> {
         use security_framework::passwords::get_generic_password;
         const ERR_SEC_ITEM_NOT_FOUND: i32 = -25300;
-        match get_generic_password(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT) {
+        match get_generic_password(KEYCHAIN_SERVICE, &self.account) {
             Ok(bytes) => String::from_utf8(bytes).map(Some).map_err(|_| DriveError::Keychain("stored token is not text".into())),
             Err(e) if e.code() == ERR_SEC_ITEM_NOT_FOUND => Ok(None),
             Err(e) => Err(DriveError::Keychain(e.to_string())),
         }
     }
     fn save(&self, token: &str) -> Result<()> {
-        security_framework::passwords::set_generic_password(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT, token.as_bytes())
-            .map_err(|e| DriveError::Keychain(e.to_string()))
+        security_framework::passwords::set_generic_password(KEYCHAIN_SERVICE, &self.account, token.as_bytes()).map_err(|e| DriveError::Keychain(e.to_string()))
     }
     fn clear(&self) -> Result<()> {
         const ERR_SEC_ITEM_NOT_FOUND: i32 = -25300;
-        match security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT) {
+        match security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, &self.account) {
             Ok(()) => Ok(()),
             Err(e) if e.code() == ERR_SEC_ITEM_NOT_FOUND => Ok(()),
             Err(e) => Err(DriveError::Keychain(e.to_string())),

@@ -121,7 +121,13 @@ fn downloaded_original_is_linked_and_proxied() {
     let original = cache.join(fp.as_str()).join("original").join("a.mov");
     assert_eq!(media_path(&s, item), original.to_string_lossy());
     assert_eq!(s.history.undo.len(), undo, "linking is not an undo step");
+    // the proxy is made on this Mac as soon as the original is here, and shows as in progress
+    assert!(
+        m.proxy_progress(&s).iter().any(|(i, f)| *i == item && (0.0..=1.0).contains(f)) || s.project.item(item).unwrap().as_media().unwrap().proxy.is_some(),
+        "a proxy job starts for the downloaded original"
+    );
     poll_until(&mut m, &mut s, |_, s| s.project.item(item).unwrap().as_media().unwrap().proxy.is_some());
+    assert!(m.proxy_progress(&s).is_empty(), "a finished proxy leaves the list");
     let Some(MediaRef::File { path: proxy }) = s.project.item(item).unwrap().as_media().unwrap().proxy.clone() else { panic!() };
     assert!(Path::new(&proxy).starts_with(cache.join(fp.as_str()).join("proxy")), "{proxy}");
     assert!(Path::new(&proxy).is_file());

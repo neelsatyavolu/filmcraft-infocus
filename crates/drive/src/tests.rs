@@ -242,6 +242,9 @@ fn conflicts_map_to_their_variants() {
         (msg("invalid_project", json!({"detail": "x"})), "invalid"),
         (msg("conflict", json!({"detail": "x"})), "conflict"),
         (msg("brand_new_code", json!({})), "unknown"),
+        (msg("team_full", json!({})), "full"),
+        (msg("last_member", json!({})), "last"),
+        (json!({"error": "brand_new_code"}), "bare"),
         // An older server's lock answer: no code, but a holder.
         (json!({"holder": "student2", "expires_at": 3.0}), "held"),
     ];
@@ -256,7 +259,11 @@ fn conflicts_map_to_their_variants() {
             "name" => matches!(&err, DriveError::NameTaken(m) if m == "name_taken message"),
             "invalid" => matches!(err, DriveError::InvalidProject(_)),
             "conflict" => matches!(err, DriveError::Conflict(_)),
-            "unknown" => matches!(&err, DriveError::Http { status: 409, message } if message == "brand_new_code message"),
+            // a new refusal still reads as the Drive's own words, not "answered 409"
+            "unknown" => matches!(&err, DriveError::Conflict(m) if m == "brand_new_code message"),
+            "full" => matches!(&err, DriveError::TeamFull(m) if m == "team_full message"),
+            "last" => matches!(&err, DriveError::LastMember(m) if m == "last_member message"),
+            "bare" => matches!(&err, DriveError::Http { status: 409, .. }),
             _ => matches!(&err, DriveError::HeldBy { holder: Some(h), device: None, .. } if h == "student2"),
         };
         assert!(ok, "{kind}: {err:?}");
