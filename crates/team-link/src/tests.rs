@@ -81,18 +81,16 @@ fn link_requests_carry_tokens_and_map_answers() {
     link.take_lock(ItemId(7));
     link.take_lock(ItemId(8));
     link.put_sequence(ItemId(7), 3, json!({"id": 7}));
-    link.heartbeat(ItemId(7));
     link.post_shared(SharedPush { base_rev: 1, bins: Some(json!({})), ..Default::default() });
     link.delete_sequence(ItemId(7), 4);
     link.put_sequence(ItemId(7), 5, json!({"id": 7}));
-    let got = events(&mut link, 7);
+    let got = events(&mut link, 6);
     assert_eq!(
         got,
         vec![
             LinkEvent::LockTaken { seq: ItemId(7) },
             LinkEvent::LockRefused { seq: ItemId(8), holder: "student2".into() },
             LinkEvent::SequencePut { seq: ItemId(7), rev: 4 },
-            LinkEvent::HeartbeatOk { seq: ItemId(7) },
             LinkEvent::SharedPostFailed { error: LinkError::Stale { rev: 9 } },
             LinkEvent::SequenceDeleted { seq: ItemId(7), rev: 5 },
             LinkEvent::SequencePutFailed { seq: ItemId(7), error: LinkError::LockLost },
@@ -105,6 +103,48 @@ fn link_requests_carry_tokens_and_map_answers() {
     assert!(reqs.iter().filter(|r| r.path().contains("/lock")).all(|r| r.header("x-drive-device") == Some("Studio Mac")));
     let del = reqs.iter().find(|r| r.method == "DELETE").unwrap();
     assert_eq!(del.json(), json!({"token": "tok7", "base_rev": 4}));
+}
+
+#[test]
+fn heartbeats_are_not_held_back_by_a_slow_save() {
+    let server = MockServer::start(|req: &Req| {
+        let p = req.path().to_string();
+        match (req.method.as_str(), p.as_str()) {
+            ("POST", p) if p.ends_with("/sequences/7/lock") => Reply::json(200, json!({"token": "tok7", "expires_at": 10.0})),
+            ("POST", p) if p.ends_with("/sequences/8/lock") => Reply::json(200, json!({"token": "tok8", "expires_at": 10.0})),
+            ("POST", p) if p.ends_with("/sequences/7/lock/heartbeat") => Reply::json(200, json!({"expires_at": 30.0})),
+            ("POST", p) if p.ends_with("/sequences/8/lock/heartbeat") => Reply::json(409, json!({"error": "lock_lost", "message": "x"})),
+            // a big sequence on a slow connection
+            ("PUT", p) if p.ends_with("/sequences/7") => Reply::Slow(Duration::from_secs(2), Box::new(Reply::json(200, json!({"rev": 4})))),
+            ("GET", p) if p.ends_with("/events") => Reply::json(503, json!({"detail": "down"})),
+            ("GET", _) => Reply::json(200, project(&[(7, 3)], 0)),
+            _ => Reply::json(404, json!({"detail": "x"})),
+        }
+    });
+    let mut link = DriveTeamLink::start(client(&server.url, "ifd_test"), PID, known(&[(7, 3)], 0), Arc::default());
+    link.take_lock(ItemId(7));
+    link.take_lock(ItemId(8));
+    assert_eq!(events(&mut link, 2), vec![LinkEvent::LockTaken { seq: ItemId(7) }, LinkEvent::LockTaken { seq: ItemId(8) }]);
+    link.put_sequence(ItemId(7), 3, json!({"id": 7}));
+    std::thread::sleep(Duration::from_millis(100));
+    link.heartbeat(ItemId(7));
+    link.heartbeat(ItemId(8));
+    let got = events(&mut link, 3);
+    assert_eq!(
+        got,
+        vec![
+            LinkEvent::HeartbeatOk { seq: ItemId(7) },
+            LinkEvent::HeartbeatFailed { seq: ItemId(8), error: LinkError::LockLost },
+            LinkEvent::SequencePut { seq: ItemId(7), rev: 4 },
+        ],
+        "the heartbeats went while the save was still on its way"
+    );
+    // a lock lost (or released) has no token any more: its heartbeat is skipped, not reported again
+    link.heartbeat(ItemId(8));
+    link.heartbeat(ItemId(9));
+    std::thread::sleep(Duration::from_millis(300));
+    assert!(link.poll().is_empty());
+    assert_eq!(server.requests().iter().filter(|r| r.path().ends_with("/sequences/8/lock/heartbeat")).count(), 1);
 }
 
 #[test]

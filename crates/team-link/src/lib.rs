@@ -1,8 +1,8 @@
 //! InFocus Cut: connects a team project session to InFocus Drive.
 //!
 //! - [`DriveTeamLink`]: the engine's [`TeamLink`](filmcraft_engine::team::TeamLink) over a
-//!   [`DriveClient`](filmcraft_drive::DriveClient). Requests run in order on a worker thread; the
-//!   change feed runs on its own thread, reconnects with backoff when the stream ends, and polls
+//!   [`DriveClient`](filmcraft_drive::DriveClient). Requests run in order on a worker thread, lock
+//!   heartbeats on a thread of their own; the change feed runs on its own thread, reconnects with backoff when the stream ends, and polls
 //!   the project every 5 s while it is down. Nothing here blocks the UI thread.
 //! - [`DriveDownloader`]: the engine's [`Downloader`](filmcraft_engine::team_media::Downloader)
 //!   over `download_media`, so `TeamMedia` can fetch originals (and pause them).

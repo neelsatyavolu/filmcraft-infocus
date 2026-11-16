@@ -1,5 +1,7 @@
 //! [`DriveTeamLink`]: the engine's `TeamLink` over the Drive client. Each request method queues a
-//! command for the worker thread and returns at once; outcomes come back through `poll`. Lock
+//! command for the worker thread and returns at once; outcomes come back through `poll`.
+//! Heartbeats have a thread of their own, so a slow save or shared post can't hold one back past
+//! the lock's 120 s expiry. Lock
 //! tokens stay on the worker side (shared with the feed thread, which skips fetching sequences
 //! this Mac holds).
 
@@ -49,7 +51,6 @@ impl LinkStatus {
 
 enum Cmd {
     Take(u64),
-    Beat(u64),
     Release(u64),
     Put { seq: u64, base: u64, json: Value },
     Delete { seq: u64, base: u64 },
@@ -57,10 +58,11 @@ enum Cmd {
     Refresh,
 }
 
-/// A team session's connection to the Drive. Dropping it stops both threads (the worker after
+/// A team session's connection to the Drive. Dropping it stops its threads (the worker after
 /// the requests already queued, such as the releases `detach_team` sends).
 pub struct DriveTeamLink {
     cmds: Sender<Cmd>,
+    beats: Sender<u64>,
     events: Receiver<LinkEvent>,
     index: Arc<Mutex<CacheIndex>>,
     status: Arc<LinkStatus>,
@@ -79,10 +81,17 @@ impl DriveTeamLink {
         let stop = Arc::new(AtomicBool::new(false));
         let tokens: Tokens = Arc::default();
         let worker = Worker { client: client.clone(), project: project.to_string(), tokens: tokens.clone(), events: ev_tx.clone(), status: status.clone() };
+        let (beat_tx, beat_rx) = channel();
+        let beater = worker.clone();
         std::thread::Builder::new()
             .name("team-link".into())
             .spawn(move || worker.run(cmd_rx))
             .map_err(|e| status.set_error(Some(format!("Could not start the Drive connection: {e}"))))
+            .ok();
+        std::thread::Builder::new()
+            .name("team-heartbeat".into())
+            .spawn(move || beater.run_beats(beat_rx))
+            .map_err(|e| status.set_error(Some(format!("Could not start the lock heartbeats: {e}"))))
             .ok();
         let feed = feed::Feed {
             client,
@@ -99,7 +108,7 @@ impl DriveTeamLink {
             .spawn(move || feed.run())
             .map_err(|e| status.set_error(Some(format!("Could not start the change feed: {e}"))))
             .ok();
-        Self { cmds: cmd_tx, events: ev_rx, index, status, stop, notes: None }
+        Self { cmds: cmd_tx, beats: beat_tx, events: ev_rx, index, status, stop, notes: None }
     }
 
     /// Shares who is uploading what: this member's uploading items are marked in what the link
@@ -132,7 +141,9 @@ impl TeamLink for DriveTeamLink {
         self.send(Cmd::Take(seq.0));
     }
     fn heartbeat(&mut self, seq: ItemId) {
-        self.send(Cmd::Beat(seq.0));
+        if self.beats.send(seq.0).is_err() {
+            self.status.set_error(Some("The lock heartbeats stopped; open the project again".into()));
+        }
     }
     fn release(&mut self, seq: ItemId) {
         self.send(Cmd::Release(seq.0));
@@ -198,6 +209,7 @@ fn holder_name(holder: Option<&str>, device: Option<&str>) -> String {
     }
 }
 
+#[derive(Clone)]
 struct Worker {
     client: Arc<DriveClient>,
     project: String,
@@ -207,6 +219,40 @@ struct Worker {
 }
 
 impl Worker {
+    /// The heartbeat thread: extends locks until the link is dropped.
+    fn run_beats(self, beats: Receiver<u64>) {
+        while let Ok(seq) = beats.recv() {
+            if catch_unwind(AssertUnwindSafe(|| self.beat(seq))).is_err() {
+                self.status.set_error(Some("A lock heartbeat failed unexpectedly".into()));
+            }
+        }
+    }
+
+    /// Extends the lock on `seq`. A lock with no token here was released or already reported
+    /// lost (by the request that lost it), so it is skipped; so is a failure for a lock released
+    /// while the heartbeat was on its way.
+    fn beat(&self, seq: u64) {
+        let id = ItemId(seq);
+        let Some(token) = self.token(seq) else { return };
+        let r = self.client.heartbeat(&self.project, seq, &token);
+        self.outcome(&r);
+        match r {
+            Ok(_) => self.emit(LinkEvent::HeartbeatOk { seq: id }),
+            Err(e) => {
+                let mut tokens = self.tokens.lock().unwrap_or_else(PoisonError::into_inner);
+                if tokens.get(&seq) != Some(&token) {
+                    return;
+                }
+                let error = link_error(&e);
+                if matches!(error, LinkError::LockLost | LinkError::HeldBy { .. }) {
+                    tokens.remove(&seq);
+                }
+                drop(tokens);
+                self.emit(LinkEvent::HeartbeatFailed { seq: id, error });
+            }
+        }
+    }
+
     /// Runs commands in order until the link is dropped and the queue is empty.
     fn run(self, cmds: Receiver<Cmd>) {
         while let Ok(cmd) = cmds.recv() {
@@ -258,18 +304,6 @@ impl Worker {
                         self.emit(LinkEvent::LockRefused { seq: id, holder });
                     }
                     Err(e) => self.emit(LinkEvent::LockFailed { seq: id, message: e.to_string() }),
-                }
-            }
-            Cmd::Beat(seq) => {
-                let id = ItemId(seq);
-                let Some(token) = self.token(seq) else {
-                    return self.emit(LinkEvent::HeartbeatFailed { seq: id, error: LinkError::LockLost });
-                };
-                let r = c.heartbeat(p, seq, &token);
-                self.outcome(&r);
-                match r {
-                    Ok(_) => self.emit(LinkEvent::HeartbeatOk { seq: id }),
-                    Err(e) => self.failed_with_lock(seq, &e, |error| LinkEvent::HeartbeatFailed { seq: id, error }),
                 }
             }
             Cmd::Release(seq) => {
