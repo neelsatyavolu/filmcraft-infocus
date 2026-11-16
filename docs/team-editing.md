@@ -24,6 +24,13 @@ updates live. Projects sync through InFocus Drive. The full design is in
   (`X-Drive-Device`), so a member's lock on one Mac is refused on their other Mac. Every team 409
   maps to its own `DriveError` variant by the server's `error` code. On campus it uses the LAN address with a short-lived LAN
   token (the long-lived token never crosses the LAN) and falls back to the internet address.
+- `crates/team-link` (`filmcraft-team-link`, layer 5, no UI): connects a team session to the
+  Drive. `DriveTeamLink` is the engine's `TeamLink`: requests run in order on a worker thread
+  that keeps the lock tokens, and a feed thread follows the change feed, fetches the project when
+  a teammate saved something, reconnects with backoff when the stream ends and polls every 5 s
+  while it is down. `DriveDownloader` is `TeamMedia`'s `Downloader`. `TeamSessionController` is
+  what the UI calls (sign in and out, list, create from the current project, open, keep, export
+  guard); its network work runs on background threads and `poll` finishes it on the UI thread.
 - Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
   [`config/infocus.example.toml`](../config/infocus.example.toml)) or the build environment
   variable `INFOCUS_DRIVE_URL`. Hosts are never hard-coded.

@@ -41,6 +41,7 @@ filmcraft-export = { path = "crates/export" }
 filmcraft-format = { path = "crates/format" }
 filmcraft-team = { path = "crates/team" }
 filmcraft-drive = { path = "crates/drive" }
+filmcraft-team-link = { path = "crates/team-link" }
 filmcraft-engine = { path = "crates/engine" }
 filmcraft-ui-egui = { path = "crates/ui-egui" }
 filmcraft-automation = { path = "crates/automation" }

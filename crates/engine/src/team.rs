@@ -147,6 +147,8 @@ pub struct TeamState {
     /// Syncing stopped (old app, project files changed on the Drive): the message to show.
     pub problem: Option<String>,
     requested: BTreeSet<ItemId>,
+    /// When to ask again for the locks of sequences made here whose lock request failed.
+    lock_retry_at: Option<Instant>,
     /// Sequences made on this Mac that the server does not have yet.
     local_new: BTreeSet<ItemId>,
     /// Held sequences with edits to push, and when.
@@ -186,6 +188,7 @@ impl TeamState {
             shared_rev,
             problem: None,
             requested: BTreeSet::new(),
+            lock_retry_at: None,
             local_new: BTreeSet::new(),
             dirty: BTreeMap::new(),
             in_flight: BTreeSet::new(),
@@ -573,6 +576,15 @@ impl Session {
         team.known_shared = self.project.items.values().filter(|i| i.as_sequence().is_none()).map(|i| i.id).collect();
         self.team = Some(team);
         Ok(())
+    }
+
+    /// Open a team project the app fetched and merged: `project` replaces the session's (fresh
+    /// history and editor state, like opening a file, but with no file path) and `team` is
+    /// attached to it.
+    pub fn open_team_project(&mut self, project: Project, team: TeamState) -> Result<()> {
+        crate::masks::discard_jobs(self);
+        crate::commands::install_project(self, project, None, true);
+        self.attach_team(team)
     }
 
     /// Leave team mode: held locks are released (unsynced edits stay in this project only).

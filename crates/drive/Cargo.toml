@@ -9,6 +9,10 @@ rust-version.workspace = true
 [lints]
 workspace = true
 
+[features]
+# `filmcraft_drive::mock`, the test HTTP server, for other crates' tests.
+test-util = []
+
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }

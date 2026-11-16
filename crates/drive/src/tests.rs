@@ -359,6 +359,17 @@ fn delete_sequence_and_shared_fields_shapes() {
 }
 
 #[test]
+fn me_names_the_signed_in_member() {
+    let server = MockServer::start(|req| match req.header("authorization") {
+        Some("Bearer ifd_test") => Reply::json(200, json!({"authenticated": true, "nas_username": "student1", "email": "x"})),
+        _ => Reply::json(200, json!({"authenticated": false})),
+    });
+    assert_eq!(client(&server).me().unwrap(), "student1");
+    let other = DriveClient::connect(&DriveConfig::new(&server.url, None).unwrap(), "ifd_old", app()).unwrap();
+    assert!(matches!(other.me(), Err(DriveError::Unauthorized(_))));
+}
+
+#[test]
 fn hostile_ids_never_reach_the_network() {
     let server = MockServer::start(|_| Reply::json(200, json!({})));
     let c = client(&server);

@@ -35,7 +35,9 @@ pub use events::{EventStream, SseEvent, SseParser, TeamEvent};
 pub use lan::{LAN_PROBE_TIMEOUT, LAN_TOKEN_PREFIX};
 pub use upload::{MAX_CHUNK_SIZE, UploadProgress, UploadSession, UploadedMedia};
 
-#[cfg(test)]
-mod mock;
+/// A tiny in-process HTTP server for tests (here and in crates that drive a `DriveClient`).
+#[cfg(any(test, feature = "test-util"))]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+pub mod mock;
 #[cfg(test)]
 mod tests;

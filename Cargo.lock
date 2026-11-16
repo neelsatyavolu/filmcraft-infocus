@@ -2491,6 +2491,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "filmcraft-team-link"
+version = "0.20.1"
+dependencies = [
+ "filmcraft-drive",
+ "filmcraft-engine",
+ "filmcraft-project",
+ "filmcraft-team",
+ "serde_json",
+ "tempfile",
+ "ureq",
+ "url",
+ "web-time",
+]
+
+[[package]]
 name = "filmcraft-testkit"
 version = "0.20.1"
 dependencies = [

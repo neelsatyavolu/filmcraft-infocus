@@ -38,6 +38,11 @@ pub enum LinkEvent {
         seq: ItemId,
         holder: String,
     },
+    /// Asking for the lock failed without an answer about who holds it (offline, signed out).
+    LockFailed {
+        seq: ItemId,
+        message: String,
+    },
     HeartbeatOk {
         seq: ItemId,
     },
@@ -108,6 +113,19 @@ impl Session {
         }
         let mut lost = Vec::new();
         if let Some(t) = self.team.as_mut() {
+            if t.lock_retry_at.is_some_and(|at| at <= now) {
+                t.lock_retry_at = None;
+                let ask: Vec<ItemId> = t
+                    .local_new
+                    .iter()
+                    .filter(|id| !t.held.contains_key(id) && !t.requested.contains(id) && !t.delete_in_flight.contains(id))
+                    .copied()
+                    .collect();
+                for id in ask {
+                    t.requested.insert(id);
+                    t.link.take_lock(id);
+                }
+            }
             for (id, lock) in t.held.iter_mut() {
                 if now.saturating_duration_since(lock.last_ok) >= LOCK_EXPIRY {
                     lost.push(*id);
@@ -148,6 +166,16 @@ impl Session {
                     t.holders.insert(seq, holder.clone());
                 }
                 tell(self, format!("{holder} is editing “{name}”"));
+            }
+            LinkEvent::LockFailed { seq, message } => {
+                t.requested.remove(&seq);
+                if t.local_new.contains(&seq) {
+                    // made here: nobody else can hold it, so ask again later
+                    t.lock_retry_at = Some(now + RETRY_AFTER);
+                } else {
+                    let name = self.project.item(seq).map(|i| i.name.clone()).unwrap_or_default();
+                    tell(self, format!("Could not take the lock on “{name}”: {message}"));
+                }
             }
             LinkEvent::HeartbeatOk { seq } => {
                 if let Some(l) = t.held.get_mut(&seq) {

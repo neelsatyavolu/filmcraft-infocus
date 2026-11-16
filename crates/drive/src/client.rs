@@ -218,6 +218,19 @@ impl DriveClient {
         route
     }
 
+    /// The signed-in member's Drive user name, the name lock holders and teammates' updates go by.
+    pub fn me(&self) -> Result<String> {
+        let v: Value = http::parse(&self.call(Method::Get, "/api/me", None)?)?;
+        if v.get("authenticated").and_then(Value::as_bool) == Some(false) {
+            return Err(DriveError::Unauthorized("not signed in".into()));
+        }
+        v.get("nas_username")
+            .and_then(Value::as_str)
+            .filter(|u| !u.is_empty())
+            .map(str::to_string)
+            .ok_or_else(|| DriveError::BadResponse("the Drive did not say who is signed in".into()))
+    }
+
     pub fn list_projects(&self) -> Result<Vec<ProjectSummary>> {
         http::parse(&self.call(Method::Get, "/api/team/projects", None)?)
     }

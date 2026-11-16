@@ -253,3 +253,45 @@ fn two_sessions_converge_on_deletes_and_fields() {
     assert_eq!(da.sequences, db.sequences);
     assert_eq!(da.shared, db.shared);
 }
+
+#[test]
+fn failed_lock_request_is_told_or_asked_again_for_a_new_sequence() {
+    let (mut s, fake, main, _) = team_demo();
+    s.team_take_lock(main).unwrap();
+    fake.lock().unwrap().queued.clear();
+    fake.lock().unwrap().queued.push(LinkEvent::LockFailed { seq: main, message: "Can't reach InFocus Drive".into() });
+    s.poll_team(Instant::now());
+    assert_eq!(s.team_status(main), Some(SequenceStatus::Free));
+    assert!(s.log.entries.iter().any(|e| e.message.contains("Could not take the lock on “Main Edit”")));
+    // a sequence made here keeps asking until it gets its lock
+    s.execute("file.newSequence", json!({"name": "Interview"})).unwrap();
+    let seq = seq_named(&s, "Interview");
+    fake.lock().unwrap().queued.clear();
+    fake.lock().unwrap().queued.push(LinkEvent::LockFailed { seq, message: "offline".into() });
+    let t0 = Instant::now();
+    s.poll_team(t0);
+    calls(&fake);
+    s.poll_team(t0 + Duration::from_secs(6));
+    assert!(calls(&fake).contains(&Call::Take(seq)));
+    s.poll_team(t0 + Duration::from_secs(7));
+    assert!(matches!(s.team_status(seq), Some(SequenceStatus::Editing { .. })));
+}
+
+#[test]
+fn open_team_project_replaces_the_project_and_attaches() {
+    let mut demo = Session::default();
+    demo.execute("file.openDemoProject", json!({})).unwrap();
+    let project = (*demo.project).clone();
+    let main = seq_named(&demo, "Main Edit");
+    let mut s = Session::default();
+    s.execute("file.newProject", json!({"name": "Other"})).unwrap();
+    let fake = Arc::new(Mutex::new(Fake::default()));
+    let revs = project.sequences().map(|q| (q.id, 3)).collect();
+    s.open_team_project(project, TeamState::new(Box::new(FakeLink(fake.clone())), "me".into(), 4, revs, 2, BTreeMap::new())).unwrap();
+    assert!(s.project.item(main).is_some());
+    assert_eq!(s.project.id_slot, 4);
+    assert!(s.path.is_none() && !s.is_dirty());
+    assert_eq!(s.team_status(main), Some(SequenceStatus::Free));
+    s.poll_team(Instant::now());
+    assert!(s.team.is_some(), "still attached after a poll");
+}
