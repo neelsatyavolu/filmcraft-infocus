@@ -99,6 +99,24 @@ impl TeamUi for Team {
         }
     }
 
+    fn export_missing(&mut self, s: &Session, sequences: &[ItemId]) -> Vec<ItemId> {
+        self.0.as_mut().map(|c| c.export_missing(s, sequences)).unwrap_or_default()
+    }
+
+    fn set_exporting(&mut self, exporting: bool) {
+        if let Ok(c) = self.0.as_mut() {
+            if exporting {
+                c.export_begin();
+            } else {
+                c.export_end();
+            }
+        }
+    }
+
+    fn exporting(&self) -> bool {
+        self.0.as_ref().is_ok_and(TeamSessionController::exporting)
+    }
+
     fn active(&self) -> bool {
         self.0.as_ref().is_ok_and(|c| c.busy().is_some() || c.media().is_some_and(|m| !m.progress().is_empty()) || c.open_project().is_some())
     }

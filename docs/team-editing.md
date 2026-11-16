@@ -70,7 +70,10 @@ Keep these small so upstream merges stay easy.
   with a lock), or a Take button when the sequence is free. The Timeline's panel menu (also the
   tab's right-click menu) has Take Lock and Release Lock. A lock a member holds on their other
   Mac reads "You're editing this on <device>" (`team::editing_message`).
-- Planned: a guard on the export entry point that fetches originals first.
+- Export (`team_ui::export_guard`, called by Export, Quick Export and Start Queue): in a team
+  project the export waits, with a message naming what is still downloading, until the
+  originals of the exported sequences are on this Mac (asking for them starts their download).
+  `team_ui::tick` pauses downloads while any export runs, whichever route started it.
 - Packaging (planned): app name "InFocus Cut" and its own bundle id.
 
 ## Merging upstream

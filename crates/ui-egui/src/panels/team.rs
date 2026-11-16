@@ -277,6 +277,13 @@ mod tests {
         fn act(&mut self, _s: &mut Session, action: TeamAction) {
             self.acts.borrow_mut().push(action);
         }
+        fn export_missing(&mut self, _s: &Session, _sequences: &[filmcraft_project::ItemId]) -> Vec<filmcraft_project::ItemId> {
+            Vec::new()
+        }
+        fn set_exporting(&mut self, _exporting: bool) {}
+        fn exporting(&self) -> bool {
+            false
+        }
         fn active(&self) -> bool {
             false
         }

@@ -197,7 +197,7 @@ pub(super) fn active_export_job(app: &FilmcraftApp) -> Option<filmcraft_engine::
         .cloned()
 }
 
-pub(super) fn is_export_busy(app: &FilmcraftApp) -> bool {
+pub(crate) fn is_export_busy(app: &FilmcraftApp) -> bool {
     active_export_job(app).is_some() || app.session.export_queue.is_active()
 }
 
