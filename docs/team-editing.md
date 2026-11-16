@@ -105,6 +105,16 @@ Keep these small so upstream merges stay easy.
   shared with or copied from an upstream FilmCraft install. The Keychain item is service
   `InFocus Cut`, account `drive`.
 
+## End-to-end check
+
+`scripts/team-e2e.sh` runs two scripted members (`filmcraft-cli team session`, see
+`filmcraft-cli help`) against a real InFocus Drive on 127.0.0.1: the Drive's dev-only launcher
+`scripts/dev/team_e2e_server.py` (`INFOCUS_DEV_E2E=1`, fictional members `student1` and
+`student2`). It covers create and open with a media download, a refused lock, concurrent edits of
+two sequences, two imports at once, a lost lock saved as "Recovered – …" and a sequence delete, and
+checks after each that both members' projects split identically. It needs an infocus-drive
+checkout with its `.venv` (`INFOCUS_DRIVE_REPO`, default `../infocus-drive`) and takes about 80 s.
+
 ## Merging upstream
 
 ```sh
