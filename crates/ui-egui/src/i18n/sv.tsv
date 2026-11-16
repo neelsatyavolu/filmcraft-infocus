@@ -3852,3 +3852,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	Videoredigering i team för InFocus, synkad via InFocus Drive.
 	You're editing this sequence.	Du redigerar den här sekvensen.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Du redigerar den här sekvensen. Vissa ändringar finns inte på Driven än.
+	Finish signing in in your browser. This panel updates by itself.	Завершіть вхід у браузері. Ця панель оновиться сама.
+	Signed in as {name} ({user})	Ви ввійшли як {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Вийти з InFocus Drive на цьому Mac. Спершу надішлються ваші зміни.
+	Switch Account	Змінити акаунт
+	Sign out, then sign in with another InFocus Drive account.	Вийти й увійти з іншим акаунтом InFocus Drive.
+	Open the team dashboard ↗	Відкрити панель команди ↗
+	See your team projects, footage and invitations on the web.	Ваші командні проєкти, матеріал і запрошення в браузері.
+	Press Sign in with InFocus Drive to continue.	Натисніть «Увійти через InFocus Drive», щоб продовжити.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive — місце, де InFocus зберігає спільний матеріал і проєкти.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Увійдіть зі шкільним акаунтом, щоб створити командний проєкт, запросити однокласників і ділитися матеріалом.
+	Sign in with InFocus Drive	Увійти через InFocus Drive
+	Add footage to “{name}”	Додати матеріал до «{name}»
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Команда завантажить його, коли відкриє секвенцію, що його використовує. Він вивантажується у фоні, поки ви монтуєте.
+	Next: Invite Teammates	Далі: запросити команду
+	Skip	Пропустити
+	Add footage later with Add Footage… on the open project.	Додати матеріал можна пізніше через «Додати матеріал…» у відкритому проєкті.
+	Drop to add to the project	Відпустіть, щоб додати до проєкту
+	Drop video, audio or photos here	Перетягніть сюди відео, звук або фото
+	Choose Files…	Вибрати файли…
+	Team:	Команда:
+	Online now	Зараз у мережі
+	Last seen just now	Був у мережі щойно
+	Last seen {n} minutes ago	Був у мережі {n} хв тому
+	Last seen {n} hours ago	Був у мережі {n} год тому
+	Last seen {n} days ago	Був у мережі {n} дн. тому
+	1 new file on InFocus Drive · {size}	1 новий файл в InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	Нових файлів в InFocus Drive: {n} · {size}
+	{list} and {count} more	{list} і ще {count}
+	Add to Project	Додати до проєкту
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Додані на сайті Drive. Вони завантажаться на цей Mac і потраплять до кошика проєкту для всієї команди.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Схоже, цей Mac не в мережі. Підключіться до Wi-Fi або шкільної мережі й спробуйте ще раз.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	Зараз не вдається зв'язатися з InFocus Drive. Перевірте підключення або спробуйте за хвилину.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Цей акаунт не учасник InFocus Drive. Увійдіть зі шкільним акаунтом або попросіть адміністратора InFocus додати вас.
+	Sign-in was cancelled in the browser.	Вхід скасовано в браузері.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Вхід у браузері не завершився. Спробуйте ще раз, а якщо Drive повідомив, що акаунт не учасник, попросіть адміністратора InFocus додати вас.
+	Adding footage from InFocus Drive	Додавання матеріалу з InFocus Drive

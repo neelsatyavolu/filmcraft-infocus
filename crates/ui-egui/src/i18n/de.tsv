@@ -3801,3 +3801,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	Videoschnitt im Team für InFocus, synchronisiert über InFocus Drive.
 	You're editing this sequence.	Du bearbeitest diese Sequenz.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Du bearbeitest diese Sequenz. Einige Änderungen sind noch nicht im Drive.
+	Finish signing in in your browser. This panel updates by itself.	Schließe die Anmeldung im Browser ab. Dieses Panel aktualisiert sich von selbst.
+	Signed in as {name} ({user})	Angemeldet als {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Auf diesem Mac von InFocus Drive abmelden. Deine Änderungen werden vorher gesendet.
+	Switch Account	Konto wechseln
+	Sign out, then sign in with another InFocus Drive account.	Abmelden und mit einem anderen InFocus-Drive-Konto anmelden.
+	Open the team dashboard ↗	Team-Übersicht öffnen ↗
+	See your team projects, footage and invitations on the web.	Deine Teamprojekte, dein Material und deine Einladungen im Web.
+	Press Sign in with InFocus Drive to continue.	Klicke auf „Mit InFocus Drive anmelden“, um fortzufahren.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive ist der Ort, an dem InFocus gemeinsames Material und Projekte aufbewahrt.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Melde dich mit deinem Schulkonto an, um ein Teamprojekt anzulegen, Mitschüler einzuladen und Material zu teilen.
+	Sign in with InFocus Drive	Mit InFocus Drive anmelden
+	Add footage to “{name}”	Material zu „{name}“ hinzufügen
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Dein Team lädt es herunter, wenn es eine Sequenz öffnet, die es verwendet. Es wird im Hintergrund hochgeladen, während du weiterschneidest.
+	Next: Invite Teammates	Weiter: Team einladen
+	Skip	Überspringen
+	Add footage later with Add Footage… on the open project.	Material später mit „Material hinzufügen…“ im geöffneten Projekt hinzufügen.
+	Drop to add to the project	Loslassen zum Hinzufügen
+	Drop video, audio or photos here	Videos, Audio oder Fotos hier ablegen
+	Choose Files…	Dateien auswählen…
+	Team:	Team:
+	Online now	Gerade online
+	Last seen just now	Zuletzt gesehen: gerade eben
+	Last seen {n} minutes ago	Zuletzt gesehen vor {n} Min.
+	Last seen {n} hours ago	Zuletzt gesehen vor {n} Std.
+	Last seen {n} days ago	Zuletzt gesehen vor {n} Tagen
+	1 new file on InFocus Drive · {size}	1 neue Datei auf InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	{n} neue Dateien auf InFocus Drive · {size}
+	{list} and {count} more	{list} und {count} weitere
+	Add to Project	Zum Projekt hinzufügen
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Auf der Drive-Website hinzugefügt. Sie werden auf diesen Mac geladen und landen für das ganze Team im Projektordner.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Dieser Mac scheint offline zu sein. Verbinde dich mit dem WLAN oder dem Schulnetz und versuche es erneut.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	InFocus Drive ist gerade nicht erreichbar. Prüfe deine Verbindung oder versuche es in einer Minute erneut.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Dieses Konto ist kein Mitglied von InFocus Drive. Melde dich mit deinem Schulkonto an oder bitte eine InFocus-Admin-Person, dich hinzuzufügen.
+	Sign-in was cancelled in the browser.	Die Anmeldung wurde im Browser abgebrochen.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Die Anmeldung im Browser wurde nicht abgeschlossen. Versuche es erneut. Wenn Drive gemeldet hat, dass dein Konto kein Mitglied ist, bitte eine InFocus-Admin-Person, dich hinzuzufügen.
+	Adding footage from InFocus Drive	Material von InFocus Drive wird hinzugefügt

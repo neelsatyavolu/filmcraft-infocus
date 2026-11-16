@@ -207,14 +207,19 @@ team editing without clicking (`apps/filmcraft/src/team_control.rs`). Each start
 Team panel's buttons start and answers at once with `{"started": true}` (or the result named
 below); poll `team.status` to see where it got to. Release builds answer "unknown method".
 
-- `team.status`: `phase` (`signed_out` | `connecting` | `signed_in`), `user`, `busy`, `error`,
+- `team.status`: `phase` (`signed_out` | `connecting` | `signed_in`), `user`, `user_name`,
+  `dashboard_url`, `busy`, `error`,
   `invite_prompt`, `people` (`[{username, name}]`), `projects` (`[{id, name, role: member |
   invited | open, members, invites, invited_by, media_count, media_bytes, locks: [{sequence,
   holder}]}]`), `open` (`{id, name, feed_live, link_error, downloads, proxies,
-  download_failures, uploads, upload_failures, uploads_busy}`, downloads and proxies as `[{item,
-  name, done}]`), `media` (`[{id, name, path, proxy, offline}]`: a `drive:/` path is not on this
+  download_failures, uploads, upload_failures, uploads_busy, drive_only}`, downloads and proxies
+  as `[{item, name, done}]`, `drive_only` as `[{path, size}]`: files in the media folder no item
+  uses on two checks in a row), `media` (`[{id, name, path, proxy, offline}]`: a `drive:/` path is not on this
   Mac yet), `sequences` (`[{id, name, status}]`) and `open_sequences`.
-- `team.refresh`: fetch the project list again.
+- `team.refresh`: fetch the project list and the open project's media folder again.
+- `team.add_drive_footage`: Add to Project for the `drive_only` files (they download, then go
+  into the project's bin for the team).
+- `team.switch_account`: sign out, then start signing in again (the browser opens).
 - `team.create {name}`: make the open project a team project.
 - `team.invite {project, users: [user names]}`, `team.join {project}`, `team.open {project}`.
 - `team.open_sequence {sequence: id | name}`: open a sequence (its footage starts downloading);

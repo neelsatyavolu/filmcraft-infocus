@@ -53,11 +53,53 @@ pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: O
             ui.label(RichText::new(footage_text(row.media_count, row.media_bytes)).small().color(t.text_dim));
         }
     });
+    drive_only(ui, t, open, out);
     if open.exporting {
         ui.label(RichText::new(tl!("Downloads and uploads are paused while exporting.")).small().color(t.text_dim));
     }
     transfers(ui, t, open, out);
     ui.add_space(SECTION_GAP);
+}
+
+/// Files a teammate put in the project's media folder from the Drive website that no item uses
+/// yet: Add to Project brings them in (they download to this Mac and go into the project's bin
+/// for everyone).
+fn drive_only(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, out: &mut Out) {
+    if open.drive_only.is_empty() {
+        return;
+    }
+    let bytes = open.drive_only.iter().fold(0u64, |acc, (_, b)| acc.saturating_add(*b));
+    let n = open.drive_only.len() as u64;
+    let text = match n {
+        1 => tlf!("1 new file on InFocus Drive · {size}", size = super::size_text(bytes)),
+        n => tlf!("{n} new files on InFocus Drive · {size}", n, size = super::size_text(bytes)),
+    };
+    let frame = egui::Frame::new().fill(t.accent.gamma_multiply(0.10)).corner_radius(4.0).inner_margin(egui::Margin::symmetric(8, 6));
+    frame.show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        let mut text_rect = Rect::NOTHING;
+        split_row(
+            ui,
+            |ui| {
+                ui.vertical(|ui| {
+                    text_rect = ui.add(egui::Label::new(RichText::new(&text).color(t.text)).wrap()).rect;
+                    let names: Vec<&str> = open.drive_only.iter().take(3).map(|(p, _)| p.rsplit('/').next().unwrap_or(p)).collect();
+                    let more = open.drive_only.len().saturating_sub(names.len());
+                    let list = if more == 0 { names.join(", ") } else { tlf!("{list} and {count} more", list = names.join(", "), count = more) };
+                    ui.add(egui::Label::new(RichText::new(list).small().color(t.text_dim)).wrap());
+                });
+            },
+            |ui| {
+                let r = ui.button(tl!("Add to Project"));
+                out.elem("team.drive_only.add", r.rect, tl!("Add to Project"));
+                if r.on_hover_text(tl!("Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.")).clicked() {
+                    out.actions.push(TeamAction::AddDriveFootage);
+                }
+            },
+        );
+        out.elem("team.drive_only", text_rect, text.clone());
+    });
+    ui.add_space(4.0);
 }
 
 /// Downloads, proxies, uploads, teammates' uploads and failures, or a line saying how footage
@@ -107,7 +149,7 @@ fn transfers(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, out: &mut Out) 
 }
 
 /// A name, its percentage and a progress bar (a download, a proxy or an upload).
-fn progress_row(ui: &mut egui::Ui, t: &Tokens, name: &str, frac: f32, id: String, out: &mut Out) {
+pub(super) fn progress_row(ui: &mut egui::Ui, t: &Tokens, name: &str, frac: f32, id: String, out: &mut Out) {
     let frac = if frac.is_finite() { frac.clamp(0.0, 1.0) } else { 0.0 };
     let (r, _) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::hover());
     let pct = format!("{:.0} %", frac * 100.0);

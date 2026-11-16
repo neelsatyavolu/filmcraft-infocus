@@ -210,10 +210,7 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
         );
         let small = |ui: &mut egui::Ui, text: &str, color| ui.add(egui::Label::new(RichText::new(text).small().color(color)).wrap());
         if !p.members.is_empty() {
-            let names: Vec<&str> = p.members.iter().map(|m| if m.name.is_empty() { m.username.as_str() } else { m.name.as_str() }).collect();
-            let text = tlf!("Team: {names}", names = names.join(", "));
-            let r = small(ui, &text, t.text_dim);
-            out.elem(format!("team.project.{}.members", p.id), r.rect, text);
+            members(ui, t, p, out);
         } else if p.role == TeamRole::Open {
             small(ui, tl!("Open to everyone on InFocus Drive"), t.text_dim);
         }
@@ -244,6 +241,55 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
     });
     out.elem(format!("team.project.{}", p.id), r.response.rect, p.name.clone());
     ui.add_space(2.0);
+}
+
+/// "Team:" and each member with a dot: green while online, grey otherwise, with when they were
+/// last seen on hover (when the Drive says).
+fn members(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, out: &mut Out) {
+    let names: Vec<&str> = p.members.iter().map(|m| if m.name.is_empty() { m.username.as_str() } else { m.name.as_str() }).collect();
+    let text = tlf!("Team: {names}", names = names.join(", "));
+    let now = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    let r = ui.horizontal_wrapped(|ui| {
+        ui.spacing_mut().item_spacing.x = 4.0;
+        ui.label(RichText::new(tl!("Team:")).small().color(t.text_dim));
+        for (m, name) in p.members.iter().zip(&names) {
+            let presence = presence_text(m.online, m.last_seen, now);
+            let r = ui
+                .horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 3.0;
+                    if m.online.is_some() || m.last_seen.is_some() {
+                        let (dot, _) = ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
+                        let color = if m.online == Some(true) { t.render_green } else { t.text_faint };
+                        ui.painter().circle_filled(dot.center(), 3.5, color);
+                    }
+                    ui.label(RichText::new(*name).small().color(t.text));
+                })
+                .response;
+            let label = match &presence {
+                Some(p) => format!("{name}: {p}"),
+                None => name.to_string(),
+            };
+            out.elem(format!("team.project.{}.member.{}", p.id, m.username), r.rect, label);
+            if let Some(presence) = presence {
+                r.on_hover_text(presence);
+            }
+        }
+    });
+    out.elem(format!("team.project.{}.members", p.id), r.response.rect, text);
+}
+
+/// "Online now", "Last seen 5 minutes ago", "Last seen 3 hours ago", "Last seen 2 days ago".
+pub(super) fn presence_text(online: Option<bool>, last_seen: Option<u64>, now: u64) -> Option<String> {
+    if online == Some(true) {
+        return Some(tl!("Online now").to_string());
+    }
+    let ago = now.saturating_sub(last_seen?);
+    Some(match ago {
+        0..120 => tl!("Last seen just now").to_string(),
+        120..7200 => tlf!("Last seen {n} minutes ago", n = ago / 60),
+        7200..172_800 => tlf!("Last seen {n} hours ago", n = ago / 3600),
+        _ => tlf!("Last seen {n} days ago", n = ago / 86_400),
+    })
 }
 
 fn cleanup(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, out: &mut Out) {

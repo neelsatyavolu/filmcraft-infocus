@@ -3739,3 +3739,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	Zespołowy montaż wideo dla InFocus, synchronizowany przez InFocus Drive.
 	You're editing this sequence.	Edytujesz tę sekwencję.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Edytujesz tę sekwencję. Część zmian nie jest jeszcze na Drive.
+	Finish signing in in your browser. This panel updates by itself.	Dokończ logowanie w przeglądarce. Ten panel odświeży się sam.
+	Signed in as {name} ({user})	Zalogowano jako {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Wyloguj się z InFocus Drive na tym Macu. Twoje zmiany zostaną najpierw wysłane.
+	Switch Account	Zmień konto
+	Sign out, then sign in with another InFocus Drive account.	Wyloguj się, a potem zaloguj innym kontem InFocus Drive.
+	Open the team dashboard ↗	Otwórz pulpit zespołu ↗
+	See your team projects, footage and invitations on the web.	Zobacz swoje projekty zespołowe, materiał i zaproszenia w przeglądarce.
+	Press Sign in with InFocus Drive to continue.	Kliknij Zaloguj przez InFocus Drive, aby kontynuować.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive to miejsce, w którym InFocus przechowuje wspólny materiał i projekty.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Zaloguj się kontem szkolnym, aby utworzyć projekt zespołowy, zaprosić kolegów i udostępniać materiał.
+	Sign in with InFocus Drive	Zaloguj przez InFocus Drive
+	Add footage to “{name}”	Dodaj materiał do „{name}”
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Zespół pobierze go, gdy otworzy sekwencję, która go używa. Wysyła się w tle, a ty dalej montujesz.
+	Next: Invite Teammates	Dalej: zaproś zespół
+	Skip	Pomiń
+	Add footage later with Add Footage… on the open project.	Materiał dodasz później przyciskiem Dodaj materiał… w otwartym projekcie.
+	Drop to add to the project	Upuść, aby dodać do projektu
+	Drop video, audio or photos here	Upuść tu wideo, dźwięk lub zdjęcia
+	Choose Files…	Wybierz pliki…
+	Team:	Zespół:
+	Online now	Teraz online
+	Last seen just now	Ostatnio widziany przed chwilą
+	Last seen {n} minutes ago	Ostatnio widziany {n} min temu
+	Last seen {n} hours ago	Ostatnio widziany {n} godz. temu
+	Last seen {n} days ago	Ostatnio widziany {n} dni temu
+	1 new file on InFocus Drive · {size}	1 nowy plik na InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	Nowe pliki na InFocus Drive: {n} · {size}
+	{list} and {count} more	{list} i jeszcze {count}
+	Add to Project	Dodaj do projektu
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Dodane na stronie Drive. Pobiorą się na ten Mac i trafią do kosza projektu dla całego zespołu.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Ten Mac wygląda na offline. Połącz się z Wi-Fi lub siecią szkolną i spróbuj ponownie.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	Nie można teraz połączyć się z InFocus Drive. Sprawdź połączenie lub spróbuj za minutę.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	To konto nie należy do InFocus Drive. Zaloguj się kontem szkolnym lub poproś administratora InFocus o dodanie.
+	Sign-in was cancelled in the browser.	Logowanie anulowano w przeglądarce.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Logowanie w przeglądarce się nie zakończyło. Spróbuj ponownie, a jeśli Drive napisał, że konto nie jest członkiem, poproś administratora InFocus o dodanie.
+	Adding footage from InFocus Drive	Dodawanie materiału z InFocus Drive

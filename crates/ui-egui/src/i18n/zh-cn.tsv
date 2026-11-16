@@ -3874,3 +3874,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	为 InFocus 打造的团队视频剪辑，通过 InFocus Drive 同步。
 	You're editing this sequence.	你正在编辑此序列。
 	You're editing this sequence. Some edits aren't on the Drive yet.	你正在编辑此序列。部分编辑尚未到达 Drive。
+	Finish signing in in your browser. This panel updates by itself.	请在浏览器中完成登录。此面板会自动更新。
+	Signed in as {name} ({user})	已登录为 {name}（{user}）
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	在这台 Mac 上退出 InFocus Drive。会先发送你的编辑。
+	Switch Account	切换账户
+	Sign out, then sign in with another InFocus Drive account.	退出，然后用另一个 InFocus Drive 账户登录。
+	Open the team dashboard ↗	打开团队仪表板 ↗
+	See your team projects, footage and invitations on the web.	在网页上查看你的团队项目、素材和邀请。
+	Press Sign in with InFocus Drive to continue.	点按“使用 InFocus Drive 登录”以继续。
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive 是 InFocus 存放共享素材和项目的地方。
+	Sign in with your school account to make a team project, invite classmates and share footage.	使用学校账户登录，即可创建团队项目、邀请同学并共享素材。
+	Sign in with InFocus Drive	使用 InFocus Drive 登录
+	Add footage to “{name}”	向“{name}”添加素材
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	队友打开用到它的序列时会下载。你继续剪辑时，它会在后台上传。
+	Next: Invite Teammates	下一步：邀请队友
+	Skip	跳过
+	Add footage later with Add Footage… on the open project.	以后可在打开的项目中用“添加素材…”添加。
+	Drop to add to the project	松开即可添加到项目
+	Drop video, audio or photos here	将视频、音频或照片拖放到这里
+	Choose Files…	选择文件…
+	Team:	团队：
+	Online now	在线
+	Last seen just now	刚刚在线
+	Last seen {n} minutes ago	{n} 分钟前在线
+	Last seen {n} hours ago	{n} 小时前在线
+	Last seen {n} days ago	{n} 天前在线
+	1 new file on InFocus Drive · {size}	InFocus Drive 上有 1 个新文件 · {size}
+	{n} new files on InFocus Drive · {size}	InFocus Drive 上有 {n} 个新文件 · {size}
+	{list} and {count} more	{list} 等另外 {count} 个
+	Add to Project	添加到项目
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	在 Drive 网站上添加。它们会下载到这台 Mac，并放入整个团队的项目素材箱。
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	这台 Mac 似乎已离线。请连接 Wi-Fi 或学校网络后重试。
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	现在无法连接 InFocus Drive。请检查网络连接，或一分钟后重试。
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	此账户不是 InFocus Drive 成员。请用学校账户登录，或请 InFocus 管理员添加你。
+	Sign-in was cancelled in the browser.	已在浏览器中取消登录。
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	浏览器中的登录未完成。请重试；如果 Drive 提示你的账户不是成员，请让 InFocus 管理员添加你。
+	Adding footage from InFocus Drive	正在从 InFocus Drive 添加素材

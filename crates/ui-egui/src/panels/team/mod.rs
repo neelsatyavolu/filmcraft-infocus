@@ -8,8 +8,9 @@
 //! - [`projects`]: invitations, the project list and the "New Team Project" form.
 //! - [`invite`]: the invite picker (after creating a project, or Invite… on a project).
 //! - [`open`]: the open project: connection, footage, downloads, proxies and uploads.
+//! - [`setup`]: the "Add footage" step of a new team project, before inviting teammates.
 //!
-//! Automation ids: `team.signIn`, `team.signOut`, `team.status`, `team.error`,
+//! Automation ids: `team.signIn`, `team.signOut`, `team.switchAccount`, `team.dashboard`, `team.status`, `team.error`,
 //! `team.error.dismiss`, `team.busy`, `team.empty`, `team.new`, `team.create.name`, `team.create`,
 //! `team.create.cancel`, `team.refresh`, `team.invitation.<id>`, `team.invitation.<id>.join`,
 //! `team.invitation.<id>.decline`, `team.project.<id>`, `team.project.<id>.open`,
@@ -18,12 +19,14 @@
 //! `team.project.<id>.cleanup`, `team.project.<id>.keep`, `team.project.<id>.keepForever`,
 //! `team.confirm.leave`, `team.confirm.cancel`, `team.invite.search`,
 //! `team.invite.person.<user>`, `team.invite.send`, `team.invite.skip`, `team.open`,
-//! `team.leave`, `team.footage.add`, `team.download.<n>`, `team.proxy.<n>`, `team.upload.<n>`,
+//! `team.leave`, `team.footage.add`, `team.setup.footage`, `team.setup.next`, `team.setup.skip`,
+//! `team.drive_only`, `team.drive_only.add`, `team.project.<id>.member.<user>`, `team.download.<n>`, `team.proxy.<n>`, `team.upload.<n>`,
 //! `team.incoming.<n>`, `team.failure.<n>`, `team.upload_failure.<n>`, `team.retry`.
 
 mod invite;
 mod open;
 mod projects;
+mod setup;
 
 use std::collections::BTreeSet;
 
@@ -73,6 +76,8 @@ struct PanelState {
     picked: BTreeSet<String>,
     /// Asking "Leave this project?" for this project.
     confirm_leave: Option<String>,
+    /// The new project whose "Add footage" step is done (the invite step comes next).
+    footage_done: Option<String>,
 }
 
 /// What the panel asks of the app after drawing.
@@ -134,7 +139,10 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
             st.query.clear();
         }
         ui.add_space(4.0);
-        if let Some(id) = st.invite_for.clone() {
+        let footage_step = view.invite_prompt.as_deref().is_some_and(|id| st.footage_done.as_deref() != Some(id));
+        if footage_step {
+            setup::footage_step(ui, &t, &view, &mut st, &mut out);
+        } else if let Some(id) = st.invite_for.clone() {
             invite::picker(ui, &t, &view, &id, &mut st, &mut out);
         }
         projects::invitations(ui, &t, &view, &mut out);
@@ -172,41 +180,88 @@ fn pick_footage(app: &mut FilmcraftApp) {
     });
 }
 
+/// "Maya Lee" with "maya" under it, or the user name alone.
+fn who(view: &TeamView) -> Option<(String, Option<String>)> {
+    let user = view.user.clone()?;
+    match view.user_name.as_deref().map(str::trim).filter(|n| !n.is_empty() && *n != user) {
+        Some(name) => Some((name.to_string(), Some(user))),
+        None => Some((user, None)),
+    }
+}
+
+/// The account chip: who is signed in, Switch Account and Sign Out, and the dashboard link.
 fn account_row(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
-    let who = match (view.phase, &view.user) {
-        (TeamPhase::SignedIn, Some(user)) => tlf!("Signed in as {user}", user),
-        (TeamPhase::Connecting, _) => tl!("Connecting to InFocus Drive…").to_string(),
-        _ => tl!("Not signed in").to_string(),
-    };
-    let mut status = None;
-    let mut sign_out = None;
-    split_row(
-        ui,
-        |ui| status = Some(ui.label(RichText::new(&who).color(t.text_dim)).rect),
-        |ui| {
-            if view.phase == TeamPhase::SignedIn {
-                sign_out = Some(ui.small_button(tl!("Sign Out")));
-            }
-        },
-    );
-    if let Some(r) = status {
-        out.elem("team.status", r, who);
-    }
-    if let Some(r) = sign_out {
-        out.elem("team.signOut", r.rect, tl!("Sign Out"));
-        if r.clicked() {
-            out.actions.push(TeamAction::SignOut);
+    if view.phase != TeamPhase::SignedIn {
+        let text = tl!("Connecting to InFocus Drive…");
+        let r = ui.label(RichText::new(text).color(t.text_dim));
+        out.elem("team.status", r.rect, text);
+        if view.busy.as_deref() == Some("Signing in") {
+            let hint = tl!("Finish signing in in your browser. This panel updates by itself.");
+            ui.add(egui::Label::new(RichText::new(hint).small().color(t.text_faint)).wrap());
         }
+        ui.add_space(2.0);
+        return;
     }
-    ui.add_space(2.0);
+    let Some((shown, username)) = who(view) else { return };
+    let status = match &username {
+        Some(u) => tlf!("Signed in as {name} ({user})", name = shown, user = u),
+        None => tlf!("Signed in as {user}", user = shown),
+    };
+    let frame = egui::Frame::new().fill(t.field_bg).corner_radius(4.0).inner_margin(egui::Margin::symmetric(8, 6));
+    frame.show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        let mut chip = Rect::NOTHING;
+        split_row(
+            ui,
+            |ui| {
+                let initial: String = shown.chars().next().map(|c| c.to_uppercase().collect()).unwrap_or_default();
+                let (r, _) = ui.allocate_exact_size(vec2(22.0, 22.0), egui::Sense::hover());
+                ui.painter().circle_filled(r.center(), 11.0, t.accent);
+                ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, initial, Tokens::ui(12.0), Color32::WHITE);
+                let text = ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing.y = 0.0;
+                    ui.label(RichText::new(&shown).strong().color(t.text));
+                    if let Some(u) = &username {
+                        ui.label(RichText::new(u).small().color(t.text_dim));
+                    }
+                });
+                chip = r.union(text.response.rect);
+            },
+            |ui| {
+                let r = ui.small_button(tl!("Sign Out"));
+                out.elem("team.signOut", r.rect, tl!("Sign Out"));
+                if r.on_hover_text(tl!("Sign out of InFocus Drive on this Mac. Your edits are sent first.")).clicked() {
+                    out.actions.push(TeamAction::SignOut);
+                }
+                let r = ui.small_button(tl!("Switch Account"));
+                out.elem("team.switchAccount", r.rect, tl!("Switch Account"));
+                if r.on_hover_text(tl!("Sign out, then sign in with another InFocus Drive account.")).clicked() {
+                    out.actions.push(TeamAction::SwitchAccount);
+                }
+            },
+        );
+        out.elem("team.status", chip, status);
+        if view.dashboard_url.is_some() {
+            let r = ui.add(egui::Label::new(RichText::new(tl!("Open the team dashboard ↗")).small().color(t.accent)).sense(egui::Sense::click()));
+            out.elem("team.dashboard", r.rect, tl!("Open the team dashboard ↗"));
+            if r.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(tl!("See your team projects, footage and invitations on the web.")).clicked() {
+                out.actions.push(TeamAction::OpenDashboard);
+            }
+        }
+    });
+    ui.add_space(4.0);
 }
 
 /// What to do about an error, in plain words, when the message alone doesn't say.
 fn next_step(error: &str) -> Option<&'static str> {
+    // the plain-words messages already say what to do
+    if error.ends_with("try again.") || error.ends_with("try again in a minute.") || error.ends_with("add you.") {
+        return None;
+    }
     if error.starts_with("Can't reach InFocus Drive") {
         Some(tl!("Check that this Mac is online, then press Refresh."))
     } else if error.starts_with("Sign in to InFocus Drive again") {
-        Some(tl!("Press Sign In to continue."))
+        Some(tl!("Press Sign in with InFocus Drive to continue."))
     } else if error.starts_with("InFocus Drive settings") {
         Some(tl!("Ask whoever runs your InFocus Drive for its address."))
     } else if error.starts_with("You don't have access") || error.starts_with("Not found") {
@@ -224,7 +279,7 @@ fn error_row(ui: &mut egui::Ui, t: &Tokens, error: &str, out: &mut Out) {
             let width = (ui.available_width() - 64.0).max(80.0);
             ui.vertical(|ui| {
                 ui.set_width(width);
-                let r = ui.add(egui::Label::new(RichText::new(error).color(t.danger)).wrap());
+                let r = ui.add(egui::Label::new(RichText::new(crate::i18n::t(error)).color(t.danger)).wrap());
                 out.elem("team.error", r.rect, error);
                 if let Some(step) = next_step(error) {
                     ui.add(egui::Label::new(RichText::new(step).small().color(t.text_dim)).wrap());
@@ -254,15 +309,16 @@ fn signed_out(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
         let status = tl!("Not signed in");
         let r = ui.label(RichText::new(tl!("Edit together on InFocus Drive")).strong().size(14.0).color(t.text));
         out.elem("team.status", r.rect, status);
+        ui.add(egui::Label::new(RichText::new(tl!("InFocus Drive is where InFocus keeps shared footage and projects.")).color(t.text_dim)).wrap());
         ui.add(
             egui::Label::new(
-                RichText::new(tl!("Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.")).color(t.text_dim),
+                RichText::new(tl!("Sign in with your school account to make a team project, invite classmates and share footage.")).color(t.text_dim),
             )
             .wrap(),
         );
         if let Some(e) = &view.error {
             ui.add_space(4.0);
-            let r = ui.add(egui::Label::new(RichText::new(e).color(t.danger)).wrap());
+            let r = ui.add(egui::Label::new(RichText::new(crate::i18n::t(e)).color(t.danger)).wrap());
             out.elem("team.error", r.rect, e);
             if let Some(step) = next_step(e) {
                 ui.add(egui::Label::new(RichText::new(step).small().color(t.text_dim)).wrap());
@@ -274,8 +330,8 @@ fn signed_out(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
             }
         }
         ui.add_space(10.0);
-        let r = primary_button(ui, t, tl!("Sign In…"), true);
-        out.elem("team.signIn", r.rect, tl!("Sign In…"));
+        let r = primary_button(ui, t, tl!("Sign in with InFocus Drive"), true);
+        out.elem("team.signIn", r.rect, tl!("Sign in with InFocus Drive"));
         if r.clicked() {
             out.actions.push(TeamAction::SignIn);
         }

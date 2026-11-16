@@ -9,7 +9,9 @@
 //! - `team.open_sequence {sequence: id | name}`: open a sequence (its footage downloads).
 //! - `team.add_footage {paths: [file paths]}`: import files into the open team project.
 //! - `team.take_lock {sequence: id | name}`: ask for the lock to edit a sequence.
-//! - `team.refresh`: fetch the project list again.
+//! - `team.refresh`: fetch the project list (and the open project's media folder) again.
+//! - `team.add_drive_footage`: Add to Project for files put in the media folder from the website.
+//! - `team.switch_account`: sign out, then start signing in again.
 
 use filmcraft_engine::Session;
 use filmcraft_project::{ItemId, MediaRef};
@@ -30,6 +32,15 @@ pub fn handle(c: &mut TeamSessionController, s: &mut Session, method: &str, p: &
         "team.status" => Ok(status(c, s)),
         "team.refresh" => {
             c.refresh_projects();
+            c.refresh_media();
+            started()
+        }
+        "team.add_drive_footage" => {
+            c.add_drive_footage();
+            started()
+        }
+        "team.switch_account" => {
+            c.switch_account(s);
             started()
         }
         "team.create" => {
@@ -101,6 +112,7 @@ fn status(c: &TeamSessionController, s: &Session) -> Value {
             "uploads": c.uploads().map(|u| u.progress()),
             "upload_failures": c.uploads().map(|u| u.failures()),
             "uploads_busy": c.uploads().is_some_and(|u| u.busy()),
+            "drive_only": c.drive_only().into_iter().map(|(path, size)| json!({"path": path, "size": size})).collect::<Vec<_>>(),
         })
     });
     let media: Vec<Value> = s
@@ -120,7 +132,7 @@ fn status(c: &TeamSessionController, s: &Session) -> Value {
     let sequences: Vec<Value> =
         s.project.sequences().map(|q| json!({ "id": q.id.0, "name": q.name, "status": s.team_status(q.id).map(|st| format!("{st:?}")) })).collect();
     json!({
-        "phase": phase, "user": c.user(), "busy": c.busy(), "error": c.error(),
+        "phase": phase, "user": c.user(), "user_name": c.user_name(), "dashboard_url": c.dashboard_url(), "busy": c.busy(), "error": c.error(),
         "team_problem": s.team.as_ref().and_then(|t| t.problem.clone()),
         "invite_prompt": c.invite_prompt(),
         "people": c.people().iter().map(|p| json!({"username": p.username, "name": p.shown()})).collect::<Vec<_>>(),

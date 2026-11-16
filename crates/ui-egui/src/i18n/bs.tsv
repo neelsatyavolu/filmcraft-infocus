@@ -3859,3 +3859,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	Timska montaža videa za InFocus, sinhronizovana preko InFocus Drivea.
 	You're editing this sequence.	Uređuješ ovu sekvencu.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Uređuješ ovu sekvencu. Neke izmjene još nisu na Driveu.
+	Finish signing in in your browser. This panel updates by itself.	Završi prijavu u pregledniku. Ovaj panel se sam osvježi.
+	Signed in as {name} ({user})	Prijavljen kao {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Odjavi se s InFocus Drivea na ovom Macu. Tvoje izmjene se prvo pošalju.
+	Switch Account	Promijeni račun
+	Sign out, then sign in with another InFocus Drive account.	Odjavi se, pa se prijavi drugim InFocus Drive računom.
+	Open the team dashboard ↗	Otvori timsku kontrolnu tablu ↗
+	See your team projects, footage and invitations on the web.	Pogledaj svoje timske projekte, snimke i pozivnice na webu.
+	Press Sign in with InFocus Drive to continue.	Klikni Prijavi se putem InFocus Drivea da nastaviš.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive je mjesto gdje InFocus čuva zajedničke snimke i projekte.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Prijavi se školskim računom da napraviš timski projekat, pozoveš drugove iz razreda i dijeliš snimke.
+	Sign in with InFocus Drive	Prijavi se putem InFocus Drivea
+	Add footage to “{name}”	Dodaj snimke u „{name}”
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Tvoj tim ga preuzima kad otvori sekvencu koja ga koristi. Otprema se u pozadini dok ti nastavljaš montirati.
+	Next: Invite Teammates	Dalje: Pozovi tim
+	Skip	Preskoči
+	Add footage later with Add Footage… on the open project.	Snimke dodaj kasnije pomoću Dodaj snimke… na otvorenom projektu.
+	Drop to add to the project	Pusti da dodaš u projekat
+	Drop video, audio or photos here	Ovdje pusti video, zvuk ili fotografije
+	Choose Files…	Odaberi datoteke…
+	Team:	Tim:
+	Online now	Sada na mreži
+	Last seen just now	Viđen maloprije
+	Last seen {n} minutes ago	Viđen prije {n} min
+	Last seen {n} hours ago	Viđen prije {n} h
+	Last seen {n} days ago	Viđen prije {n} dana
+	1 new file on InFocus Drive · {size}	1 nova datoteka na InFocus Driveu · {size}
+	{n} new files on InFocus Drive · {size}	Novih datoteka na InFocus Driveu: {n} · {size}
+	{list} and {count} more	{list} i još {count}
+	Add to Project	Dodaj u projekat
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Dodano na web stranici Drivea. Preuzimaju se na ovaj Mac i idu u korpu projekta za cijeli tim.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Ovaj Mac izgleda van mreže. Poveži se na Wi-Fi ili školsku mrežu pa pokušaj ponovo.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	InFocus Drive trenutno nije dostupan. Provjeri vezu ili pokušaj ponovo za minut.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Ovaj račun nije član InFocus Drivea. Prijavi se školskim računom ili zamoli InFocus administratora da te doda.
+	Sign-in was cancelled in the browser.	Prijava je otkazana u pregledniku.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Prijava nije završena u pregledniku. Pokušaj ponovo, a ako je Drive rekao da tvoj račun nije član, zamoli InFocus administratora da te doda.
+	Adding footage from InFocus Drive	Dodavanje snimaka s InFocus Drivea

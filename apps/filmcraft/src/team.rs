@@ -36,7 +36,12 @@ fn item_name(s: &Session, id: ItemId) -> String {
 }
 
 fn person(p: &Person) -> TeamPerson {
-    TeamPerson { username: p.username.clone(), name: p.shown().to_string() }
+    TeamPerson {
+        username: p.username.clone(),
+        name: p.shown().to_string(),
+        online: p.online,
+        last_seen: p.last_seen.filter(|t| t.is_finite() && *t > 0.0).map(|t| t as u64),
+    }
 }
 
 /// A project of the list as the panel shows it. Lock holders go by their display name; the
@@ -65,7 +70,7 @@ fn row(c: &TeamSessionController, s: &Session, p: &ProjectSummary) -> TeamProjec
         role,
         invited_by: p.invited_by.clone(),
         members: p.members.iter().map(person).collect(),
-        invites: p.invites.iter().map(|i| TeamPerson { username: i.username.clone(), name: i.shown().to_string() }).collect(),
+        invites: p.invites.iter().map(|i| TeamPerson { username: i.username.clone(), name: i.shown().to_string(), ..TeamPerson::default() }).collect(),
         editors,
         editing,
         media_count: p.media_count,
@@ -89,6 +94,7 @@ fn view(c: &TeamSessionController, s: &Session) -> TeamView {
         upload_failures: c.uploads().map(|u| u.failures()).unwrap_or_default(),
         incoming: c.incoming_uploads().into_iter().map(|(id, by)| (item_name(s, id), by)).collect(),
         exporting: c.exporting(),
+        drive_only: c.drive_only(),
     });
     let phase = match c.phase() {
         Phase::SignedOut => TeamPhase::SignedOut,
@@ -99,6 +105,8 @@ fn view(c: &TeamSessionController, s: &Session) -> TeamView {
     TeamView {
         phase,
         user: c.user().map(str::to_string),
+        user_name: c.user_name().map(str::to_string),
+        dashboard_url: Some(c.dashboard_url()),
         busy: c.busy().map(str::to_string),
         error,
         projects,
@@ -139,7 +147,12 @@ impl TeamUi for Team {
             TeamAction::SignIn => c.sign_in(),
             // both wait for edits still going to the Drive
             TeamAction::SignOut => c.leave(s, Leave::SignOut),
-            TeamAction::Refresh => c.refresh_projects(),
+            TeamAction::SwitchAccount => c.switch_account(s),
+            TeamAction::OpenDashboard => c.open_dashboard(),
+            TeamAction::Refresh => {
+                c.refresh_projects();
+                c.refresh_media();
+            }
             TeamAction::CreateFromCurrent(name) => c.create_from_current(s, &name),
             TeamAction::Open(id) => c.open(&id),
             TeamAction::Close => c.leave(s, Leave::Close),
@@ -158,6 +171,7 @@ impl TeamUi for Team {
             TeamAction::LeaveTeam(id) => c.leave_team(s, &id),
             TeamAction::DismissInvitePrompt => c.dismiss_invite_prompt(),
             TeamAction::AddFootage(paths) => add_footage(c, s, &paths),
+            TeamAction::AddDriveFootage => c.add_drive_footage(),
         }
     }
 

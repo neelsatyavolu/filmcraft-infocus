@@ -3751,3 +3751,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	Týmový střih videa pro InFocus, synchronizovaný přes InFocus Drive.
 	You're editing this sequence.	Upravuješ tuto sekvenci.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Upravuješ tuto sekvenci. Některé úpravy ještě nejsou na Drive.
+	Finish signing in in your browser. This panel updates by itself.	Dokonči přihlášení v prohlížeči. Tento panel se obnoví sám.
+	Signed in as {name} ({user})	Přihlášen jako {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Odhlásí tě z InFocus Drive na tomto Macu. Tvé úpravy se nejdřív odešlou.
+	Switch Account	Přepnout účet
+	Sign out, then sign in with another InFocus Drive account.	Odhlásí tě a pak se přihlásíš jiným účtem InFocus Drive.
+	Open the team dashboard ↗	Otevřít týmový přehled ↗
+	See your team projects, footage and invitations on the web.	Zobrazí tvé týmové projekty, záběry a pozvánky na webu.
+	Press Sign in with InFocus Drive to continue.	Pokračuj kliknutím na Přihlásit se přes InFocus Drive.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive je místo, kde InFocus uchovává sdílené záběry a projekty.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Přihlas se školním účtem, abys mohl vytvořit týmový projekt, pozvat spolužáky a sdílet záběry.
+	Sign in with InFocus Drive	Přihlásit se přes InFocus Drive
+	Add footage to “{name}”	Přidat záběry do „{name}“
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Tvůj tým si je stáhne, když otevře sekvenci, která je používá. Nahrávají se na pozadí, zatímco dál stříháš.
+	Next: Invite Teammates	Dál: Pozvat tým
+	Skip	Přeskočit
+	Add footage later with Add Footage… on the open project.	Záběry přidáš později pomocí Přidat záběry… u otevřeného projektu.
+	Drop to add to the project	Pusť a přidej do projektu
+	Drop video, audio or photos here	Sem přetáhni video, zvuk nebo fotky
+	Choose Files…	Vybrat soubory…
+	Team:	Tým:
+	Online now	Teď online
+	Last seen just now	Naposledy viděn právě teď
+	Last seen {n} minutes ago	Naposledy viděn před {n} min
+	Last seen {n} hours ago	Naposledy viděn před {n} h
+	Last seen {n} days ago	Naposledy viděn před {n} dny
+	1 new file on InFocus Drive · {size}	1 nový soubor na InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	Nové soubory na InFocus Drive: {n} · {size}
+	{list} and {count} more	{list} a další ({count})
+	Add to Project	Přidat do projektu
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Přidáno na webu Drive. Stáhnou se do tohoto Macu a přidají do koše projektu pro celý tým.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Tento Mac je nejspíš offline. Připoj se k Wi-Fi nebo školní síti a zkus to znovu.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	InFocus Drive teď není dostupný. Zkontroluj připojení nebo to zkus za minutu znovu.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Tento účet není členem InFocus Drive. Přihlas se školním účtem nebo požádej správce InFocus, ať tě přidá.
+	Sign-in was cancelled in the browser.	Přihlášení bylo v prohlížeči zrušeno.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Přihlášení v prohlížeči nedoběhlo. Zkus to znovu, a pokud Drive napsal, že tvůj účet není členem, požádej správce InFocus, ať tě přidá.
+	Adding footage from InFocus Drive	Přidávání záběrů z InFocus Drive

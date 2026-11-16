@@ -32,6 +32,10 @@ pub enum TeamRole {
 pub struct TeamPerson {
     pub username: String,
     pub name: String,
+    /// Connected right now, when the Drive says.
+    pub online: Option<bool>,
+    /// When the Drive last heard from them (Unix seconds), when it says.
+    pub last_seen: Option<u64>,
 }
 
 /// One team project in the list.
@@ -82,13 +86,21 @@ pub struct TeamOpenView {
     pub incoming: Vec<(String, String)>,
     /// An export is running (downloads are paused).
     pub exporting: bool,
+    /// Files in the project's media folder no item uses yet (put there from the Drive website):
+    /// (path in the media folder, size in bytes).
+    pub drive_only: Vec<(String, u64)>,
 }
 
 /// Everything the Team panel draws, read once per frame.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TeamView {
     pub phase: TeamPhase,
+    /// The signed-in member's Drive user name.
     pub user: Option<String>,
+    /// Their name, when the Drive has one.
+    pub user_name: Option<String>,
+    /// The team project dashboard website.
+    pub dashboard_url: Option<String>,
     /// What is running in the background.
     pub busy: Option<String>,
     pub error: Option<String>,
@@ -105,6 +117,10 @@ pub struct TeamView {
 pub enum TeamAction {
     SignIn,
     SignOut,
+    /// Sign out, then sign in with another account.
+    SwitchAccount,
+    /// Open the team project dashboard website in the browser.
+    OpenDashboard,
     Refresh,
     /// Make the session's project a team project with this name.
     CreateFromCurrent(String),
@@ -132,6 +148,8 @@ pub enum TeamAction {
     DismissInvitePrompt,
     /// Import these files into the open team project; they upload for the team.
     AddFootage(Vec<String>),
+    /// Add the files put in the project's media folder from the Drive website to the project.
+    AddDriveFootage,
     ClearError,
     /// Leaving waits on: another round of waiting for the edits to reach the Drive.
     LeaveWait,

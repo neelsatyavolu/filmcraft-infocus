@@ -3846,3 +3846,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	Montage vidéo en équipe pour InFocus, synchronisé via InFocus Drive.
 	You're editing this sequence.	Vous modifiez cette séquence.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Vous modifiez cette séquence. Certaines modifications ne sont pas encore sur le Drive.
+	Finish signing in in your browser. This panel updates by itself.	Terminez la connexion dans votre navigateur. Ce panneau se met à jour tout seul.
+	Signed in as {name} ({user})	Connecté en tant que {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Se déconnecter d'InFocus Drive sur ce Mac. Vos modifications sont envoyées d'abord.
+	Switch Account	Changer de compte
+	Sign out, then sign in with another InFocus Drive account.	Se déconnecter, puis se connecter avec un autre compte InFocus Drive.
+	Open the team dashboard ↗	Ouvrir le tableau de bord de l'équipe ↗
+	See your team projects, footage and invitations on the web.	Voir vos projets d'équipe, vos rushes et vos invitations sur le web.
+	Press Sign in with InFocus Drive to continue.	Cliquez sur Se connecter avec InFocus Drive pour continuer.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive est l'endroit où InFocus garde les rushes et projets partagés.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Connectez-vous avec votre compte scolaire pour créer un projet d'équipe, inviter des camarades et partager des rushes.
+	Sign in with InFocus Drive	Se connecter avec InFocus Drive
+	Add footage to “{name}”	Ajouter des rushes à « {name} »
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Votre équipe les télécharge en ouvrant une séquence qui les utilise. Ils s'envoient en arrière-plan pendant que vous montez.
+	Next: Invite Teammates	Suivant : inviter l'équipe
+	Skip	Passer
+	Add footage later with Add Footage… on the open project.	Ajoutez des rushes plus tard avec Ajouter des rushes… sur le projet ouvert.
+	Drop to add to the project	Déposez pour ajouter au projet
+	Drop video, audio or photos here	Déposez ici vidéos, sons ou photos
+	Choose Files…	Choisir des fichiers…
+	Team:	Équipe :
+	Online now	En ligne
+	Last seen just now	Vu à l'instant
+	Last seen {n} minutes ago	Vu il y a {n} min
+	Last seen {n} hours ago	Vu il y a {n} h
+	Last seen {n} days ago	Vu il y a {n} jours
+	1 new file on InFocus Drive · {size}	1 nouveau fichier sur InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	{n} nouveaux fichiers sur InFocus Drive · {size}
+	{list} and {count} more	{list} et {count} de plus
+	Add to Project	Ajouter au projet
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Ajoutés sur le site du Drive. Ils se téléchargent sur ce Mac et vont dans le chutier du projet pour toute l'équipe.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Ce Mac semble hors ligne. Connectez-vous au Wi-Fi ou au réseau de l'école, puis réessayez.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	Impossible de joindre InFocus Drive pour le moment. Vérifiez votre connexion ou réessayez dans une minute.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Ce compte n'est pas membre d'InFocus Drive. Connectez-vous avec votre compte scolaire ou demandez à un administrateur InFocus de vous ajouter.
+	Sign-in was cancelled in the browser.	La connexion a été annulée dans le navigateur.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	La connexion n'a pas abouti dans le navigateur. Réessayez et, si le Drive indique que votre compte n'est pas membre, demandez à un administrateur InFocus de vous ajouter.
+	Adding footage from InFocus Drive	Ajout des rushes depuis InFocus Drive

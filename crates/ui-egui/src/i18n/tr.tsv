@@ -3744,3 +3744,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	InFocus için ekip video düzenleme, InFocus Drive ile eşitlenir.
 	You're editing this sequence.	Bu sekansı düzenliyorsun.
 	You're editing this sequence. Some edits aren't on the Drive yet.	Bu sekansı düzenliyorsun. Bazı düzenlemeler henüz Drive’da değil.
+	Finish signing in in your browser. This panel updates by itself.	Slutför inloggningen i webbläsaren. Panelen uppdateras av sig själv.
+	Signed in as {name} ({user})	Inloggad som {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Logga ut från InFocus Drive på den här Macen. Dina ändringar skickas först.
+	Switch Account	Byt konto
+	Sign out, then sign in with another InFocus Drive account.	Logga ut och logga sedan in med ett annat InFocus Drive-konto.
+	Open the team dashboard ↗	Öppna teamöversikten ↗
+	See your team projects, footage and invitations on the web.	Se dina teamprojekt, ditt material och dina inbjudningar på webben.
+	Press Sign in with InFocus Drive to continue.	Klicka på Logga in med InFocus Drive för att fortsätta.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive är där InFocus förvarar delat material och projekt.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Logga in med ditt skolkonto för att skapa ett teamprojekt, bjuda in klasskamrater och dela material.
+	Sign in with InFocus Drive	Logga in med InFocus Drive
+	Add footage to “{name}”	Lägg till material i ”{name}”
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Ditt team hämtar det när de öppnar en sekvens som använder det. Det laddas upp i bakgrunden medan du fortsätter redigera.
+	Next: Invite Teammates	Nästa: Bjud in teamet
+	Skip	Hoppa över
+	Add footage later with Add Footage… on the open project.	Lägg till material senare med Lägg till material… i det öppna projektet.
+	Drop to add to the project	Släpp för att lägga till i projektet
+	Drop video, audio or photos here	Släpp video, ljud eller foton här
+	Choose Files…	Välj filer…
+	Team:	Team:
+	Online now	Online nu
+	Last seen just now	Senast sedd nyss
+	Last seen {n} minutes ago	Senast sedd för {n} min sedan
+	Last seen {n} hours ago	Senast sedd för {n} tim sedan
+	Last seen {n} days ago	Senast sedd för {n} dagar sedan
+	1 new file on InFocus Drive · {size}	1 ny fil på InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	{n} nya filer på InFocus Drive · {size}
+	{list} and {count} more	{list} och {count} till
+	Add to Project	Lägg till i projektet
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Tillagda på Drive-webbplatsen. De hämtas till den här Macen och hamnar i projektets bin för hela teamet.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Den här Macen verkar vara offline. Anslut till wifi eller skolans nätverk och försök igen.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	Det går inte att nå InFocus Drive just nu. Kontrollera anslutningen eller försök igen om en minut.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Det här kontot är inte medlem i InFocus Drive. Logga in med ditt skolkonto eller be en InFocus-administratör att lägga till dig.
+	Sign-in was cancelled in the browser.	Inloggningen avbröts i webbläsaren.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Inloggningen slutfördes inte i webbläsaren. Försök igen, och om Drive sa att ditt konto inte är medlem, be en InFocus-administratör att lägga till dig.
+	Adding footage from InFocus Drive	Lägger till material från InFocus Drive

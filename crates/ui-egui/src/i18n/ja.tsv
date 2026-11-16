@@ -3864,3 +3864,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	InFocus のためのチーム動画編集。InFocus Drive で同期します。
 	You're editing this sequence.	このシーケンスを編集中です。
 	You're editing this sequence. Some edits aren't on the Drive yet.	このシーケンスを編集中です。一部の編集内容はまだ Drive にありません。
+	Finish signing in in your browser. This panel updates by itself.	ブラウザーでサインインを完了してください。このパネルは自動で更新されます。
+	Signed in as {name} ({user})	{name}（{user}）としてサインイン中
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	この Mac で InFocus Drive からサインアウトします。編集内容は先に送信されます。
+	Switch Account	アカウントを切り替え
+	Sign out, then sign in with another InFocus Drive account.	サインアウトして、別の InFocus Drive アカウントでサインインします。
+	Open the team dashboard ↗	チームダッシュボードを開く ↗
+	See your team projects, footage and invitations on the web.	チームプロジェクト、素材、招待を Web で確認します。
+	Press Sign in with InFocus Drive to continue.	続けるには「InFocus Drive でサインイン」を押してください。
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive は、InFocus が共有の素材とプロジェクトを保管する場所です。
+	Sign in with your school account to make a team project, invite classmates and share footage.	学校のアカウントでサインインすると、チームプロジェクトを作ってクラスメートを招待し、素材を共有できます。
+	Sign in with InFocus Drive	InFocus Drive でサインイン
+	Add footage to “{name}”	「{name}」に素材を追加
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	チームメイトは、その素材を使うシーケンスを開いたときにダウンロードします。編集を続けている間、バックグラウンドでアップロードされます。
+	Next: Invite Teammates	次へ：チームメイトを招待
+	Skip	スキップ
+	Add footage later with Add Footage… on the open project.	素材はあとで、開いているプロジェクトの「素材を追加…」から追加できます。
+	Drop to add to the project	ドロップしてプロジェクトに追加
+	Drop video, audio or photos here	ここにビデオ、オーディオ、写真をドロップ
+	Choose Files…	ファイルを選択…
+	Team:	チーム:
+	Online now	オンライン
+	Last seen just now	最終確認：たった今
+	Last seen {n} minutes ago	最終確認：{n} 分前
+	Last seen {n} hours ago	最終確認：{n} 時間前
+	Last seen {n} days ago	最終確認：{n} 日前
+	1 new file on InFocus Drive · {size}	InFocus Drive に新しいファイル 1 件 · {size}
+	{n} new files on InFocus Drive · {size}	InFocus Drive に新しいファイル {n} 件 · {size}
+	{list} and {count} more	{list} ほか {count} 件
+	Add to Project	プロジェクトに追加
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Drive の Web サイトで追加されたものです。この Mac にダウンロードされ、チーム全員のプロジェクトのビンに入ります。
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	この Mac はオフラインのようです。Wi-Fi か学校のネットワークに接続してから、もう一度お試しください。
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	現在 InFocus Drive に接続できません。接続を確認するか、少ししてからもう一度お試しください。
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	このアカウントは InFocus Drive のメンバーではありません。学校のアカウントでサインインするか、InFocus の管理者に追加を依頼してください。
+	Sign-in was cancelled in the browser.	ブラウザーでサインインがキャンセルされました。
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	ブラウザーでのサインインが完了しませんでした。もう一度お試しください。Drive にアカウントがメンバーではないと表示された場合は、InFocus の管理者に追加を依頼してください。
+	Adding footage from InFocus Drive	InFocus Drive から素材を追加しています

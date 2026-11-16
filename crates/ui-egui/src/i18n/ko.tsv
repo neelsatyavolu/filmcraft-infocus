@@ -3808,3 +3808,39 @@
 	Team video editing for InFocus, synced through InFocus Drive.	InFocus를 위한 팀 영상 편집, InFocus Drive로 동기화됩니다.
 	You're editing this sequence.	이 시퀀스를 편집하고 있습니다.
 	You're editing this sequence. Some edits aren't on the Drive yet.	이 시퀀스를 편집하고 있습니다. 일부 편집 내용이 아직 Drive에 없습니다.
+	Finish signing in in your browser. This panel updates by itself.	브라우저에서 로그인을 마치세요. 이 패널은 자동으로 업데이트됩니다.
+	Signed in as {name} ({user})	{name}({user})(으)로 로그인됨
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	이 Mac에서 InFocus Drive 로그아웃합니다. 편집 내용은 먼저 전송됩니다.
+	Switch Account	계정 전환
+	Sign out, then sign in with another InFocus Drive account.	로그아웃한 뒤 다른 InFocus Drive 계정으로 로그인합니다.
+	Open the team dashboard ↗	팀 대시보드 열기 ↗
+	See your team projects, footage and invitations on the web.	웹에서 팀 프로젝트, 촬영본, 초대를 확인합니다.
+	Press Sign in with InFocus Drive to continue.	계속하려면 InFocus Drive로 로그인을 누르세요.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive는 InFocus가 공유 촬영본과 프로젝트를 보관하는 곳입니다.
+	Sign in with your school account to make a team project, invite classmates and share footage.	학교 계정으로 로그인하면 팀 프로젝트를 만들고 친구를 초대하고 촬영본을 공유할 수 있습니다.
+	Sign in with InFocus Drive	InFocus Drive로 로그인
+	Add footage to “{name}”	“{name}”에 촬영본 추가
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	팀원은 이 촬영본을 쓰는 시퀀스를 열 때 다운로드합니다. 편집을 계속하는 동안 백그라운드에서 업로드됩니다.
+	Next: Invite Teammates	다음: 팀원 초대
+	Skip	건너뛰기
+	Add footage later with Add Footage… on the open project.	촬영본은 나중에 열린 프로젝트의 촬영본 추가…로 추가하세요.
+	Drop to add to the project	놓아서 프로젝트에 추가
+	Drop video, audio or photos here	여기에 비디오, 오디오, 사진을 놓으세요
+	Choose Files…	파일 선택…
+	Team:	팀:
+	Online now	지금 온라인
+	Last seen just now	방금 전 접속
+	Last seen {n} minutes ago	{n}분 전 접속
+	Last seen {n} hours ago	{n}시간 전 접속
+	Last seen {n} days ago	{n}일 전 접속
+	1 new file on InFocus Drive · {size}	InFocus Drive에 새 파일 1개 · {size}
+	{n} new files on InFocus Drive · {size}	InFocus Drive에 새 파일 {n}개 · {size}
+	{list} and {count} more	{list} 외 {count}개
+	Add to Project	프로젝트에 추가
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Drive 웹사이트에서 추가된 파일입니다. 이 Mac으로 다운로드되어 팀 전체의 프로젝트 빈에 들어갑니다.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	이 Mac이 오프라인인 것 같습니다. Wi-Fi나 학교 네트워크에 연결한 뒤 다시 시도하세요.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	지금은 InFocus Drive에 연결할 수 없습니다. 연결을 확인하거나 잠시 후 다시 시도하세요.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	이 계정은 InFocus Drive 회원이 아닙니다. 학교 계정으로 로그인하거나 InFocus 관리자에게 추가를 요청하세요.
+	Sign-in was cancelled in the browser.	브라우저에서 로그인이 취소되었습니다.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	브라우저에서 로그인이 끝나지 않았습니다. 다시 시도하고, Drive에서 회원이 아니라고 하면 InFocus 관리자에게 추가를 요청하세요.
+	Adding footage from InFocus Drive	InFocus Drive에서 촬영본 추가 중
