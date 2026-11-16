@@ -425,6 +425,8 @@ impl TeamSessionController {
             // sent again so teammates see them as uploading from this member
             s.team_push_items(&queued);
         }
+        let checked = o.uploads.take_queued();
+        s.team_push_items(&checked);
         let finished = o.uploads.poll();
         for f in &finished {
             o.media.record_uploaded(s, &f.items, &f.drive_ref, &f.src, f.bytes);

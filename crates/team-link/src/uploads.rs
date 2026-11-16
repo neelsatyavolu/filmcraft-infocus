@@ -17,7 +17,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex, PoisonError};
+use std::time::UNIX_EPOCH;
 
 use filmcraft_drive::{DRIVE_PREFIX, DriveClient, DriveError, UploadedMedia};
 use filmcraft_project::{Bin, BinEntry, ItemId, MediaRef, Project};
@@ -93,6 +95,10 @@ pub struct PendingUpload {
     /// The media items using the file.
     #[serde(default)]
     pub items: BTreeSet<u64>,
+    /// The file's modification time (ns since 1970) when its upload started: a file changed
+    /// since then goes up again from the start instead of resuming.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mtime_ns: Option<u64>,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -116,11 +122,21 @@ enum Outcome {
     Failed(String),
 }
 
-/// The name and session a running upload is at (the worker updates it; `poll` saves it).
+/// The name and session a running upload is at, and the file's modification time it sends
+/// (the worker updates it; `poll` saves it).
 #[derive(Clone, Default, PartialEq, Eq)]
 struct Progress {
     name: String,
     upload_id: Option<String>,
+    mtime_ns: Option<u64>,
+}
+
+/// A new file the scan found, waiting for the worker to check it is there.
+struct Candidate {
+    src: PathBuf,
+    name: String,
+    dir: Option<String>,
+    items: BTreeSet<u64>,
 }
 
 struct Active {
@@ -142,13 +158,31 @@ pub struct TeamUploads {
     failed: BTreeMap<PathBuf, String>,
     paused: bool,
     notes: Arc<Mutex<UploadNotes>>,
+    /// New files being checked off the UI thread (a stat can block on a sleeping disk).
+    checking: BTreeMap<PathBuf, Candidate>,
+    checked_tx: Sender<(PathBuf, Option<u64>)>,
+    /// The worker's answers: each file's modification time, None when it is not a file.
+    checked: Receiver<(PathBuf, Option<u64>)>,
 }
 
 impl TeamUploads {
     /// The uploads of `project` (its Drive id), with what an earlier run left in `cache_dir`.
     pub fn new(cache_dir: PathBuf, project: &str, client: Arc<DriveClient>, notes: Arc<Mutex<UploadNotes>>) -> Self {
         let pending = load(&cache_dir).uploads.into_iter().filter(|u| u.project == project).collect();
-        let up = Self { cache_dir, project: project.to_string(), client, pending, active: Vec::new(), failed: BTreeMap::new(), paused: false, notes };
+        let (checked_tx, checked) = channel();
+        let up = Self {
+            cache_dir,
+            project: project.to_string(),
+            client,
+            pending,
+            active: Vec::new(),
+            failed: BTreeMap::new(),
+            paused: false,
+            notes,
+            checking: BTreeMap::new(),
+            checked_tx,
+            checked,
+        };
         up.note_mine();
         up
     }
@@ -159,10 +193,13 @@ impl TeamUploads {
         self.pending.iter().map(|u| (u.items.iter().map(|i| ItemId(*i)).collect(), u.src.clone())).collect()
     }
 
-    /// Queues the media of `project` that is on this Mac only. Returns the items newly queued
-    /// (the app sends them again so teammates see them as uploading).
+    /// Queues the media of `project` that is on this Mac only, without touching the disk: a file
+    /// not queued yet is checked on a worker thread and comes back from [`Self::take_queued`].
+    /// Returns the items newly queued for files already in the queue (the app sends them again
+    /// so teammates see them as uploading).
     pub fn scan(&mut self, project: &Project, index: &CacheIndex) -> Vec<ItemId> {
         let mut new = Vec::new();
+        let mut to_check = Vec::new();
         let before = self.pending.clone();
         for u in &mut self.pending {
             let src = u.src.clone();
@@ -179,18 +216,16 @@ impl TeamUploads {
                 }
                 continue;
             }
-            let Some(name) = upload_name(src).filter(|_| src.is_file()) else { continue };
+            if let Some(c) = self.checking.get_mut(src) {
+                c.items.insert(item.id.0);
+                continue;
+            }
+            let Some(name) = upload_name(src) else { continue };
             let dir = bin_dir(&project.root, item.id);
-            self.pending.push(PendingUpload {
-                project: self.project.clone(),
-                src: src.to_path_buf(),
-                name,
-                dir,
-                upload_id: None,
-                items: BTreeSet::from([item.id.0]),
-            });
-            new.push(item.id);
+            self.checking.insert(src.to_path_buf(), Candidate { src: src.to_path_buf(), name, dir, items: BTreeSet::from([item.id.0]) });
+            to_check.push(src.to_path_buf());
         }
+        self.check(to_check);
         let running: BTreeSet<PathBuf> = self.active.iter().map(|a| a.src.clone()).collect();
         self.pending.retain(|u| !u.items.is_empty() || running.contains(&u.src));
         if self.pending != before {
@@ -198,6 +233,59 @@ impl TeamUploads {
             self.note_mine();
         }
         new
+    }
+
+    /// Files are being checked on the worker thread.
+    pub fn checking(&self) -> bool {
+        !self.checking.is_empty()
+    }
+
+    /// Call every frame: queues the new files the worker found (a missing one is left alone).
+    /// Returns their items, which the app sends again so teammates see them as uploading.
+    pub fn take_queued(&mut self) -> Vec<ItemId> {
+        let mut new = Vec::new();
+        while let Ok((src, mtime)) = self.checked.try_recv() {
+            let Some(c) = self.checking.remove(&src) else { continue };
+            if mtime.is_none() || self.pending.iter().any(|u| u.src == src) {
+                continue;
+            }
+            new.extend(c.items.iter().map(|i| ItemId(*i)));
+            self.pending.push(PendingUpload {
+                project: self.project.clone(),
+                src: c.src,
+                name: c.name,
+                dir: c.dir,
+                upload_id: None,
+                items: c.items,
+                mtime_ns: mtime,
+            });
+        }
+        if !new.is_empty() {
+            self.save();
+            self.note_mine();
+        }
+        new
+    }
+
+    /// Checks `files` on a worker thread; the answers come back through `checked`.
+    fn check(&mut self, files: Vec<PathBuf>) {
+        if files.is_empty() {
+            return;
+        }
+        let tx = self.checked_tx.clone();
+        let run = move || {
+            for f in files {
+                let mtime =
+                    catch_unwind(AssertUnwindSafe(|| std::fs::metadata(&f).ok().filter(std::fs::Metadata::is_file).map(|m| mtime_of(&m)))).unwrap_or(None);
+                if tx.send((f, mtime)).is_err() {
+                    return;
+                }
+            }
+        };
+        if let Err(e) = std::thread::Builder::new().name("infocus-upload-check".into()).spawn(run) {
+            log::warn!("could not check the files to upload: {e}");
+            self.checking.clear();
+        }
     }
 
     /// Call every frame: collects finished uploads and starts queued ones (at most
@@ -256,7 +344,7 @@ impl TeamUploads {
             done: Arc::default(),
             total: Arc::default(),
             stop: Arc::default(),
-            at: Arc::new(Mutex::new(Progress { name: u.name.clone(), upload_id: u.upload_id.clone() })),
+            at: Arc::new(Mutex::new(Progress { name: u.name.clone(), upload_id: u.upload_id.clone(), mtime_ns: u.mtime_ns })),
             result: Arc::default(),
         };
         let job = Job {
@@ -284,10 +372,11 @@ impl TeamUploads {
         for a in &self.active {
             let at = a.at.lock().unwrap_or_else(PoisonError::into_inner).clone();
             if let Some(u) = self.pending.iter_mut().find(|u| u.src == a.src)
-                && (u.name != at.name || u.upload_id != at.upload_id)
+                && (u.name != at.name || u.upload_id != at.upload_id || u.mtime_ns != at.mtime_ns)
             {
                 u.name = at.name;
                 u.upload_id = at.upload_id;
+                u.mtime_ns = at.mtime_ns;
                 changed = true;
             }
         }
@@ -310,7 +399,7 @@ impl TeamUploads {
 
     /// Something is queued or going up.
     pub fn busy(&self) -> bool {
-        !self.active.is_empty() || self.pending.iter().any(|u| !self.failed.contains_key(&u.src))
+        !self.active.is_empty() || !self.checking.is_empty() || self.pending.iter().any(|u| !self.failed.contains_key(&u.src))
     }
 
     /// Running uploads: (file name on the Drive, fraction done 0..=1).
@@ -380,6 +469,16 @@ impl Job {
     fn run(self) -> Outcome {
         let base = self.u.name.clone();
         let (mut name, mut resume) = (base.clone(), self.u.upload_id.clone());
+        // a file changed since its upload started: the chunks already up are of the old file
+        let mtime = std::fs::metadata(&self.u.src).ok().map(|m| mtime_of(&m));
+        if resume.is_some() && self.u.mtime_ns.is_some() && mtime != self.u.mtime_ns {
+            if let Some(old) = resume.take() {
+                // best effort: the Drive drops a session left alone in time
+                let _ = self.client.upload_abort(&old);
+            }
+            self.set(&name, None);
+        }
+        self.at.lock().unwrap_or_else(PoisonError::into_inner).mtime_ns = mtime;
         let dir = self.u.dir.as_deref();
         for n in 1..=MAX_NAME_TRIES {
             if n > 1 {
@@ -412,7 +511,9 @@ impl Job {
     }
 
     fn set(&self, name: &str, upload_id: Option<&str>) {
-        *self.at.lock().unwrap_or_else(PoisonError::into_inner) = Progress { name: name.to_string(), upload_id: upload_id.map(str::to_string) };
+        let mut at = self.at.lock().unwrap_or_else(PoisonError::into_inner);
+        at.name = name.to_string();
+        at.upload_id = upload_id.map(str::to_string);
     }
 }
 
@@ -440,6 +541,11 @@ pub fn mark_project(project: &mut Value, ids: &[ItemId], me: &str) {
             v[UPLOADING_BY] = Value::String(me.to_string());
         }
     }
+}
+
+/// A file's modification time in ns since 1970 (0 when the system has none).
+fn mtime_of(m: &std::fs::Metadata) -> u64 {
+    m.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map_or(0, |d| u64::try_from(d.as_nanos()).unwrap_or(u64::MAX))
 }
 
 fn display_name(src: &Path) -> String {

@@ -14,22 +14,22 @@ use serde_json::json;
 use crate::tests::{PID, client};
 use crate::*;
 
-const MIB: u64 = 1024 * 1024;
+pub(crate) const MIB: u64 = 1024 * 1024;
 
 /// The Drive's media folder and chunked uploads. `taken` names are refused once at complete (a
 /// teammate's file got there first); `slow_chunks` delays every chunk after the first.
 #[derive(Default)]
-struct Drive {
+pub(crate) struct Drive {
     /// Paths in the media folder, with their bytes.
-    files: BTreeMap<String, Vec<u8>>,
+    pub(crate) files: BTreeMap<String, Vec<u8>>,
     /// Upload sessions: id → (path in the media folder, size, chunks).
-    sessions: BTreeMap<String, (String, u64, BTreeMap<u64, Vec<u8>>)>,
-    taken: BTreeSet<String>,
-    next: u32,
-    slow_chunks: bool,
+    pub(crate) sessions: BTreeMap<String, (String, u64, BTreeMap<u64, Vec<u8>>)>,
+    pub(crate) taken: BTreeSet<String>,
+    pub(crate) next: u32,
+    pub(crate) slow_chunks: bool,
 }
 
-fn drive(state: Arc<Mutex<Drive>>) -> MockServer {
+pub(crate) fn drive(state: Arc<Mutex<Drive>>) -> MockServer {
     drive_with(state, |_| None)
 }
 
@@ -104,7 +104,7 @@ fn drive_with(state: Arc<Mutex<Drive>>, extra: impl Fn(&Req) -> Option<Reply> + 
     })
 }
 
-fn media_item(path: &str) -> ItemKind {
+pub(crate) fn media_item(path: &str) -> ItemKind {
     use filmcraft_media::MediaSource;
     let info = filmcraft_media::generators::GeneratorSource::demo(filmcraft_media::DemoScene::OceanSunset).info().clone();
     ItemKind::Media(Box::new(MediaClip {
@@ -120,14 +120,28 @@ fn media_item(path: &str) -> ItemKind {
     }))
 }
 
-fn footage(dir: &Path, name: &str, len: usize) -> (PathBuf, Vec<u8>) {
+pub(crate) fn footage(dir: &Path, name: &str, len: usize) -> (PathBuf, Vec<u8>) {
     let path = dir.join(name);
     let data: Vec<u8> = (0..len).map(|i| (i % 251) as u8).collect();
     std::fs::write(&path, &data).unwrap();
     (path, data)
 }
 
-fn poll_finished(up: &mut TeamUploads, n: usize) -> Vec<FinishedUpload> {
+/// Queues `p`'s media on this Mac: the scan, then the files it checked off the UI thread.
+pub(crate) fn queue_all(up: &mut TeamUploads, p: &Project, index: &CacheIndex) -> BTreeSet<ItemId> {
+    let mut out: BTreeSet<ItemId> = up.scan(p, index).into_iter().collect();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        out.extend(up.take_queued());
+        if !up.checking() {
+            return out;
+        }
+        assert!(Instant::now() < deadline, "the files were never checked");
+        std::thread::sleep(Duration::from_millis(5));
+    }
+}
+
+pub(crate) fn poll_finished(up: &mut TeamUploads, n: usize) -> Vec<FinishedUpload> {
     let deadline = Instant::now() + Duration::from_secs(10);
     let mut out = Vec::new();
     while out.len() < n {
@@ -163,14 +177,14 @@ fn local_media_goes_up_into_bin_folders_under_free_names() {
 
     let notes = Arc::new(Mutex::new(UploadNotes::new("student1")));
     let mut up = TeamUploads::new(cache.path().to_path_buf(), PID, client(&server.url, "ifd_test"), notes.clone());
-    let queued: BTreeSet<ItemId> = up.scan(&p, &CacheIndex::default()).into_iter().collect();
+    let queued = queue_all(&mut up, &p, &CacheIndex::default());
     assert_eq!(queued, BTreeSet::from([ia, ib, ic]), "only media on this Mac goes up");
     for skipped in [on_drive, teammates, gone] {
         assert!(!queued.contains(&skipped));
     }
     assert_eq!(notes.lock().unwrap().mine, BTreeSet::from([ia.0, ib.0, ic.0]));
     assert_eq!(up.pending().len(), 2, "one upload per file");
-    assert!(up.scan(&p, &CacheIndex::default()).is_empty(), "queued once");
+    assert!(queue_all(&mut up, &p, &CacheIndex::default()).is_empty(), "queued once");
 
     let mut done = poll_finished(&mut up, 2);
     done.sort_by(|x, y| x.src.cmp(&y.src));
@@ -203,7 +217,7 @@ fn an_upload_cut_short_resumes_after_a_restart() {
 
     let notes = Arc::new(Mutex::new(UploadNotes::new("student1")));
     let mut up = TeamUploads::new(cache.path().to_path_buf(), PID, client(&server.url, "ifd_test"), notes.clone());
-    up.scan(&p, &CacheIndex::default());
+    queue_all(&mut up, &p, &CacheIndex::default());
     let deadline = Instant::now() + Duration::from_secs(10);
     while !up.progress().iter().any(|(_, f)| *f > 0.0) {
         assert!(Instant::now() < deadline, "no progress");
@@ -230,7 +244,7 @@ fn an_upload_cut_short_resumes_after_a_restart() {
     // the next run: the items point at the file here again, and only missing chunks go up
     let mut up = TeamUploads::new(cache.path().to_path_buf(), PID, client(&server.url, "ifd_test"), notes);
     assert_eq!(up.unfinished(), vec![(vec![ia], a.clone())]);
-    up.scan(&p, &CacheIndex::default());
+    queue_all(&mut up, &p, &CacheIndex::default());
     let done = poll_finished(&mut up, 1);
     assert_eq!(done[0].drive_ref, "drive:/Team Projects/Robotics Media/a.mov");
     let reqs = server.requests();

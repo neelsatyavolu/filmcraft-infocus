@@ -61,7 +61,11 @@ fn write_private(path: &Path, text: &str) -> std::io::Result<()> {
     o.write(true).create(true).truncate(true);
     #[cfg(unix)]
     std::os::unix::fs::OpenOptionsExt::mode(&mut o, 0o600);
-    o.open(path)?.write_all(text.as_bytes())
+    let mut f = o.open(path)?;
+    // the mode above only applies to a new file: one left readable is made private too
+    #[cfg(unix)]
+    f.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(0o600))?;
+    f.write_all(text.as_bytes())
 }
 
 fn read(dir: &Path, name: &str) -> Result<String, String> {
@@ -439,4 +443,25 @@ fn one_shot(a: &Args, cmd: &str) -> Result<(), String> {
     }
     answer(r);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn token_file_is_private_even_when_it_was_not() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = std::env::temp_dir().join(format!("filmcraft-cli-token-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("token");
+        // left readable by an older version, or made by hand
+        std::fs::write(&path, "old").unwrap();
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
+        write_private(&path, "ifd_new").unwrap();
+        assert_eq!(std::fs::metadata(&path).unwrap().permissions().mode() & 0o777, 0o600);
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "ifd_new");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

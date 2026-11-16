@@ -32,4 +32,6 @@ mod link_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
+mod upload_check_tests;
+#[cfg(test)]
 mod upload_tests;
