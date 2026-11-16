@@ -122,8 +122,11 @@ impl TeamSessionController {
         if self.phase != Phase::SignedIn || !self.jobs.is_empty() {
             return;
         }
-        if self.listed_at.is_none_or(|at| at.elapsed() >= LIST_REFRESH) {
-            self.refresh_projects();
+        if self.listed_at.is_none_or(|at| at.elapsed() >= LIST_REFRESH)
+            && let Some(client) = self.client.clone()
+        {
+            self.listed_at = Some(std::time::Instant::now());
+            self.spawn_quiet("Loading team projects", move || client.list_projects().map_or_else(failed, Outcome::Projects));
         }
     }
 

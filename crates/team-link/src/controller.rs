@@ -16,7 +16,7 @@ use filmcraft_drive::{
 use filmcraft_engine::Session;
 use filmcraft_engine::panels::Level;
 use filmcraft_engine::team::TeamState;
-use filmcraft_engine::team_media::{TeamMedia, relink_local};
+use filmcraft_engine::team_media::{TeamMedia, front_media, relink_local};
 use filmcraft_project::{ItemId, MediaRef};
 use filmcraft_team::cache::{self, CacheIndex};
 use filmcraft_team::{DRIVE_PREFIX, TeamDoc};
@@ -27,6 +27,8 @@ use crate::feed::FeedState;
 use crate::link::{DriveTeamLink, LinkStatus};
 use crate::uploads::{TeamUploads, UploadNotes, mark_project, uploadable};
 
+mod account;
+mod drive_media;
 mod members;
 
 pub use members::MAX_FOOTAGE_FILES;
@@ -125,8 +127,8 @@ struct Open {
     /// The cache index as the link sees it (`media_ref`, `resolve`).
     index: Arc<Mutex<CacheIndex>>,
     status: Arc<LinkStatus>,
-    /// (revision, open sequences, Source item) when the wanted media was last worked out.
-    seen: Option<(u64, Vec<ItemId>, Option<ItemId>)>,
+    /// (revision, open sequences, Source item, front sequence) when the wanted media was last worked out.
+    seen: Option<(u64, Vec<ItemId>, Option<ItemId>, Option<ItemId>)>,
     /// Media an export needs on this Mac.
     for_export: BTreeSet<ItemId>,
     exporting: bool,
@@ -136,12 +138,16 @@ struct Open {
     notes: Arc<Mutex<UploadNotes>>,
     /// The session revision the uploads last looked for new media at.
     scanned: Option<u64>,
+    /// Files in the media folder no item uses (put there from the Drive website).
+    drive_media: drive_media::DriveMedia,
 }
 
 enum Outcome {
     Connected {
         client: Arc<DriveClient>,
         me: String,
+        /// The person's name, when the Drive gives one.
+        name: Option<String>,
     },
     NoToken,
     SignedOut,
@@ -157,6 +163,10 @@ enum Outcome {
         data: Box<ProjectData>,
         current: Option<u64>,
     },
+    /// The open project's media folder (project id, files) and its members' presence.
+    MediaList(String, Vec<filmcraft_drive::MediaFile>, Option<Vec<Person>>),
+    /// Files fetched for Add to Project (project id, files, why the rest didn't come).
+    DriveFetched(String, Vec<drive_media::Fetched>, Option<String>),
     /// The list changed on the Drive (keep): fetch it again.
     ListStale,
     Done,
@@ -167,12 +177,19 @@ enum Outcome {
 }
 
 fn failed(e: DriveError) -> Outcome {
-    Outcome::Failed { signed_out: matches!(e, DriveError::Unauthorized(_)), message: e.to_string() }
+    let message = match &e {
+        // offline or the Drive not answering, in plain words
+        DriveError::Network(why) => account::offline_or_unreachable(why).to_string(),
+        other => other.to_string(),
+    };
+    Outcome::Failed { signed_out: matches!(e, DriveError::Unauthorized(_)), message }
 }
 
 struct Job {
     label: &'static str,
     rx: Receiver<Outcome>,
+    /// A background refresh: no spinner for it.
+    quiet: bool,
 }
 
 /// The Team Projects panel's model. See the crate docs for the threading.
@@ -195,6 +212,12 @@ pub struct TeamSessionController {
     invite_prompt: Option<String>,
     /// When the project list was last asked for.
     listed_at: Option<Instant>,
+    /// The signed-in person's name (from the Drive).
+    me_name: Option<String>,
+    /// "Switch Account": sign in again once signing out is done.
+    sign_in_after_sign_out: bool,
+    /// The open project's members as the overview gave them (online, last seen).
+    presence: Option<(String, Vec<Person>)>,
 }
 
 impl TeamSessionController {
@@ -215,12 +238,15 @@ impl TeamSessionController {
             people: Vec::new(),
             invite_prompt: None,
             listed_at: None,
+            me_name: None,
+            sign_in_after_sign_out: false,
+            presence: None,
         };
         if let Ok(drive) = c.cfg.drive.clone() {
             let (store, app) = (c.cfg.store.clone(), c.cfg.app.clone());
             c.phase = Phase::Connecting;
             c.spawn("Connecting to InFocus Drive", move || match store.load() {
-                Ok(Some(token)) => connect(&drive, &token, app, None),
+                Ok(Some(token)) => account::signed_in(connect(&drive, &token, app, None)),
                 Ok(None) => Outcome::NoToken,
                 Err(e) => failed(e),
             });
@@ -237,7 +263,7 @@ impl TeamSessionController {
     }
     /// What is running in the background, for a spinner.
     pub fn busy(&self) -> Option<&'static str> {
-        self.jobs.first().map(|j| j.label)
+        self.jobs.iter().find(|j| !j.quiet).map(|j| j.label)
     }
     /// The last failure, for the panel (stays until [`Self::clear_error`] or the next success).
     pub fn error(&self) -> Option<&str> {
@@ -317,8 +343,8 @@ impl TeamSessionController {
         self.phase = Phase::Connecting;
         let (store, app, opts, browser) = (self.cfg.store.clone(), self.cfg.app.clone(), self.cfg.login.clone(), self.cfg.open_browser.clone());
         self.spawn("Signing in", move || match login(&drive, store.as_ref(), &opts, &|u| browser(u)) {
-            Ok(signed) => connect(&drive, &signed.token, app, Some(signed.username)),
-            Err(e) => failed(e),
+            Ok(signed) => account::signed_in(connect(&drive, &signed.token, app, Some(signed.username))),
+            Err(e) => account::sign_in_failed(e),
         });
     }
 
@@ -328,6 +354,7 @@ impl TeamSessionController {
         self.close(s);
         self.client = None;
         self.me = None;
+        self.me_name = None;
         self.projects.clear();
         self.people.clear();
         self.invite_prompt = None;
@@ -531,6 +558,7 @@ impl TeamSessionController {
             self.finish(out, s);
         }
         self.refresh_now_and_then();
+        self.refresh_media_now_and_then();
         if let Some(l) = self.leaving.as_mut() {
             if s.team.as_ref().is_none_or(TeamState::idle) {
                 let what = l.what;
@@ -544,11 +572,12 @@ impl TeamSessionController {
             self.open = None;
         }
         let Some(o) = self.open.as_mut() else { return };
-        let sig = (s.revision, s.state.open_sequences.clone(), s.state.source_item);
+        let sig = (s.revision, s.state.open_sequences.clone(), s.state.source_item, s.state.active_sequence);
         if o.seen.as_ref() != Some(&sig) {
             let mut wanted = cache::wanted(&s.project, &s.state.open_sequences, s.state.source_item);
             wanted.extend(o.for_export.iter().copied());
             o.media.ensure(wanted);
+            o.media.ensure_first(if o.for_export.is_empty() { front_media(s) } else { o.for_export.clone() });
             o.seen = Some(sig);
         }
         o.media.poll(s);
@@ -583,6 +612,15 @@ impl TeamSessionController {
     }
 
     fn spawn(&mut self, label: &'static str, work: impl FnOnce() -> Outcome + Send + 'static) {
+        self.spawn_with(label, false, work);
+    }
+
+    /// [`Self::spawn`] for a background refresh the panel shows no spinner for.
+    fn spawn_quiet(&mut self, label: &'static str, work: impl FnOnce() -> Outcome + Send + 'static) {
+        self.spawn_with(label, true, work);
+    }
+
+    fn spawn_with(&mut self, label: &'static str, quiet: bool, work: impl FnOnce() -> Outcome + Send + 'static) {
         let (tx, rx) = channel();
         let started = std::thread::Builder::new().name("team-controller".into()).spawn(move || {
             let out =
@@ -590,24 +628,28 @@ impl TeamSessionController {
             let _ = tx.send(out);
         });
         match started {
-            Ok(_) => self.jobs.push(Job { label, rx }),
+            Ok(_) => self.jobs.push(Job { label, rx, quiet }),
             Err(e) => self.error = Some(format!("{label}: could not start ({e})")),
         }
     }
 
     fn finish(&mut self, out: Outcome, s: &mut Session) {
         match out {
-            Outcome::Connected { client, me } => {
+            Outcome::Connected { client, me, name } => {
                 self.client = Some(client);
                 self.me = Some(me);
+                self.me_name = name;
                 self.phase = Phase::SignedIn;
                 self.error = None;
                 self.refresh_projects();
                 self.load_people();
             }
             Outcome::NoToken => self.phase = Phase::SignedOut,
-            Outcome::SignedOut => {}
-            Outcome::Projects(list) => self.projects = list,
+            Outcome::SignedOut => self.signed_out_now(),
+            Outcome::Projects(list) => {
+                self.projects = list;
+                self.apply_presence();
+            }
             Outcome::People(list) => self.people = list,
             Outcome::Joined(id) => {
                 self.refresh_projects();
@@ -618,12 +660,15 @@ impl TeamSessionController {
                     self.error = Some(e);
                 }
             }
+            Outcome::MediaList(id, files, presence) => self.media_listed(s, &id, files, presence),
+            Outcome::DriveFetched(id, files, error) => self.drive_fetched(s, &id, files, error),
             Outcome::ListStale => self.refresh_projects(),
             Outcome::Done => {}
             Outcome::Failed { message, signed_out } => {
                 if signed_out {
                     self.client = None;
                     self.me = None;
+                    self.me_name = None;
                 }
                 if self.client.is_none() {
                     self.phase = Phase::SignedOut;
@@ -676,6 +721,7 @@ impl TeamSessionController {
             uploads,
             notes,
             scanned: None,
+            drive_media: drive_media::DriveMedia::default(),
         };
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_secs();
         if let Err(e) = open.media.opened(now) {
@@ -694,20 +740,24 @@ impl TeamSessionController {
     }
 }
 
-/// Connects with a token and learns who is signed in.
+/// Connects with a token and learns who is signed in (and their name).
 fn connect(drive: &DriveConfig, token: &str, app: AppInfo, username: Option<String>) -> Outcome {
     let client = match DriveClient::connect(drive, token, app) {
         Ok(c) => Arc::new(c),
         Err(e) => return failed(e),
     };
-    let me = match username.filter(|u| !u.is_empty()) {
-        Some(u) => u,
-        None => match client.me() {
-            Ok(u) => u,
-            Err(e) => return failed(e),
+    let (me, name) = match client.account() {
+        Ok(a) => {
+            let name = Some(a.name.clone()).filter(|n| !n.is_empty() && *n != a.username);
+            (a.username, name)
+        }
+        // an older Drive without a name: the user name from sign-in will do
+        Err(e) => match username.filter(|u| !u.is_empty()) {
+            Some(u) if !matches!(e, DriveError::Unauthorized(_)) => (u, None),
+            _ => return failed(e),
         },
     };
-    Outcome::Connected { client, me }
+    Outcome::Connected { client, me, name }
 }
 
 /// The session's project as one JSON for `POST /api/team/projects`: the shared part with the

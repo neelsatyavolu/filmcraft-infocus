@@ -15,7 +15,7 @@ use crate::tests::PID;
 use crate::*;
 
 /// The demo project as `POST /api/team/projects` would have stored it.
-fn stored_demo() -> Value {
+pub(crate) fn stored_demo() -> Value {
     let mut s = Session::default();
     s.execute("file.openDemoProject", json!({})).unwrap();
     let doc = filmcraft_team::split(&s.project, &|_| None).unwrap();
@@ -148,7 +148,7 @@ fn the_list_is_fetched_again_now_and_then() {
 }
 
 /// A 0.1 s, 8 kHz mono 16-bit PCM WAV file.
-fn write_wav(path: &Path) {
+pub(crate) fn write_wav(path: &Path) {
     let samples: Vec<u8> = (0..800u32).flat_map(|i| (((i % 40) as i16 - 20) * 500).to_le_bytes()).collect();
     let mut b = Vec::new();
     b.extend_from_slice(b"RIFF");

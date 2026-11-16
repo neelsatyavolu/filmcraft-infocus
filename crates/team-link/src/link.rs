@@ -8,7 +8,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex, PoisonError};
 
@@ -30,6 +30,8 @@ pub(crate) type Tokens = Arc<Mutex<BTreeMap<u64, String>>>;
 pub struct LinkStatus {
     live: AtomicBool,
     last_error: Mutex<Option<String>>,
+    /// `media_changed` events seen on the change feed.
+    media_changes: AtomicU64,
 }
 
 impl LinkStatus {
@@ -40,6 +42,14 @@ impl LinkStatus {
     /// The last request or feed error, until a later request succeeds.
     pub fn last_error(&self) -> Option<String> {
         self.last_error.lock().unwrap_or_else(PoisonError::into_inner).clone()
+    }
+    /// How many times the feed said the project's footage changed (someone added or removed a
+    /// file, from InFocus Cut, the dashboard or the Drive website).
+    pub fn media_changes(&self) -> u64 {
+        self.media_changes.load(Ordering::Relaxed)
+    }
+    pub(crate) fn media_changed(&self) {
+        self.media_changes.fetch_add(1, Ordering::Relaxed);
     }
     pub(crate) fn set_live(&self, live: bool) {
         self.live.store(live, Ordering::Relaxed);

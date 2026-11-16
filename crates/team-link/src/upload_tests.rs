@@ -43,6 +43,10 @@ fn drive_with(state: Arc<Mutex<Drive>>, extra: impl Fn(&Req) -> Option<Reply> + 
         let project = format!("/api/team/projects/{PID}");
         let session = |id: &str, (_, size, chunks): &(String, u64, BTreeMap<u64, Vec<u8>>)| json!({"upload_id": id, "chunk_size": MIB, "total_chunks": size.div_ceil(MIB), "size": size, "received": chunks.keys().collect::<Vec<_>>()});
         match (req.method.as_str(), req.path()) {
+            ("GET", p) if p == format!("{project}/media") && req.query("path").is_none() => {
+                let files: Vec<_> = d.files.iter().map(|(path, bytes)| json!({"path": path, "size": bytes.len(), "mtime": 1.0})).collect();
+                Reply::json(200, json!({ "files": files }))
+            }
             ("GET", p) if p == format!("{project}/media") => {
                 let path = req.query("path").unwrap();
                 if d.files.contains_key(&path) {
@@ -208,7 +212,7 @@ fn an_upload_cut_short_resumes_after_a_restart() {
     let server = drive(state.clone());
     let disk = tempfile::tempdir().unwrap();
     let cache = tempfile::tempdir().unwrap();
-    let (a, a_bytes) = footage(disk.path(), "a.mov", 3 * MIB as usize);
+    let (a, a_bytes) = footage(disk.path(), "a.mov", 6 * MIB as usize);
     let mut p = Project::new("Robotics");
     let ia = p.add_item("a", Label::Rose, media_item(&a.to_string_lossy()), None);
     // another project's queue entry survives this project's saves
@@ -239,7 +243,8 @@ fn an_upload_cut_short_resumes_after_a_restart() {
     assert_eq!(entry["upload_id"], "up_1");
     assert!(saved["uploads"].as_array().unwrap().iter().any(|u| u["project"] == "other"));
     let sent_before = server.requests().iter().filter(|r| r.path() == "/api/upload/chunk").count();
-    assert!((1..3).contains(&sent_before), "{sent_before}");
+    // chunks already on their way finish (up to the client's parallel streams); the rest wait
+    assert!((1..6).contains(&sent_before), "{sent_before}");
 
     // the next run: the items point at the file here again, and only missing chunks go up
     let mut up = TeamUploads::new(cache.path().to_path_buf(), PID, client(&server.url, "ifd_test"), notes);
@@ -249,7 +254,7 @@ fn an_upload_cut_short_resumes_after_a_restart() {
     assert_eq!(done[0].drive_ref, "drive:/Team Projects/Robotics Media/a.mov");
     let reqs = server.requests();
     let chunks: Vec<String> = reqs.iter().filter(|r| r.path() == "/api/upload/chunk").map(|r| r.query("index").unwrap()).collect();
-    assert_eq!(chunks.len(), 3, "each chunk sent once: {chunks:?}");
+    assert_eq!(chunks.len(), 6, "each chunk sent once: {chunks:?}");
     assert!(reqs.iter().any(|r| r.path() == "/api/upload/status" && r.query("upload_id").as_deref() == Some("up_1")));
     assert_eq!(reqs.iter().filter(|r| r.path().ends_with("/media/upload/init")).count(), 1, "the session was resumed, not restarted");
     assert_eq!(state.lock().unwrap().files["a.mov"], a_bytes);

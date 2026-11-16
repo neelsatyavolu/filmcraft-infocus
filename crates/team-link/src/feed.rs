@@ -176,6 +176,8 @@ impl Feed {
                     self.fetch_shared();
                 }
             }
+            // footage added or removed: the controller lists the media folder again
+            TeamEvent::Other { event, .. } if event == "media_changed" => self.status.media_changed(),
             TeamEvent::Other { .. } => {}
         }
     }

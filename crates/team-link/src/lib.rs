@@ -31,6 +31,8 @@ pub use uploads::{FinishedUpload, MAX_UPLOADS, PendingUpload, TeamUploads, UPLOA
 #[cfg(test)]
 mod controller_tests;
 #[cfg(test)]
+mod drive_media_tests;
+#[cfg(test)]
 mod leave_tests;
 #[cfg(test)]
 mod link_tests;
