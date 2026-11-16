@@ -47,6 +47,22 @@ updates live. Projects sync through InFocus Drive. The full design is in
   guard); its network work runs on background threads and `poll` finishes it on the UI thread.
   Close, Sign Out and Quit (`TeamSessionController::leave`) first send what is waiting and wait
   for the session's team to be idle; after 10 s the app asks Wait or Leave Anyway.
+- Members and invites: a project created by this version lists its `members` (the creator at
+  first) and pending `invites` in `meta.json`; only members may use it, and the project list
+  shows each member their projects and their invitations (an older project without a member
+  list stays open to every Drive member). The Team panel puts invitations at the top with
+  Join and Decline (`POST …/join` gives this Mac an id slot like opening does, then the project
+  opens), ends "New Team Project…" on an "Invite teammates" step (a searchable list of the
+  Drive's members from `GET /api/team/people`, up to 12 people per project; it can be skipped),
+  and offers Invite…, cancelling an invite and Leave Project… on each project. The list is
+  fetched again every 30 s while signed in, so a new invitation shows up on its own.
+- Footage: "Add Footage…" on the open project imports the chosen files; they upload to the
+  project's `<name> Media/` folder like any media imported into a team project. A teammate's Mac
+  downloads an original only when it opens a sequence (or the Source monitor) that uses it, and
+  as soon as a download is linked `TeamMedia` starts this Mac's own proxy job (ProRes 422 Proxy
+  at ½ size, `crates/engine/src/team_media.rs`, `linked` → `start_proxy` →
+  `proxies::create`); the panel shows downloads, proxies and uploads with their progress, and
+  each project's footage count and size on the Drive.
 - Media cache index: each file keeps its `drive:/` path per team project (the same file is a
   different path in each project's media folder); an older index's single path is moved over.
 - Configuration: `~/Library/Application Support/InFocus Cut/config.toml` (see
@@ -110,6 +126,19 @@ Keep these small so upstream merges stay easy.
   `~/Library/Application Support/InFocus Cut` (`autosave::MACOS_DATA_FOLDER`), fresh, never
   shared with or copied from an upstream FilmCraft install. The Keychain item is service
   `InFocus Cut`, account `drive`.
+
+## Two copies on one Mac (development)
+
+Debug builds take two overrides so a script can run two members on one Mac against the dev Drive
+without a browser or a shared login (`crates/team-link/src/dev.rs`; release builds ignore both):
+
+- `INFOCUS_DRIVE_TOKEN_FILE=<file>`: the Drive token is read from (and kept in) this file instead
+  of the Keychain.
+- `FILMCRAFT_DATA_DIR=<dir>`: the copy signs in under its own Keychain account
+  (`drive-<hash of the folder>`) and keeps team media in `<dir>/team-media`.
+
+With `--control <port>` such a build also answers the `team.*` control methods
+([control-protocol.md](control-protocol.md#team-projects-debug-builds)).
 
 ## End-to-end check
 

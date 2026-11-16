@@ -3764,3 +3764,113 @@
 	Toggle Color Grading Section	切换色彩分级分区
 	Color Grading Section	色彩分级分区
 	Read Video Scopes	读取视频示波器
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	邀请队友加入“{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	你的项目已在 InFocus Drive 上。选择和你一起做的人：他们会在自己的团队面板中收到邀请。
+	They get an invitation in their Team panel.	他们会在自己的团队面板中收到邀请。
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	暂时没有可邀请的人。你的队友需要先有 InFocus Drive 账户。
+	Everyone on InFocus Drive is already in this project or invited.	InFocus Drive 上的所有人都已在此项目中或已被邀请。
+	Search by name	按名字搜索
+	A project can have up to {n} people.	一个项目最多可有 {n} 人。
+	No one matches that name.	没有匹配该名字的人。
+	Send Invitations	发送邀请
+	Invite 1 Person	邀请 1 人
+	Invite {n} People	邀请 {n} 人
+	Skip for Now	暂不邀请
+	You can invite people later with Invite… on the project.	之后可以在项目上用“邀请…”邀请更多人。
+	Team editing is available in the desktop app.	团队剪辑仅在桌面应用中提供。
+	Signed in as {user}	已登录为 {user}
+	Connecting to InFocus Drive…	正在连接 InFocus Drive…
+	Not signed in	未登录
+	Sign Out	退出登录
+	Check that this Mac is online, then press Refresh.	请确认这台 Mac 已联网，然后点击“刷新”。
+	Press Sign In to continue.	点击“登录”继续。
+	Ask whoever runs your InFocus Drive for its address.	请向管理你们 InFocus Drive 的人询问地址。
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	点击“刷新”。如果仍然没有，请队友重新邀请你。
+	Dismiss	关闭
+	Edit together on InFocus Drive	在 InFocus Drive 上一起剪辑
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	使用 InFocus Drive 账户登录，即可创建团队项目、邀请同学并共享素材。
+	Sign In…	登录…
+	Your browser opens to finish signing in.	浏览器将打开以完成登录。
+	No footage yet	还没有素材
+	1 file · {size}	1 个文件 · {size}
+	{n} files · {size}	{n} 个文件 · {size}
+	Invitations	邀请
+	Invited by {name}	{name} 邀请了你
+	You're invited to this project	你被邀请加入此项目
+	Decline	拒绝
+	Turn the invitation down. A teammate can invite you again.	拒绝邀请。队友可以再次邀请你。
+	Join	加入
+	Join and open the project. Footage downloads when you open a sequence.	加入并打开项目。打开序列时会下载素材。
+	Your team projects	你的团队项目
+	Check InFocus Drive for new invitations and changes.	检查 InFocus Drive 上的新邀请和更改。
+	New Team Project…	新建团队项目…
+	Leave the open team project first, then make a new one.	请先离开当前打开的团队项目，再新建一个。
+	Put the project you have open on InFocus Drive for your team.	把当前打开的项目放到 InFocus Drive 上供团队使用。
+	No team projects yet	还没有团队项目
+	Join an invitation above, or make a team project from the project you have open.	接受上方的邀请，或用当前打开的项目创建团队项目。
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	用当前打开的项目创建一个，然后邀请队友。也可以请队友邀请你：邀请会显示在这里。
+	New team project	新建团队项目
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	当前打开的项目及其序列和素材会上传到 InFocus Drive。你继续剪辑时，素材会在后台上传。
+	Project name, like “Homecoming Video”	项目名称，例如“校庆视频”
+	Create and Invite…	创建并邀请…
+	You're editing {sequence}	你正在编辑 {sequence}
+	You're editing a sequence	你正在编辑一个序列
+	{name} is editing {sequence}	{name} 正在编辑 {sequence}
+	{name} is editing a sequence	{name} 正在编辑一个序列
+	Open now	当前打开
+	Open this project here. Footage downloads when you open a sequence.	在这里打开此项目。打开序列时会下载素材。
+	Team: {names}	团队：{names}
+	Open to everyone on InFocus Drive	对 InFocus Drive 上的所有人开放
+	Invited: {name}	已邀请：{name}
+	Take this invitation back.	撤回此邀请。
+	No one is editing right now	目前没有人在编辑
+	Moves to the Drive's recycle bin on {date}	将于 {date} 移入 Drive 的回收站
+	Keep	保留
+	Keeps the project for another 30 days.	再保留此项目 30 天。
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	要离开此项目吗？它会从你的列表中消失，队友会继续工作。之后可以再邀请你。
+	Leave Project	离开项目
+	Invite…	邀请…
+	Invite teammates to this project.	邀请队友加入此项目。
+	Keep forever	永久保留
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	永不将此项目移入回收站。只有创建者或 Drive 管理员可以更改此设置。
+	Leave Project…	离开项目…
+	Live	实时
+	Reconnecting…	正在重新连接…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	在这里停止处理此项目。你的编辑会先发送到 Drive，并释放你的锁定。
+	Add Footage…	添加素材…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	选择视频、音频或照片。它们会加入此项目并上传到 InFocus Drive，供队友使用。
+	Downloads and uploads are paused while exporting.	导出期间下载和上传已暂停。
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	当你打开使用素材的序列时，素材会下载到这台 Mac，这台 Mac 会自己生成代理文件，让剪辑更流畅。
+	Downloading {name}	正在下载 {name}
+	Making a proxy of {name}	正在为 {name} 生成代理文件
+	Uploading {name}	正在上传 {name}
+	{name}: uploading from {member}	{name}：{member} 正在上传
+	{name} didn't download: {why}	{name} 未能下载：{why}
+	{name} didn't upload: {why}	{name} 未能上传：{why}
+	Retry	重试
+	Try the failed downloads and uploads again.	重新尝试失败的下载和上传。
+	Saving to InFocus Drive	正在保存到 InFocus Drive
+	closing the project	关闭项目
+	signing out	退出登录
+	quitting	退出
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	你最近的编辑还没有到达 InFocus Drive。如果现在离开，它们只会留在这台 Mac 上，队友收不到。
+	Sending your edits to InFocus Drive before {doing}…	正在{doing}前将你的编辑发送到 InFocus Drive…
+	Wait	等待
+	Leave Anyway	仍然离开
+	Can't export yet. Still downloading: {list}	暂时无法导出。仍在下载：{list}
+	Can't export yet. Still downloading: {list} and {count} more	暂时无法导出。仍在下载：{list} 等另外 {count} 个
+	Asking for the lock…	正在请求锁定…
+	Edit this sequence. Teammates see it read-only until you release it.	编辑此序列。在你释放之前，队友只能以只读方式查看。
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	让队友编辑此序列。你的编辑会先保存到 Drive。
+	Read-only: {who}. You can edit it once the lock is free.	只读：{who}。锁定释放后即可编辑。
+	Release Lock	释放锁定
+	Requested	已请求
+	Take	获取
+	Take Lock	获取锁定
+	Take the lock to edit this sequence.	获取锁定以编辑此序列。
+	Team	团队
+	Team video editing for InFocus, synced through InFocus Drive.	为 InFocus 打造的团队视频剪辑，通过 InFocus Drive 同步。
+	You're editing this sequence.	你正在编辑此序列。
+	You're editing this sequence. Some edits aren't on the Drive yet.	你正在编辑此序列。部分编辑尚未到达 Drive。

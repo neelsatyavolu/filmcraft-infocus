@@ -3634,3 +3634,113 @@
 	Toggle Color Grading Section	Renk Derecelendirme Bölümünü Aç/Kapat
 	Color Grading Section	Renk Derecelendirme Bölümü
 	Read Video Scopes	Video Ölçümlerini Oku
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	“{name}” projesine ekip arkadaşlarını davet et
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Projen InFocus Drive’da. Birlikte yapacağın kişileri seç: Ekip panellerinde bir davet görürler.
+	They get an invitation in their Team panel.	Ekip panellerinde bir davet görürler.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Henüz davet edilebilecek kimse yok. Ekip arkadaşlarının önce bir InFocus Drive hesabı olmalı.
+	Everyone on InFocus Drive is already in this project or invited.	InFocus Drive’daki herkes zaten bu projede ya da davet edildi.
+	Search by name	Ada göre ara
+	A project can have up to {n} people.	Bir projede en fazla {n} kişi olabilir.
+	No one matches that name.	Bu adla eşleşen kimse yok.
+	Send Invitations	Davetleri Gönder
+	Invite 1 Person	1 Kişiyi Davet Et
+	Invite {n} People	{n} Kişiyi Davet Et
+	Skip for Now	Şimdi Değil
+	You can invite people later with Invite… on the project.	Daha sonra projedeki Davet Et… ile başkalarını da davet edebilirsin.
+	Team editing is available in the desktop app.	Ekip düzenleme masaüstü uygulamasında kullanılabilir.
+	Signed in as {user}	{user} olarak oturum açıldı
+	Connecting to InFocus Drive…	InFocus Drive’a bağlanılıyor…
+	Not signed in	Oturum açılmadı
+	Sign Out	Oturumu Kapat
+	Check that this Mac is online, then press Refresh.	Bu Mac’in çevrimiçi olduğunu kontrol et, sonra Yenile’ye bas.
+	Press Sign In to continue.	Devam etmek için Oturum Aç’a bas.
+	Ask whoever runs your InFocus Drive for its address.	Adresi InFocus Drive’ınızı yöneten kişiye sor.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Yenile’ye bas. Hâlâ yoksa bir ekip arkadaşından seni yeniden davet etmesini iste.
+	Dismiss	Kapat
+	Edit together on InFocus Drive	InFocus Drive’da birlikte düzenleyin
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Bir ekip projesi oluşturmak, sınıf arkadaşlarını davet etmek ve görüntüleri paylaşmak için InFocus Drive hesabınla oturum aç.
+	Sign In…	Oturum Aç…
+	Your browser opens to finish signing in.	Oturum açmayı bitirmen için tarayıcın açılır.
+	No footage yet	Henüz görüntü yok
+	1 file · {size}	1 dosya · {size}
+	{n} files · {size}	{n} dosya · {size}
+	Invitations	Davetler
+	Invited by {name}	Davet eden: {name}
+	You're invited to this project	Bu projeye davet edildin
+	Decline	Reddet
+	Turn the invitation down. A teammate can invite you again.	Daveti reddet. Bir ekip arkadaşı seni yeniden davet edebilir.
+	Join	Katıl
+	Join and open the project. Footage downloads when you open a sequence.	Katıl ve projeyi aç. Görüntüler bir sekans açtığında indirilir.
+	Your team projects	Ekip projelerin
+	Check InFocus Drive for new invitations and changes.	InFocus Drive’da yeni davetleri ve değişiklikleri denetle.
+	New Team Project…	Yeni Ekip Projesi…
+	Leave the open team project first, then make a new one.	Önce açık ekip projesinden çık, sonra yenisini oluştur.
+	Put the project you have open on InFocus Drive for your team.	Açık projeni ekibin için InFocus Drive’a koy.
+	No team projects yet	Henüz ekip projesi yok
+	Join an invitation above, or make a team project from the project you have open.	Yukarıdaki bir davete katıl ya da açık projeden bir ekip projesi oluştur.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Açık projeden bir tane oluştur, sonra ekip arkadaşlarını davet et. Ya da birinden seni davet etmesini iste: davetler burada görünür.
+	New team project	Yeni ekip projesi
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Açık projen, sekansları ve görüntüleri InFocus Drive’a gider. Sen düzenlemeye devam ederken görüntüler arka planda yüklenir.
+	Project name, like “Homecoming Video”	Proje adı, örneğin “Mezuniyet Videosu”
+	Create and Invite…	Oluştur ve Davet Et…
+	You're editing {sequence}	{sequence} sekansını düzenliyorsun
+	You're editing a sequence	Bir sekansı düzenliyorsun
+	{name} is editing {sequence}	{name}, {sequence} sekansını düzenliyor
+	{name} is editing a sequence	{name} bir sekansı düzenliyor
+	Open now	Şu an açık
+	Open this project here. Footage downloads when you open a sequence.	Bu projeyi burada aç. Görüntüler bir sekans açtığında indirilir.
+	Team: {names}	Ekip: {names}
+	Open to everyone on InFocus Drive	InFocus Drive’daki herkese açık
+	Invited: {name}	Davet edildi: {name}
+	Take this invitation back.	Bu daveti geri al.
+	No one is editing right now	Şu an kimse düzenlemiyor
+	Moves to the Drive's recycle bin on {date}	{date} tarihinde Drive’ın geri dönüşüm kutusuna taşınır
+	Keep	Sakla
+	Keeps the project for another 30 days.	Projeyi 30 gün daha saklar.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Bu projeden çıkılsın mı? Listenden kaybolur ve ekip arkadaşların üzerinde çalışmaya devam eder. Biri seni yeniden davet edebilir.
+	Leave Project	Projeden Çık
+	Invite…	Davet Et…
+	Invite teammates to this project.	Bu projeye ekip arkadaşlarını davet et.
+	Keep forever	Sonsuza dek sakla
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Bu projeyi asla geri dönüşüm kutusuna taşıma. Bunu yalnızca oluşturan kişi ya da bir Drive yöneticisi değiştirebilir.
+	Leave Project…	Projeden Çık…
+	Live	Canlı
+	Reconnecting…	Yeniden bağlanılıyor…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Bu projede burada çalışmayı bırak. Düzenlemelerin önce Drive’a gönderilir ve kilitlerin bırakılır.
+	Add Footage…	Görüntü Ekle…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Video, ses ya da fotoğraf seç. Bu projeye eklenir ve ekip arkadaşların alsın diye InFocus Drive’a yüklenir.
+	Downloads and uploads are paused while exporting.	Dışa aktarma sırasında indirmeler ve yüklemeler duraklatılır.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Görüntüler, onları kullanan bir sekansı açtığında bu Mac’e iner ve bu Mac akıcı düzenleme için kendi proxy’lerini oluşturur.
+	Downloading {name}	{name} indiriliyor
+	Making a proxy of {name}	{name} için proxy oluşturuluyor
+	Uploading {name}	{name} yükleniyor
+	{name}: uploading from {member}	{name}: {member} yüklüyor
+	{name} didn't download: {why}	{name} indirilemedi: {why}
+	{name} didn't upload: {why}	{name} yüklenemedi: {why}
+	Retry	Yeniden Dene
+	Try the failed downloads and uploads again.	Başarısız indirme ve yüklemeleri yeniden dene.
+	Saving to InFocus Drive	InFocus Drive’a kaydediliyor
+	closing the project	projeyi kapatmadan
+	signing out	oturumu kapatmadan
+	quitting	çıkmadan
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Son düzenlemelerin henüz InFocus Drive’a ulaşmadı. Şimdi çıkarsan yalnızca bu Mac’te kalırlar ve ekip arkadaşların onları almaz.
+	Sending your edits to InFocus Drive before {doing}…	{doing} önce düzenlemelerin InFocus Drive’a gönderiliyor…
+	Wait	Bekle
+	Leave Anyway	Yine de Çık
+	Can't export yet. Still downloading: {list}	Henüz dışa aktarılamıyor. Hâlâ indiriliyor: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Henüz dışa aktarılamıyor. Hâlâ indiriliyor: {list} ve {count} tane daha
+	Asking for the lock…	Kilit isteniyor…
+	Edit this sequence. Teammates see it read-only until you release it.	Bu sekansı düzenle. Sen bırakana kadar ekip arkadaşların onu salt okunur görür.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Bu sekansı bir ekip arkadaşının düzenlemesine izin ver. Düzenlemelerin önce Drive’a kaydedilir.
+	Read-only: {who}. You can edit it once the lock is free.	Salt okunur: {who}. Kilit boşalınca düzenleyebilirsin.
+	Release Lock	Kilidi Bırak
+	Requested	İstendi
+	Take	Al
+	Take Lock	Kilidi Al
+	Take the lock to edit this sequence.	Bu sekansı düzenlemek için kilidi al.
+	Team	Ekip
+	Team video editing for InFocus, synced through InFocus Drive.	InFocus için ekip video düzenleme, InFocus Drive ile eşitlenir.
+	You're editing this sequence.	Bu sekansı düzenliyorsun.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Bu sekansı düzenliyorsun. Bazı düzenlemeler henüz Drive’da değil.

@@ -3677,3 +3677,113 @@
 	Toggle Color Grading Section	Aktifkan/Nonaktifkan Bagian Gradasi Warna
 	Color Grading Section	Bagian Gradasi Warna
 	Read Video Scopes	Baca Skop Video
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Undang rekan tim ke “{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Proyekmu sudah ada di InFocus Drive. Pilih siapa yang ikut membuatnya: mereka mendapat undangan di panel Tim mereka.
+	They get an invitation in their Team panel.	Mereka mendapat undangan di panel Tim mereka.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Belum ada yang bisa diundang. Rekan timmu perlu akun InFocus Drive dulu.
+	Everyone on InFocus Drive is already in this project or invited.	Semua orang di InFocus Drive sudah ada di proyek ini atau sudah diundang.
+	Search by name	Cari menurut nama
+	A project can have up to {n} people.	Satu proyek bisa berisi hingga {n} orang.
+	No one matches that name.	Tidak ada yang cocok dengan nama itu.
+	Send Invitations	Kirim Undangan
+	Invite 1 Person	Undang 1 Orang
+	Invite {n} People	Undang {n} Orang
+	Skip for Now	Nanti Saja
+	You can invite people later with Invite… on the project.	Kamu bisa mengundang orang lain nanti lewat Undang… di proyek.
+	Team editing is available in the desktop app.	Penyuntingan tim tersedia di aplikasi desktop.
+	Signed in as {user}	Masuk sebagai {user}
+	Connecting to InFocus Drive…	Menghubungkan ke InFocus Drive…
+	Not signed in	Belum masuk
+	Sign Out	Keluar
+	Check that this Mac is online, then press Refresh.	Pastikan Mac ini online, lalu tekan Segarkan.
+	Press Sign In to continue.	Tekan Masuk untuk melanjutkan.
+	Ask whoever runs your InFocus Drive for its address.	Tanyakan alamatnya kepada pengelola InFocus Drive kalian.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Tekan Segarkan. Jika masih tidak ada, minta rekan tim mengundangmu lagi.
+	Dismiss	Tutup
+	Edit together on InFocus Drive	Sunting bersama di InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Masuk dengan akun InFocus Drive untuk membuat proyek tim, mengundang teman sekelas, dan berbagi rekaman.
+	Sign In…	Masuk…
+	Your browser opens to finish signing in.	Browser akan terbuka untuk menyelesaikan proses masuk.
+	No footage yet	Belum ada rekaman
+	1 file · {size}	1 file · {size}
+	{n} files · {size}	{n} file · {size}
+	Invitations	Undangan
+	Invited by {name}	Diundang oleh {name}
+	You're invited to this project	Kamu diundang ke proyek ini
+	Decline	Tolak
+	Turn the invitation down. A teammate can invite you again.	Tolak undangan. Rekan tim bisa mengundangmu lagi.
+	Join	Gabung
+	Join and open the project. Footage downloads when you open a sequence.	Gabung dan buka proyek. Rekaman diunduh saat kamu membuka sekuens.
+	Your team projects	Proyek timmu
+	Check InFocus Drive for new invitations and changes.	Periksa undangan dan perubahan baru di InFocus Drive.
+	New Team Project…	Proyek Tim Baru…
+	Leave the open team project first, then make a new one.	Tinggalkan dulu proyek tim yang terbuka, lalu buat yang baru.
+	Put the project you have open on InFocus Drive for your team.	Taruh proyek yang sedang terbuka di InFocus Drive untuk timmu.
+	No team projects yet	Belum ada proyek tim
+	Join an invitation above, or make a team project from the project you have open.	Terima undangan di atas, atau buat proyek tim dari proyek yang sedang terbuka.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Buat satu dari proyek yang terbuka, lalu undang rekan timmu. Atau minta seseorang mengundangmu: undangan muncul di sini.
+	New team project	Proyek tim baru
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Proyek yang terbuka beserta sekuens dan rekamannya dikirim ke InFocus Drive. Rekaman diunggah di latar belakang sementara kamu terus menyunting.
+	Project name, like “Homecoming Video”	Nama proyek, misalnya “Video Pentas Seni”
+	Create and Invite…	Buat dan Undang…
+	You're editing {sequence}	Kamu sedang menyunting {sequence}
+	You're editing a sequence	Kamu sedang menyunting sebuah sekuens
+	{name} is editing {sequence}	{name} sedang menyunting {sequence}
+	{name} is editing a sequence	{name} sedang menyunting sebuah sekuens
+	Open now	Sedang terbuka
+	Open this project here. Footage downloads when you open a sequence.	Buka proyek ini di sini. Rekaman diunduh saat kamu membuka sekuens.
+	Team: {names}	Tim: {names}
+	Open to everyone on InFocus Drive	Terbuka untuk semua orang di InFocus Drive
+	Invited: {name}	Diundang: {name}
+	Take this invitation back.	Tarik kembali undangan ini.
+	No one is editing right now	Tidak ada yang sedang menyunting
+	Moves to the Drive's recycle bin on {date}	Dipindahkan ke tempat sampah Drive pada {date}
+	Keep	Simpan
+	Keeps the project for another 30 days.	Menyimpan proyek 30 hari lagi.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Tinggalkan proyek ini? Proyek hilang dari daftarmu dan rekan timmu tetap mengerjakannya. Seseorang bisa mengundangmu lagi.
+	Leave Project	Tinggalkan Proyek
+	Invite…	Undang…
+	Invite teammates to this project.	Undang rekan tim ke proyek ini.
+	Keep forever	Simpan selamanya
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Jangan pernah pindahkan proyek ini ke tempat sampah. Hanya pembuatnya atau admin Drive yang bisa mengubahnya.
+	Leave Project…	Tinggalkan Proyek…
+	Live	Langsung
+	Reconnecting…	Menghubungkan ulang…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Berhenti mengerjakan proyek ini di sini. Suntinganmu dikirim ke Drive dulu dan kuncimu dilepas.
+	Add Footage…	Tambah Rekaman…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Pilih video, audio, atau foto. File masuk ke proyek ini dan diunggah ke InFocus Drive agar rekan timmu mendapatkannya.
+	Downloads and uploads are paused while exporting.	Unduhan dan unggahan dijeda selama ekspor.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Rekaman diunduh ke Mac ini saat kamu membuka sekuens yang memakainya, dan Mac ini membuat proksinya sendiri agar penyuntingan lancar.
+	Downloading {name}	Mengunduh {name}
+	Making a proxy of {name}	Membuat proksi {name}
+	Uploading {name}	Mengunggah {name}
+	{name}: uploading from {member}	{name}: sedang diunggah oleh {member}
+	{name} didn't download: {why}	{name} gagal diunduh: {why}
+	{name} didn't upload: {why}	{name} gagal diunggah: {why}
+	Retry	Coba Lagi
+	Try the failed downloads and uploads again.	Coba lagi unduhan dan unggahan yang gagal.
+	Saving to InFocus Drive	Menyimpan ke InFocus Drive
+	closing the project	menutup proyek
+	signing out	keluar dari akun
+	quitting	keluar dari aplikasi
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Suntingan terbarumu belum sampai ke InFocus Drive. Jika keluar sekarang, suntingan hanya ada di Mac ini dan rekan timmu tidak menerimanya.
+	Sending your edits to InFocus Drive before {doing}…	Mengirim suntinganmu ke InFocus Drive sebelum {doing}…
+	Wait	Tunggu
+	Leave Anyway	Tetap Keluar
+	Can't export yet. Still downloading: {list}	Belum bisa ekspor. Masih mengunduh: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Belum bisa ekspor. Masih mengunduh: {list} dan {count} lainnya
+	Asking for the lock…	Meminta kunci…
+	Edit this sequence. Teammates see it read-only until you release it.	Sunting sekuens ini. Rekan tim melihatnya hanya-baca sampai kamu melepasnya.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Biarkan rekan tim menyunting sekuens ini. Suntinganmu disimpan ke Drive dulu.
+	Read-only: {who}. You can edit it once the lock is free.	Hanya-baca: {who}. Kamu bisa menyunting setelah kuncinya bebas.
+	Release Lock	Lepas Kunci
+	Requested	Diminta
+	Take	Ambil
+	Take Lock	Ambil Kunci
+	Take the lock to edit this sequence.	Ambil kunci untuk menyunting sekuens ini.
+	Team	Tim
+	Team video editing for InFocus, synced through InFocus Drive.	Penyuntingan video tim untuk InFocus, disinkronkan lewat InFocus Drive.
+	You're editing this sequence.	Kamu sedang menyunting sekuens ini.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Kamu sedang menyunting sekuens ini. Sebagian suntingan belum ada di Drive.

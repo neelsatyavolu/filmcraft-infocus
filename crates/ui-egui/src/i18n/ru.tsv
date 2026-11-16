@@ -3731,3 +3731,113 @@
 	Toggle Color Grading Section	Переключить раздел грейдинга
 	Color Grading Section	Раздел грейдинга
 	Read Video Scopes	Считать данные видеоскопов
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Пригласить участников в «{name}»
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Ваш проект уже на InFocus Drive. Выберите, с кем вы его делаете: они получат приглашение на своей панели «Команда».
+	They get an invitation in their Team panel.	Они получат приглашение на своей панели «Команда».
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Пока некого пригласить. Сначала участникам нужна учётная запись InFocus Drive.
+	Everyone on InFocus Drive is already in this project or invited.	Все на InFocus Drive уже в этом проекте или приглашены.
+	Search by name	Поиск по имени
+	A project can have up to {n} people.	В проекте может быть до {n} человек.
+	No one matches that name.	Никто не подходит под это имя.
+	Send Invitations	Отправить приглашения
+	Invite 1 Person	Пригласить 1 человека
+	Invite {n} People	Пригласить: {n} чел.
+	Skip for Now	Не сейчас
+	You can invite people later with Invite… on the project.	Позже можно пригласить людей кнопкой «Пригласить…» у проекта.
+	Team editing is available in the desktop app.	Совместный монтаж доступен в настольном приложении.
+	Signed in as {user}	Вход выполнен: {user}
+	Connecting to InFocus Drive…	Подключение к InFocus Drive…
+	Not signed in	Вход не выполнен
+	Sign Out	Выйти
+	Check that this Mac is online, then press Refresh.	Проверьте, что этот Mac в сети, и нажмите «Обновить».
+	Press Sign In to continue.	Нажмите «Войти», чтобы продолжить.
+	Ask whoever runs your InFocus Drive for its address.	Узнайте адрес у того, кто обслуживает ваш InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Нажмите «Обновить». Если проекта всё ещё нет, попросите участника пригласить вас снова.
+	Dismiss	Закрыть
+	Edit together on InFocus Drive	Монтируйте вместе на InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Войдите с учётной записью InFocus Drive, чтобы создать командный проект, пригласить одноклассников и делиться материалом.
+	Sign In…	Войти…
+	Your browser opens to finish signing in.	Откроется браузер, чтобы завершить вход.
+	No footage yet	Материала пока нет
+	1 file · {size}	1 файл · {size}
+	{n} files · {size}	Файлов: {n} · {size}
+	Invitations	Приглашения
+	Invited by {name}	Пригласил(а): {name}
+	You're invited to this project	Вас пригласили в этот проект
+	Decline	Отклонить
+	Turn the invitation down. A teammate can invite you again.	Отклонить приглашение. Участник может пригласить вас снова.
+	Join	Присоединиться
+	Join and open the project. Footage downloads when you open a sequence.	Присоединиться и открыть проект. Материал загружается, когда вы открываете последовательность.
+	Your team projects	Ваши командные проекты
+	Check InFocus Drive for new invitations and changes.	Проверить InFocus Drive на новые приглашения и изменения.
+	New Team Project…	Новый командный проект…
+	Leave the open team project first, then make a new one.	Сначала выйдите из открытого командного проекта, затем создайте новый.
+	Put the project you have open on InFocus Drive for your team.	Разместить открытый проект на InFocus Drive для вашей команды.
+	No team projects yet	Командных проектов пока нет
+	Join an invitation above, or make a team project from the project you have open.	Примите приглашение выше или создайте командный проект из открытого проекта.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Создайте проект из открытого и пригласите участников. Или попросите кого-нибудь пригласить вас: приглашения появятся здесь.
+	New team project	Новый командный проект
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Открытый проект, его последовательности и материал отправятся на InFocus Drive. Материал загружается в фоне, пока вы продолжаете монтаж.
+	Project name, like “Homecoming Video”	Название проекта, например «Видео с выпускного»
+	Create and Invite…	Создать и пригласить…
+	You're editing {sequence}	Вы редактируете {sequence}
+	You're editing a sequence	Вы редактируете последовательность
+	{name} is editing {sequence}	{name} редактирует {sequence}
+	{name} is editing a sequence	{name} редактирует последовательность
+	Open now	Открыт сейчас
+	Open this project here. Footage downloads when you open a sequence.	Открыть этот проект здесь. Материал загружается, когда вы открываете последовательность.
+	Team: {names}	Команда: {names}
+	Open to everyone on InFocus Drive	Открыт для всех на InFocus Drive
+	Invited: {name}	Приглашён: {name}
+	Take this invitation back.	Отозвать это приглашение.
+	No one is editing right now	Сейчас никто не редактирует
+	Moves to the Drive's recycle bin on {date}	Попадёт в корзину Drive {date}
+	Keep	Сохранить
+	Keeps the project for another 30 days.	Сохраняет проект ещё на 30 дней.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Выйти из проекта? Он исчезнет из вашего списка, а участники продолжат работу. Вас могут пригласить снова.
+	Leave Project	Выйти из проекта
+	Invite…	Пригласить…
+	Invite teammates to this project.	Пригласить участников в этот проект.
+	Keep forever	Хранить всегда
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Никогда не перемещать проект в корзину. Изменить это может только создатель или администратор Drive.
+	Leave Project…	Выйти из проекта…
+	Live	В сети
+	Reconnecting…	Переподключение…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Прекратить работу над проектом здесь. Ваши правки сначала отправятся на Drive, а блокировки будут сняты.
+	Add Footage…	Добавить материал…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Выберите видео, аудио или фото. Они войдут в проект и загрузятся на InFocus Drive, чтобы их получили участники.
+	Downloads and uploads are paused while exporting.	Загрузки и выгрузки приостановлены на время экспорта.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Материал загружается на этот Mac, когда вы открываете последовательность, где он используется, а этот Mac сам создаёт прокси для плавного монтажа.
+	Downloading {name}	Загрузка {name}
+	Making a proxy of {name}	Создание прокси для {name}
+	Uploading {name}	Выгрузка {name}
+	{name}: uploading from {member}	{name}: выгружает {member}
+	{name} didn't download: {why}	{name} не загружен: {why}
+	{name} didn't upload: {why}	{name} не выгружен: {why}
+	Retry	Повторить
+	Try the failed downloads and uploads again.	Повторить неудавшиеся загрузки и выгрузки.
+	Saving to InFocus Drive	Сохранение на InFocus Drive
+	closing the project	закрытием проекта
+	signing out	выходом из учётной записи
+	quitting	выходом из приложения
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Ваши последние правки ещё не дошли до InFocus Drive. Если уйти сейчас, они останутся только на этом Mac и участники их не получат.
+	Sending your edits to InFocus Drive before {doing}…	Ваши правки отправляются на InFocus Drive перед {doing}…
+	Wait	Подождать
+	Leave Anyway	Всё равно выйти
+	Can't export yet. Still downloading: {list}	Экспорт пока невозможен. Ещё загружается: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Экспорт пока невозможен. Ещё загружается: {list} и ещё {count}
+	Asking for the lock…	Запрос блокировки…
+	Edit this sequence. Teammates see it read-only until you release it.	Редактировать эту последовательность. Участники видят её только для чтения, пока вы её не освободите.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Дать участнику отредактировать эту последовательность. Ваши правки сначала сохранятся на Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Только чтение: {who}. Редактировать можно, когда блокировка освободится.
+	Release Lock	Снять блокировку
+	Requested	Запрошено
+	Take	Взять
+	Take Lock	Взять блокировку
+	Take the lock to edit this sequence.	Возьмите блокировку, чтобы редактировать эту последовательность.
+	Team	Команда
+	Team video editing for InFocus, synced through InFocus Drive.	Командный видеомонтаж для InFocus с синхронизацией через InFocus Drive.
+	You're editing this sequence.	Вы редактируете эту последовательность.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Вы редактируете эту последовательность. Часть правок ещё не на Drive.

@@ -3641,3 +3641,113 @@
 	Toggle Color Grading Section	Přepnout sekci barevných úprav
 	Color Grading Section	Sekce barevných úprav
 	Read Video Scopes	Načíst videoskopy
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Pozvat členy týmu do „{name}“
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Projekt je na InFocus Drive. Vyber, s kým ho děláš: pozvánku dostanou ve svém panelu Tým.
+	They get an invitation in their Team panel.	Pozvánku dostanou ve svém panelu Tým.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Zatím není koho pozvat. Členové týmu nejdřív potřebují účet InFocus Drive.
+	Everyone on InFocus Drive is already in this project or invited.	Všichni na InFocus Drive už jsou v tomto projektu nebo pozvaní.
+	Search by name	Hledat podle jména
+	A project can have up to {n} people.	Projekt může mít až {n} lidí.
+	No one matches that name.	Tomuto jménu nikdo neodpovídá.
+	Send Invitations	Odeslat pozvánky
+	Invite 1 Person	Pozvat 1 osobu
+	Invite {n} People	Pozvat osoby: {n}
+	Skip for Now	Teď ne
+	You can invite people later with Invite… on the project.	Další lidi můžeš pozvat později tlačítkem Pozvat… u projektu.
+	Team editing is available in the desktop app.	Týmová střižna je dostupná v desktopové aplikaci.
+	Signed in as {user}	Přihlášen jako {user}
+	Connecting to InFocus Drive…	Připojování k InFocus Drive…
+	Not signed in	Nepřihlášen
+	Sign Out	Odhlásit se
+	Check that this Mac is online, then press Refresh.	Zkontroluj, že je tento Mac online, a pak klikni na Aktualizovat.
+	Press Sign In to continue.	Pokračuj kliknutím na Přihlásit se.
+	Ask whoever runs your InFocus Drive for its address.	Zeptej se na adresu toho, kdo spravuje váš InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Klikni na Aktualizovat. Pokud tam pořád není, požádej někoho z týmu, ať tě pozve znovu.
+	Dismiss	Zavřít
+	Edit together on InFocus Drive	Stříhejte spolu na InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Přihlas se účtem InFocus Drive a můžeš vytvořit týmový projekt, pozvat spolužáky a sdílet záběry.
+	Sign In…	Přihlásit se…
+	Your browser opens to finish signing in.	Otevře se prohlížeč, kde dokončíš přihlášení.
+	No footage yet	Zatím žádné záběry
+	1 file · {size}	1 soubor · {size}
+	{n} files · {size}	Soubory: {n} · {size}
+	Invitations	Pozvánky
+	Invited by {name}	Pozval(a) tě {name}
+	You're invited to this project	Máš pozvánku do tohoto projektu
+	Decline	Odmítnout
+	Turn the invitation down. A teammate can invite you again.	Odmítne pozvánku. Někdo z týmu tě může pozvat znovu.
+	Join	Přidat se
+	Join and open the project. Footage downloads when you open a sequence.	Přidá tě a otevře projekt. Záběry se stáhnou, když otevřeš sekvenci.
+	Your team projects	Tvoje týmové projekty
+	Check InFocus Drive for new invitations and changes.	Zkontroluje na InFocus Drive nové pozvánky a změny.
+	New Team Project…	Nový týmový projekt…
+	Leave the open team project first, then make a new one.	Nejdřív opusť otevřený týmový projekt a pak vytvoř nový.
+	Put the project you have open on InFocus Drive for your team.	Umístí otevřený projekt na InFocus Drive pro tvůj tým.
+	No team projects yet	Zatím žádné týmové projekty
+	Join an invitation above, or make a team project from the project you have open.	Přijmi pozvánku výše, nebo vytvoř týmový projekt z otevřeného projektu.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Vytvoř ho z otevřeného projektu a pak pozvi členy týmu. Nebo někoho požádej o pozvánku: pozvánky se zobrazí tady.
+	New team project	Nový týmový projekt
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Otevřený projekt, jeho sekvence a záběry půjdou na InFocus Drive. Záběry se nahrávají na pozadí, zatímco dál stříháš.
+	Project name, like “Homecoming Video”	Název projektu, např. „Video z maturáku“
+	Create and Invite…	Vytvořit a pozvat…
+	You're editing {sequence}	Upravuješ {sequence}
+	You're editing a sequence	Upravuješ sekvenci
+	{name} is editing {sequence}	{name} upravuje {sequence}
+	{name} is editing a sequence	{name} upravuje sekvenci
+	Open now	Teď otevřený
+	Open this project here. Footage downloads when you open a sequence.	Otevře tento projekt tady. Záběry se stáhnou, když otevřeš sekvenci.
+	Team: {names}	Tým: {names}
+	Open to everyone on InFocus Drive	Otevřený pro všechny na InFocus Drive
+	Invited: {name}	Pozván(a): {name}
+	Take this invitation back.	Stáhne tuto pozvánku zpět.
+	No one is editing right now	Teď nikdo neupravuje
+	Moves to the Drive's recycle bin on {date}	Přesune se do koše Drive {date}
+	Keep	Ponechat
+	Keeps the project for another 30 days.	Ponechá projekt dalších 30 dní.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Opustit tento projekt? Zmizí z tvého seznamu a tým na něm bude pracovat dál. Někdo tě může pozvat znovu.
+	Leave Project	Opustit projekt
+	Invite…	Pozvat…
+	Invite teammates to this project.	Pozve členy týmu do tohoto projektu.
+	Keep forever	Ponechat navždy
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Nikdy nepřesouvat tento projekt do koše. Změnit to může jen jeho autor nebo správce Drive.
+	Leave Project…	Opustit projekt…
+	Live	Živě
+	Reconnecting…	Znovu se připojuje…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Ukončí tady práci na tomto projektu. Tvoje úpravy se nejdřív pošlou na Drive a tvoje zámky se uvolní.
+	Add Footage…	Přidat záběry…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Vyber videa, zvuk nebo fotky. Přidají se do projektu a nahrají na InFocus Drive, aby je tým dostal.
+	Downloads and uploads are paused while exporting.	Stahování a nahrávání je během exportu pozastavené.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Záběry se stáhnou do tohoto Macu, když otevřeš sekvenci, která je používá, a tento Mac si sám vytvoří proxy pro plynulý střih.
+	Downloading {name}	Stahování: {name}
+	Making a proxy of {name}	Vytváření proxy: {name}
+	Uploading {name}	Nahrávání: {name}
+	{name}: uploading from {member}	{name}: nahrává {member}
+	{name} didn't download: {why}	{name} se nestáhl: {why}
+	{name} didn't upload: {why}	{name} se nenahrál: {why}
+	Retry	Zkusit znovu
+	Try the failed downloads and uploads again.	Znovu zkusí neúspěšná stahování a nahrávání.
+	Saving to InFocus Drive	Ukládání na InFocus Drive
+	closing the project	zavřením projektu
+	signing out	odhlášením
+	quitting	ukončením aplikace
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Tvoje poslední úpravy ještě nejsou na InFocus Drive. Pokud teď odejdeš, zůstanou jen na tomto Macu a tým je nedostane.
+	Sending your edits to InFocus Drive before {doing}…	Odesílání úprav na InFocus Drive před {doing}…
+	Wait	Počkat
+	Leave Anyway	Přesto odejít
+	Can't export yet. Still downloading: {list}	Zatím nelze exportovat. Stále se stahuje: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Zatím nelze exportovat. Stále se stahuje: {list} a {count} dalších
+	Asking for the lock…	Žádost o zámek…
+	Edit this sequence. Teammates see it read-only until you release it.	Upravit tuto sekvenci. Tým ji vidí jen pro čtení, dokud ji neuvolníš.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Nechat někoho z týmu upravit tuto sekvenci. Tvoje úpravy se nejdřív uloží na Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Jen pro čtení: {who}. Upravovat můžeš, až bude zámek volný.
+	Release Lock	Uvolnit zámek
+	Requested	Vyžádáno
+	Take	Převzít
+	Take Lock	Převzít zámek
+	Take the lock to edit this sequence.	Převezmi zámek, abys mohl(a) upravit tuto sekvenci.
+	Team	Tým
+	Team video editing for InFocus, synced through InFocus Drive.	Týmový střih videa pro InFocus, synchronizovaný přes InFocus Drive.
+	You're editing this sequence.	Upravuješ tuto sekvenci.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Upravuješ tuto sekvenci. Některé úpravy ještě nejsou na Drive.

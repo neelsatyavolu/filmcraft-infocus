@@ -1,23 +1,78 @@
-//! Team panel (InFocus Cut): sign in to InFocus Drive, list the team projects with who is editing
-//! and any cleanup notice, open one or make the current project a team project, and follow the
-//! open project's connection and media downloads. It draws a [`TeamView`] the host's
-//! [`TeamUi`](crate::team_ui::TeamUi) gives it and sends back [`TeamAction`]s; without that host
-//! hook (the web app) it only says team editing needs the desktop app.
+//! Team panel (InFocus Cut): sign in to InFocus Drive, answer invitations, make the open project a
+//! team project and invite teammates to it, list the team projects with their members, who is
+//! editing what and their footage, and follow the open project's connection, footage downloads,
+//! proxies and uploads. It draws a [`TeamView`] the host's [`TeamUi`](crate::team_ui::TeamUi)
+//! gives it and sends back [`TeamAction`]s; without that host hook (the web app) it only says team
+//! editing needs the desktop app.
 //!
-//! Automation ids: `team.signIn`, `team.signOut`, `team.error`, `team.error.dismiss`,
-//! `team.status`, `team.leave`, `team.download.<n>`, `team.failure.<n>`, `team.retry`,
-//! `team.create.name`, `team.create`, `team.refresh`, `team.project.<id>`,
-//! `team.project.<id>.open`, `team.project.<id>.cleanup`, `team.project.<id>.keep`,
-//! `team.project.<id>.keepForever`.
+//! - [`projects`]: invitations, the project list and the "New Team Project" form.
+//! - [`invite`]: the invite picker (after creating a project, or Invite… on a project).
+//! - [`open`]: the open project: connection, footage, downloads, proxies and uploads.
+//!
+//! Automation ids: `team.signIn`, `team.signOut`, `team.status`, `team.error`,
+//! `team.error.dismiss`, `team.busy`, `team.empty`, `team.new`, `team.create.name`, `team.create`,
+//! `team.create.cancel`, `team.refresh`, `team.invitation.<id>`, `team.invitation.<id>.join`,
+//! `team.invitation.<id>.decline`, `team.project.<id>`, `team.project.<id>.open`,
+//! `team.project.<id>.members`, `team.project.<id>.footage`, `team.project.<id>.invite`,
+//! `team.project.<id>.invited.<user>.cancel`, `team.project.<id>.leaveTeam`,
+//! `team.project.<id>.cleanup`, `team.project.<id>.keep`, `team.project.<id>.keepForever`,
+//! `team.confirm.leave`, `team.confirm.cancel`, `team.invite.search`,
+//! `team.invite.person.<user>`, `team.invite.send`, `team.invite.skip`, `team.open`,
+//! `team.leave`, `team.footage.add`, `team.download.<n>`, `team.proxy.<n>`, `team.upload.<n>`,
+//! `team.incoming.<n>`, `team.failure.<n>`, `team.upload_failure.<n>`, `team.retry`.
 
-use egui::{Align2, Color32, Rect, RichText, Sense, pos2, vec2};
+mod invite;
+mod open;
+mod projects;
+
+use std::collections::BTreeSet;
+
+use egui::{Color32, Rect, RichText, vec2};
 
 use crate::FilmcraftApp;
-use crate::team_ui::{TeamAction, TeamOpenView, TeamPhase, TeamProjectRow, TeamView};
+use crate::team_ui::{TeamAction, TeamPhase, TeamView};
 use crate::theme::Tokens;
 
 /// Automation elements collected while drawing: (id, rect, label).
 type Elems = Vec<(String, Rect, String)>;
+
+/// Space between the panel's sections.
+const SECTION_GAP: f32 = 12.0;
+
+/// What the panel remembers between frames (not part of the project).
+#[derive(Clone, Debug, Default)]
+struct PanelState {
+    /// The "New Team Project" form is showing.
+    creating: bool,
+    /// Its name field.
+    name: String,
+    /// The invite picker is showing for this project.
+    invite_for: Option<String>,
+    /// The picker's search text and ticked user names.
+    query: String,
+    picked: BTreeSet<String>,
+    /// Asking "Leave this project?" for this project.
+    confirm_leave: Option<String>,
+}
+
+/// What the panel asks of the app after drawing.
+#[derive(Default)]
+struct Out {
+    elems: Elems,
+    actions: Vec<TeamAction>,
+    /// Show the file picker for "Add Footage…".
+    pick_footage: bool,
+}
+
+impl Out {
+    fn elem(&mut self, id: impl Into<String>, r: Rect, label: impl Into<String>) {
+        self.elems.push((id.into(), r, label.into()));
+    }
+}
+
+fn state_id() -> egui::Id {
+    egui::Id::unique("team-panel-state")
+}
 
 pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
@@ -26,442 +81,220 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
         return;
     };
     let in_team = app.session.team.is_some();
-    let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect.shrink2(vec2(8.0, 6.0))));
+    let session_name = app.session.path.as_deref().and_then(|p| std::path::Path::new(p).file_stem()).map(|n| n.to_string_lossy().into_owned());
+    let mut st: PanelState = ui.data_mut(|d| d.get_temp(state_id())).unwrap_or_default();
+    let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect.shrink2(vec2(10.0, 8.0))));
     let ui = &mut child;
-    let mut elems: Elems = Vec::new();
-    let mut actions: Vec<TeamAction> = Vec::new();
+    let mut out = Out::default();
     egui::ScrollArea::vertical().id_salt("team-panel-scroll").auto_shrink([false, false]).show(ui, |ui| {
+        ui.spacing_mut().item_spacing.y = 4.0;
         if view.phase == TeamPhase::SignedOut {
-            return signed_out(ui, &t, &view, &mut elems, &mut actions);
+            return signed_out(ui, &t, &view, &mut out);
         }
-        account_row(ui, &t, &view, &mut elems, &mut actions);
+        account_row(ui, &t, &view, &mut out);
         if let Some(e) = &view.error {
-            error_row(ui, &t, e, &mut elems, &mut actions);
+            error_row(ui, &t, e, &mut out);
         }
         if let Some(busy) = &view.busy {
             ui.horizontal(|ui| {
                 ui.add(egui::Spinner::new().size(12.0));
-                ui.label(RichText::new(crate::i18n::t(busy)).color(t.text_dim));
+                let text = crate::i18n::t(busy);
+                let r = ui.label(RichText::new(text).color(t.text_dim));
+                out.elem("team.busy", r.rect, text);
             });
         }
-        match view.phase {
-            TeamPhase::SignedOut | TeamPhase::Connecting => {}
-            TeamPhase::SignedIn => {
-                if let Some(open) = &view.open {
-                    open_project(ui, &t, open, &mut elems, &mut actions);
-                }
-                create_row(ui, in_team, &mut elems, &mut actions);
-                project_list(ui, &t, &view, &mut elems, &mut actions);
-            }
+        if view.phase != TeamPhase::SignedIn {
+            return;
         }
+        if let Some(id) = view.invite_prompt.clone()
+            && st.invite_for.is_none()
+        {
+            st.invite_for = Some(id);
+            st.picked.clear();
+            st.query.clear();
+        }
+        ui.add_space(4.0);
+        if let Some(id) = st.invite_for.clone() {
+            invite::picker(ui, &t, &view, &id, &mut st, &mut out);
+        }
+        projects::invitations(ui, &t, &view, &mut out);
+        if let Some(open) = &view.open {
+            let row = view.projects.iter().find(|p| p.id == open.id);
+            open::section(ui, &t, open, row, &mut st, &mut out);
+        }
+        projects::list(ui, &t, &view, in_team, session_name.as_deref(), &mut st, &mut out);
     });
-    for (id, r, label) in elems {
+    ui.data_mut(|d| d.insert_temp(state_id(), st));
+    for (id, r, label) in out.elems {
         app.auto.add(&id, r, &label);
     }
-    for action in actions {
+    for action in out.actions {
         if let Some(team) = app.hooks.team.as_mut() {
             team.act(&mut app.session, action);
         }
     }
+    if out.pick_footage {
+        pick_footage(app);
+    }
 }
 
-fn account_row(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
+/// "Add Footage…": the system file picker, then the chosen files go into the open team project.
+fn pick_footage(app: &mut FilmcraftApp) {
+    let exts: Vec<&str> =
+        filmcraft_media::VIDEO_EXTENSIONS.iter().chain(filmcraft_media::AUDIO_EXTENSIONS).chain(filmcraft_media::STILL_EXTENSIONS).copied().collect();
+    app.pick_ui(crate::native_dialogs::FileDialog::open_files(&exts), |app, paths| {
+        if paths.is_empty() {
+            return;
+        }
+        if let Some(team) = app.hooks.team.as_mut() {
+            team.act(&mut app.session, TeamAction::AddFootage(paths));
+        }
+    });
+}
+
+fn account_row(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
     ui.horizontal(|ui| {
         let who = match (view.phase, &view.user) {
             (TeamPhase::SignedIn, Some(user)) => tlf!("Signed in as {user}", user),
             (TeamPhase::Connecting, _) => tl!("Connecting to InFocus Drive…").to_string(),
             _ => tl!("Not signed in").to_string(),
         };
-        let r = ui.label(RichText::new(&who).color(t.text));
-        elems.push(("team.status".into(), r.rect, who));
+        let r = ui.label(RichText::new(&who).color(t.text_dim));
+        out.elem("team.status", r.rect, who);
         if view.phase == TeamPhase::SignedIn {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let r = ui.button(tl!("Sign Out"));
-                elems.push(("team.signOut".into(), r.rect, "Sign Out".into()));
+                let r = ui.small_button(tl!("Sign Out"));
+                out.elem("team.signOut", r.rect, tl!("Sign Out"));
                 if r.clicked() {
-                    actions.push(TeamAction::SignOut);
+                    out.actions.push(TeamAction::SignOut);
                 }
             });
         }
     });
-    ui.add_space(4.0);
+    ui.add_space(2.0);
 }
 
-fn error_row(ui: &mut egui::Ui, t: &Tokens, error: &str, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
-    ui.horizontal(|ui| {
-        let width = (ui.available_width() - 70.0).max(80.0);
-        let r = ui.add_sized([width, 0.0], egui::Label::new(RichText::new(error).color(t.danger)).wrap());
-        elems.push(("team.error".into(), r.rect, error.to_string()));
-        let r = ui.small_button(tl!("Dismiss"));
-        elems.push(("team.error.dismiss".into(), r.rect, "Dismiss".into()));
-        if r.clicked() {
-            actions.push(TeamAction::ClearError);
-        }
+/// What to do about an error, in plain words, when the message alone doesn't say.
+fn next_step(error: &str) -> Option<&'static str> {
+    if error.starts_with("Can't reach InFocus Drive") {
+        Some(tl!("Check that this Mac is online, then press Refresh."))
+    } else if error.starts_with("Sign in to InFocus Drive again") {
+        Some(tl!("Press Sign In to continue."))
+    } else if error.starts_with("InFocus Drive settings") {
+        Some(tl!("Ask whoever runs your InFocus Drive for its address."))
+    } else if error.starts_with("You don't have access") || error.starts_with("Not found") {
+        Some(tl!("Press Refresh. If it's still missing, ask a teammate to invite you again."))
+    } else {
+        None
+    }
+}
+
+fn error_row(ui: &mut egui::Ui, t: &Tokens, error: &str, out: &mut Out) {
+    let frame = egui::Frame::new().fill(t.danger.gamma_multiply(0.12)).corner_radius(4.0).inner_margin(egui::Margin::symmetric(8, 6));
+    frame.show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        ui.horizontal(|ui| {
+            let width = (ui.available_width() - 64.0).max(80.0);
+            ui.vertical(|ui| {
+                ui.set_width(width);
+                let r = ui.add(egui::Label::new(RichText::new(error).color(t.danger)).wrap());
+                out.elem("team.error", r.rect, error);
+                if let Some(step) = next_step(error) {
+                    ui.add(egui::Label::new(RichText::new(step).small().color(t.text_dim)).wrap());
+                }
+            });
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+                let r = ui.small_button(tl!("Dismiss"));
+                out.elem("team.error.dismiss", r.rect, tl!("Dismiss"));
+                if r.clicked() {
+                    out.actions.push(TeamAction::ClearError);
+                }
+            });
+        });
     });
     ui.add_space(4.0);
 }
 
 /// Signed out: one short block in the middle of the panel, as other panels show their empty
 /// state, so the panel isn't a line at the top over empty space.
-fn signed_out(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
+fn signed_out(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
     // centred on the block's height last frame; a narrow panel scrolls instead of cutting it off
     let height_id = egui::Id::unique("team-signed-out-height");
-    let block = ui.data(|d| d.get_temp::<f32>(height_id)).unwrap_or(110.0);
+    let block = ui.data(|d| d.get_temp::<f32>(height_id)).unwrap_or(150.0);
     ui.add_space(((ui.available_height() - block) / 2.0).max(0.0));
     let r = ui.vertical_centered(|ui| {
+        ui.set_max_width(360.0);
         let status = tl!("Not signed in");
-        let r = ui.label(RichText::new(status).strong().color(t.text));
-        elems.push(("team.status".into(), r.rect, status.into()));
-        ui.label(RichText::new(tl!("Sign in to InFocus Drive to edit projects with your team.")).color(t.text_dim));
+        let r = ui.label(RichText::new(tl!("Edit together on InFocus Drive")).strong().size(14.0).color(t.text));
+        out.elem("team.status", r.rect, status);
+        ui.add(
+            egui::Label::new(
+                RichText::new(tl!("Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.")).color(t.text_dim),
+            )
+            .wrap(),
+        );
         if let Some(e) = &view.error {
+            ui.add_space(4.0);
             let r = ui.add(egui::Label::new(RichText::new(e).color(t.danger)).wrap());
-            elems.push(("team.error".into(), r.rect, e.clone()));
+            out.elem("team.error", r.rect, e);
+            if let Some(step) = next_step(e) {
+                ui.add(egui::Label::new(RichText::new(step).small().color(t.text_dim)).wrap());
+            }
             let r = ui.small_button(tl!("Dismiss"));
-            elems.push(("team.error.dismiss".into(), r.rect, "Dismiss".into()));
+            out.elem("team.error.dismiss", r.rect, tl!("Dismiss"));
             if r.clicked() {
-                actions.push(TeamAction::ClearError);
+                out.actions.push(TeamAction::ClearError);
             }
         }
-        ui.add_space(8.0);
-        let r = ui.button(tl!("Sign In…"));
-        elems.push(("team.signIn".into(), r.rect, "Sign In…".into()));
+        ui.add_space(10.0);
+        let r = primary_button(ui, t, tl!("Sign In…"), true);
+        out.elem("team.signIn", r.rect, tl!("Sign In…"));
         if r.clicked() {
-            actions.push(TeamAction::SignIn);
+            out.actions.push(TeamAction::SignIn);
         }
+        ui.add_space(2.0);
         ui.label(RichText::new(tl!("Your browser opens to finish signing in.")).small().color(t.text_faint));
     });
     ui.data_mut(|d| d.insert_temp(height_id, r.response.rect.height()));
 }
 
-fn open_project(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
-    section(ui, t, tl!("Open project"));
-    ui.horizontal(|ui| {
-        let (dot, state) = if open.feed_live { (t.render_green, tl!("Live")) } else { (t.render_yellow, tl!("Reconnecting…")) };
-        let (r, _) = ui.allocate_exact_size(vec2(10.0, 10.0), Sense::hover());
-        ui.painter().circle_filled(r.center(), 4.0, dot);
-        let r = ui.label(RichText::new(&open.name).strong().color(t.text));
-        ui.label(RichText::new(state).color(t.text_dim));
-        elems.push(("team.open".into(), r.rect, format!("{} ({state})", open.name)));
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            let r = ui.button(tl!("Leave"));
-            elems.push(("team.leave".into(), r.rect, "Leave".into()));
-            if r.on_hover_text(tl!("Stop editing as a team. Your locks are released.")).clicked() {
-                actions.push(TeamAction::Close);
-            }
-        });
-    });
-    if let Some(e) = &open.link_error
-        && !open.feed_live
-    {
-        ui.label(RichText::new(e).small().color(t.text_faint));
-    }
-    if open.exporting {
-        ui.label(RichText::new(tl!("Downloads and uploads are paused while exporting.")).small().color(t.text_dim));
-    }
-    for (i, (name, frac)) in open.downloads.iter().enumerate() {
-        progress_row(ui, t, name, *frac, format!("team.download.{i}"), elems);
-    }
-    for (i, (name, frac)) in open.uploads.iter().enumerate() {
-        let text = tlf!("Uploading {name}", name);
-        progress_row(ui, t, &text, *frac, format!("team.upload.{i}"), elems);
-    }
-    for (i, (name, member)) in open.incoming.iter().enumerate() {
-        let text = tlf!("{name}: uploading from {member}", name, member);
-        let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.text_dim)).wrap());
-        elems.push((format!("team.incoming.{i}"), r.rect, text));
-    }
-    if !open.failures.is_empty() || !open.upload_failures.is_empty() {
-        for (i, (name, why)) in open.failures.iter().enumerate() {
-            let text = tlf!("{name} didn't download: {why}", name, why);
-            let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.danger)).wrap());
-            elems.push((format!("team.failure.{i}"), r.rect, text));
-        }
-        for (i, (name, why)) in open.upload_failures.iter().enumerate() {
-            let text = tlf!("{name} didn't upload: {why}", name, why);
-            let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.danger)).wrap());
-            elems.push((format!("team.upload_failure.{i}"), r.rect, text));
-        }
-        let r = ui.button(tl!("Retry"));
-        elems.push(("team.retry".into(), r.rect, "Retry".into()));
-        if r.clicked() {
-            actions.push(TeamAction::RetryDownloads);
-        }
-    }
-    ui.add_space(8.0);
+/// The panel's main button: accent fill, as other dialogs' default buttons.
+fn primary_button(ui: &mut egui::Ui, t: &Tokens, text: &str, enabled: bool) -> egui::Response {
+    let button = egui::Button::new(RichText::new(text).color(Color32::WHITE)).fill(t.accent).min_size(vec2(0.0, 24.0)).corner_radius(4.0);
+    ui.add_enabled(enabled, button)
 }
 
-/// A name, its percentage and a progress bar (a download or an upload).
-fn progress_row(ui: &mut egui::Ui, t: &Tokens, name: &str, frac: f32, id: String, elems: &mut Elems) {
-    let frac = frac.clamp(0.0, 1.0);
-    let (r, _) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::hover());
-    let pct = format!("{:.0} %", frac * 100.0);
-    ui.painter().text(r.min + vec2(0.0, 2.0), Align2::LEFT_TOP, name, Tokens::ui(12.0), t.text);
-    ui.painter().text(pos2(r.max.x, r.min.y + 2.0), Align2::RIGHT_TOP, &pct, Tokens::ui(11.0), t.text_dim);
-    let bar = Rect::from_min_max(pos2(r.min.x, r.max.y - 8.0), pos2(r.max.x, r.max.y - 3.0));
-    ui.painter().rect_filled(bar, 2.0, t.field_bg);
-    ui.painter().rect_filled(Rect::from_min_max(bar.min, pos2(bar.min.x + bar.width() * frac, bar.max.y)), 2.0, t.accent);
-    elems.push((id, r, format!("{name}: {pct}")));
+/// A small grey section title with the rule under it.
+fn heading(ui: &mut egui::Ui, t: &Tokens, title: &str) {
+    ui.label(RichText::new(title).strong().color(t.text));
+    let r = ui.available_rect_before_wrap();
+    ui.painter().hline(r.x_range(), r.top(), egui::Stroke::new(1.0, t.separator));
+    ui.add_space(4.0);
 }
 
-fn create_row(ui: &mut egui::Ui, in_team: bool, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
-    if in_team {
-        return;
-    }
-    let draft_id = egui::Id::unique("team-create-name");
-    let mut name = ui.data_mut(|d| d.get_temp::<String>(draft_id)).unwrap_or_default();
-    ui.horizontal(|ui| {
-        let width = (ui.available_width() - 150.0).max(80.0);
-        let r = ui.add(egui::TextEdit::singleline(&mut name).hint_text(tl!("Team project name")).desired_width(width));
-        elems.push(("team.create.name".into(), r.rect, name.clone()));
-        let ok = !name.trim().is_empty();
-        let r = ui.add_enabled(ok, egui::Button::new(tl!("Create Team Project")));
-        elems.push(("team.create".into(), r.rect, "Create Team Project".into()));
-        if r.on_hover_text(tl!("Puts the open project on InFocus Drive as a team project.")).clicked() && ok {
-            actions.push(TeamAction::CreateFromCurrent(name.trim().to_string()));
-            name.clear();
-        }
-    });
-    ui.data_mut(|d| d.insert_temp(draft_id, name));
-    ui.add_space(8.0);
-}
-
-fn project_list(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
-    ui.horizontal(|ui| {
-        ui.label(RichText::new(tl!("Team projects")).strong().color(t.text));
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            let r = ui.small_button(tl!("Refresh"));
-            elems.push(("team.refresh".into(), r.rect, "Refresh".into()));
-            if r.clicked() {
-                actions.push(TeamAction::Refresh);
-            }
-        });
-    });
-    ui.separator();
-    if view.projects.is_empty() {
-        ui.label(RichText::new(tl!("No team projects yet.")).color(t.text_faint));
-        return;
-    }
-    let open_id = view.open.as_ref().map(|o| o.id.as_str());
-    for (i, p) in view.projects.iter().enumerate() {
-        project_row(ui, t, p, open_id == Some(p.id.as_str()), i % 2 == 1, elems, actions);
+/// "1.2 GB" / "340 MB" / "12 KB".
+fn size_text(bytes: u64) -> String {
+    const KB: f64 = 1000.0;
+    let b = bytes as f64;
+    if b >= KB * KB * KB {
+        format!("{:.1} GB", b / (KB * KB * KB))
+    } else if b >= KB * KB {
+        format!("{:.0} MB", b / (KB * KB))
+    } else if bytes == 0 {
+        "0 KB".into()
+    } else {
+        format!("{:.0} KB", (b / KB).max(1.0))
     }
 }
 
-fn project_row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, is_open: bool, alt: bool, elems: &mut Elems, actions: &mut Vec<TeamAction>) {
-    let frame = egui::Frame::new().fill(if alt { t.row_alt } else { Color32::TRANSPARENT }).inner_margin(egui::Margin::symmetric(6, 4)).corner_radius(3.0);
-    let r = frame.show(ui, |ui| {
-        ui.set_width(ui.available_width());
-        ui.horizontal(|ui| {
-            ui.label(RichText::new(&p.name).strong().color(t.text));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if is_open {
-                    ui.label(RichText::new(tl!("Open")).color(t.text_dim));
-                } else {
-                    let r = ui.button(tl!("Open"));
-                    elems.push((format!("team.project.{}.open", p.id), r.rect, "Open".into()));
-                    if r.clicked() {
-                        actions.push(TeamAction::Open(p.id.clone()));
-                    }
-                }
-            });
-        });
-        let editing = if p.editors.is_empty() { tl!("No one is editing").to_string() } else { tlf!("Editing now: {names}", names = p.editors.join(", ")) };
-        ui.label(RichText::new(editing).small().color(t.text_dim));
-        if let Some(day) = &p.moves_on
-            && !p.keep_forever
-        {
-            ui.horizontal(|ui| {
-                let text = tlf!("Moves to the Drive's recycle bin on {date}", date = day);
-                let r = ui.label(RichText::new(&text).small().color(t.render_yellow));
-                elems.push((format!("team.project.{}.cleanup", p.id), r.rect, text));
-                let r = ui.small_button(tl!("Keep"));
-                elems.push((format!("team.project.{}.keep", p.id), r.rect, "Keep".into()));
-                if r.on_hover_text(tl!("Keeps the project for another 30 days.")).clicked() {
-                    actions.push(TeamAction::Keep(p.id.clone()));
-                }
-            });
-        }
-        let mut keep = p.keep_forever;
-        let r = ui.checkbox(&mut keep, RichText::new(tl!("Keep forever")).small());
-        elems.push((format!("team.project.{}.keepForever", p.id), r.rect, "Keep forever".into()));
-        if r.on_hover_text(tl!("Never move this project to the recycle bin. Only its creator or a Drive admin can change this.")).changed() {
-            actions.push(TeamAction::SetKeepForever(p.id.clone(), keep));
-        }
-    });
-    elems.push((format!("team.project.{}", p.id), r.response.rect, p.name.clone()));
-}
-
-fn section(ui: &mut egui::Ui, t: &Tokens, title: &str) {
-    ui.label(RichText::new(title).small().color(t.text_faint));
+/// "3 files · 1.2 GB" (no files: "No footage yet").
+fn footage_text(count: u64, bytes: u64) -> String {
+    match count {
+        0 => tl!("No footage yet").into(),
+        1 => tlf!("1 file · {size}", size = size_text(bytes)),
+        n => tlf!("{n} files · {size}", n, size = size_text(bytes)),
+    }
 }
 
 #[cfg(test)]
-mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    use filmcraft_engine::Session;
-
-    use super::*;
-    use crate::team_ui::TeamUi;
-
-    /// A team host that shows a fixed view and records what the panel asks for.
-    struct Fake {
-        view: TeamView,
-        acts: Rc<RefCell<Vec<TeamAction>>>,
-    }
-
-    impl TeamUi for Fake {
-        fn poll(&mut self, _s: &mut Session) {}
-        fn view(&self, _s: &Session) -> TeamView {
-            self.view.clone()
-        }
-        fn act(&mut self, _s: &mut Session, action: TeamAction) {
-            self.acts.borrow_mut().push(action);
-        }
-        fn export_missing(&mut self, _s: &Session, _sequences: &[filmcraft_project::ItemId]) -> Vec<filmcraft_project::ItemId> {
-            Vec::new()
-        }
-        fn set_exporting(&mut self, _exporting: bool) {}
-        fn exporting(&self) -> bool {
-            false
-        }
-        fn active(&self) -> bool {
-            false
-        }
-    }
-
-    fn app_with(view: TeamView) -> (FilmcraftApp, Rc<RefCell<Vec<TeamAction>>>) {
-        let acts: Rc<RefCell<Vec<TeamAction>>> = Rc::default();
-        let mut app = FilmcraftApp::new(Session::default());
-        app.hooks.team = Some(Box::new(Fake { view, acts: acts.clone() }));
-        (app, acts)
-    }
-
-    struct Harness {
-        ctx: egui::Context,
-        time: f64,
-    }
-
-    impl Harness {
-        fn frame(&mut self, app: &mut FilmcraftApp, events: Vec<egui::Event>) {
-            app.auto.begin_frame();
-            self.time += 0.05;
-            let input = egui::RawInput {
-                time: Some(self.time),
-                events,
-                screen_rect: Some(Rect::from_min_size(pos2(0.0, 0.0), vec2(420.0, 600.0))),
-                ..Default::default()
-            };
-            self.ctx
-                .run_ui(input, |ui| {
-                    let rect = ui.max_rect();
-                    show(app, ui, rect);
-                })
-                .textures_delta
-                .clear();
-        }
-        fn click(&mut self, app: &mut FilmcraftApp, id: &str) {
-            let e = app.auto.find(id).unwrap_or_else(|| panic!("no {id}"));
-            let p = pos2(e.rect[0] + e.rect[2] / 2.0, e.rect[1] + e.rect[3] / 2.0);
-            let b = |pressed| egui::Event::PointerButton { pos: p, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
-            for events in [vec![egui::Event::PointerMoved(p)], vec![b(true)], vec![b(false)], Vec::new()] {
-                self.frame(app, events);
-            }
-        }
-    }
-
-    fn harness() -> Harness {
-        Harness { ctx: egui::Context::default(), time: 0.0 }
-    }
-
-    fn label(app: &FilmcraftApp, id: &str) -> Option<String> {
-        app.auto.find(id).map(|e| e.label.clone())
-    }
-
-    #[test]
-    fn team_panel_lists_projects_from_fake_client() {
-        let view = TeamView {
-            phase: TeamPhase::SignedIn,
-            user: Some("maya".into()),
-            projects: vec![
-                TeamProjectRow { id: "p1".into(), name: "Robotics".into(), editors: vec!["ana".into()], moves_on: None, keep_forever: false },
-                TeamProjectRow { id: "p2".into(), name: "Homecoming".into(), editors: vec![], moves_on: Some("Nov 30, 2026".into()), keep_forever: false },
-            ],
-            ..Default::default()
-        };
-        let (mut app, acts) = app_with(view);
-        let mut h = harness();
-        for _ in 0..3 {
-            h.frame(&mut app, Vec::new());
-        }
-        assert_eq!(label(&app, "team.status").as_deref(), Some("Signed in as maya"));
-        assert_eq!(label(&app, "team.project.p1").as_deref(), Some("Robotics"));
-        assert_eq!(label(&app, "team.project.p2").as_deref(), Some("Homecoming"));
-        assert_eq!(label(&app, "team.project.p2.cleanup").as_deref(), Some("Moves to the Drive's recycle bin on Nov 30, 2026"));
-        assert!(app.auto.find("team.project.p1.cleanup").is_none(), "no notice, no banner");
-        h.click(&mut app, "team.project.p2.keep");
-        h.click(&mut app, "team.project.p1.open");
-        assert_eq!(*acts.borrow(), vec![TeamAction::Keep("p2".into()), TeamAction::Open("p1".into())]);
-    }
-
-    #[test]
-    fn signed_out_offers_sign_in() {
-        let (mut app, acts) = app_with(TeamView::default());
-        let mut h = harness();
-        for _ in 0..3 {
-            h.frame(&mut app, Vec::new());
-        }
-        assert_eq!(label(&app, "team.status").as_deref(), Some("Not signed in"));
-        assert!(app.auto.find("team.signOut").is_none());
-        h.click(&mut app, "team.signIn");
-        assert_eq!(*acts.borrow(), vec![TeamAction::SignIn]);
-    }
-
-    #[test]
-    fn open_project_shows_downloads_failures_and_connection() {
-        let view = TeamView {
-            phase: TeamPhase::SignedIn,
-            user: Some("maya".into()),
-            error: Some("The Drive refused: only the creator can change this".into()),
-            open: Some(TeamOpenView {
-                id: "p1".into(),
-                name: "Robotics".into(),
-                feed_live: false,
-                link_error: Some("connection reset".into()),
-                downloads: vec![("A001.mov".into(), 0.25)],
-                failures: vec![("A002.mov".into(), "disk full".into())],
-                uploads: vec![("B001.mov".into(), 0.5)],
-                upload_failures: vec![("B002.mov".into(), "file is gone".into())],
-                incoming: vec![("C001.mov".into(), "maya".into())],
-                exporting: false,
-            }),
-            projects: vec![TeamProjectRow { id: "p1".into(), name: "Robotics".into(), ..Default::default() }],
-            ..Default::default()
-        };
-        let (mut app, acts) = app_with(view);
-        let mut h = harness();
-        for _ in 0..3 {
-            h.frame(&mut app, Vec::new());
-        }
-        assert_eq!(label(&app, "team.open").as_deref(), Some("Robotics (Reconnecting…)"));
-        assert_eq!(label(&app, "team.download.0").as_deref(), Some("A001.mov: 25 %"));
-        assert_eq!(label(&app, "team.failure.0").as_deref(), Some("A002.mov didn't download: disk full"));
-        assert_eq!(label(&app, "team.upload.0").as_deref(), Some("Uploading B001.mov: 50 %"));
-        assert_eq!(label(&app, "team.upload_failure.0").as_deref(), Some("B002.mov didn't upload: file is gone"));
-        assert_eq!(label(&app, "team.incoming.0").as_deref(), Some("C001.mov: uploading from maya"));
-        assert!(app.auto.find("team.project.p1.open").is_none(), "the open project has no Open button");
-        h.click(&mut app, "team.retry");
-        h.click(&mut app, "team.error.dismiss");
-        assert_eq!(*acts.borrow(), vec![TeamAction::RetryDownloads, TeamAction::ClearError]);
-    }
-
-    #[test]
-    fn without_the_host_hook_there_is_no_team_panel() {
-        let app = FilmcraftApp::new(Session::default());
-        let team = crate::menus::panel_command_id(crate::dock::PanelKind::Team);
-        assert!(crate::menus::menu_items(&app).iter().all(|it| it.id != team));
-        let (app, _) = app_with(TeamView::default());
-        assert!(crate::menus::menu_items(&app).iter().any(|it| it.id == team));
-    }
-}
+mod tests;

@@ -3691,3 +3691,113 @@
 	Toggle Color Grading Section	Farbgrading-Abschnitt umschalten
 	Color Grading Section	Farbgrading-Abschnitt
 	Read Video Scopes	Videoskope auslesen
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Teammitglieder zu „{name}“ einladen
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Dein Projekt ist auf InFocus Drive. Wähle aus, mit wem du es machst: Sie bekommen eine Einladung in ihrem Team-Bedienfeld.
+	They get an invitation in their Team panel.	Sie bekommen eine Einladung in ihrem Team-Bedienfeld.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Noch kann niemand eingeladen werden. Deine Teammitglieder brauchen zuerst ein InFocus-Drive-Konto.
+	Everyone on InFocus Drive is already in this project or invited.	Alle auf InFocus Drive sind schon in diesem Projekt oder eingeladen.
+	Search by name	Nach Namen suchen
+	A project can have up to {n} people.	Ein Projekt kann bis zu {n} Personen haben.
+	No one matches that name.	Kein Name passt.
+	Send Invitations	Einladungen senden
+	Invite 1 Person	1 Person einladen
+	Invite {n} People	{n} Personen einladen
+	Skip for Now	Später
+	You can invite people later with Invite… on the project.	Du kannst später mit „Einladen…“ am Projekt weitere Leute einladen.
+	Team editing is available in the desktop app.	Teambearbeitung gibt es in der Desktop-App.
+	Signed in as {user}	Angemeldet als {user}
+	Connecting to InFocus Drive…	Verbindung zu InFocus Drive…
+	Not signed in	Nicht angemeldet
+	Sign Out	Abmelden
+	Check that this Mac is online, then press Refresh.	Prüfe, ob dieser Mac online ist, und klicke dann auf Aktualisieren.
+	Press Sign In to continue.	Klicke auf Anmelden, um fortzufahren.
+	Ask whoever runs your InFocus Drive for its address.	Frag die Person, die euer InFocus Drive betreut, nach der Adresse.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Klicke auf Aktualisieren. Fehlt es dann noch, bitte ein Teammitglied, dich erneut einzuladen.
+	Dismiss	Schließen
+	Edit together on InFocus Drive	Gemeinsam schneiden mit InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Melde dich mit deinem InFocus-Drive-Konto an, um ein Teamprojekt anzulegen, Mitschüler einzuladen und Material zu teilen.
+	Sign In…	Anmelden…
+	Your browser opens to finish signing in.	Dein Browser öffnet sich, um die Anmeldung abzuschließen.
+	No footage yet	Noch kein Material
+	1 file · {size}	1 Datei · {size}
+	{n} files · {size}	{n} Dateien · {size}
+	Invitations	Einladungen
+	Invited by {name}	Eingeladen von {name}
+	You're invited to this project	Du bist zu diesem Projekt eingeladen
+	Decline	Ablehnen
+	Turn the invitation down. A teammate can invite you again.	Die Einladung ablehnen. Ein Teammitglied kann dich erneut einladen.
+	Join	Beitreten
+	Join and open the project. Footage downloads when you open a sequence.	Beitreten und das Projekt öffnen. Das Material wird geladen, wenn du eine Sequenz öffnest.
+	Your team projects	Deine Teamprojekte
+	Check InFocus Drive for new invitations and changes.	Auf InFocus Drive nach neuen Einladungen und Änderungen suchen.
+	New Team Project…	Neues Teamprojekt…
+	Leave the open team project first, then make a new one.	Verlasse zuerst das geöffnete Teamprojekt und lege dann ein neues an.
+	Put the project you have open on InFocus Drive for your team.	Das geöffnete Projekt für dein Team auf InFocus Drive stellen.
+	No team projects yet	Noch keine Teamprojekte
+	Join an invitation above, or make a team project from the project you have open.	Nimm oben eine Einladung an oder lege aus dem geöffneten Projekt ein Teamprojekt an.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Lege eines aus dem geöffneten Projekt an und lade dann deine Teammitglieder ein. Oder bitte jemanden, dich einzuladen: Einladungen erscheinen hier.
+	New team project	Neues Teamprojekt
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Dein geöffnetes Projekt, seine Sequenzen und sein Material kommen auf InFocus Drive. Das Material wird im Hintergrund hochgeladen, während du weiterschneidest.
+	Project name, like “Homecoming Video”	Projektname, z. B. „Abschlussfilm“
+	Create and Invite…	Anlegen und einladen…
+	You're editing {sequence}	Du bearbeitest {sequence}
+	You're editing a sequence	Du bearbeitest eine Sequenz
+	{name} is editing {sequence}	{name} bearbeitet {sequence}
+	{name} is editing a sequence	{name} bearbeitet eine Sequenz
+	Open now	Jetzt geöffnet
+	Open this project here. Footage downloads when you open a sequence.	Dieses Projekt hier öffnen. Das Material wird geladen, wenn du eine Sequenz öffnest.
+	Team: {names}	Team: {names}
+	Open to everyone on InFocus Drive	Offen für alle auf InFocus Drive
+	Invited: {name}	Eingeladen: {name}
+	Take this invitation back.	Diese Einladung zurückziehen.
+	No one is editing right now	Gerade bearbeitet niemand etwas
+	Moves to the Drive's recycle bin on {date}	Kommt am {date} in den Papierkorb des Drive
+	Keep	Behalten
+	Keeps the project for another 30 days.	Behält das Projekt weitere 30 Tage.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Dieses Projekt verlassen? Es verschwindet aus deiner Liste, und dein Team arbeitet weiter daran. Jemand kann dich wieder einladen.
+	Leave Project	Projekt verlassen
+	Invite…	Einladen…
+	Invite teammates to this project.	Teammitglieder zu diesem Projekt einladen.
+	Keep forever	Für immer behalten
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Dieses Projekt nie in den Papierkorb verschieben. Nur die Person, die es angelegt hat, oder ein Drive-Admin kann das ändern.
+	Leave Project…	Projekt verlassen…
+	Live	Live
+	Reconnecting…	Verbindung wird wiederhergestellt…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Hier nicht mehr an diesem Projekt arbeiten. Deine Änderungen gehen vorher an das Drive, und deine Sperren werden freigegeben.
+	Add Footage…	Material hinzufügen…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Wähle Videos, Audio oder Fotos. Sie kommen in dieses Projekt und werden auf InFocus Drive hochgeladen, damit dein Team sie bekommt.
+	Downloads and uploads are paused while exporting.	Downloads und Uploads pausieren während des Exports.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Material wird auf diesen Mac geladen, wenn du eine Sequenz öffnest, die es nutzt, und dieser Mac erstellt eigene Proxys für flüssiges Schneiden.
+	Downloading {name}	{name} wird geladen
+	Making a proxy of {name}	Proxy von {name} wird erstellt
+	Uploading {name}	{name} wird hochgeladen
+	{name}: uploading from {member}	{name}: wird von {member} hochgeladen
+	{name} didn't download: {why}	{name} wurde nicht geladen: {why}
+	{name} didn't upload: {why}	{name} wurde nicht hochgeladen: {why}
+	Retry	Erneut versuchen
+	Try the failed downloads and uploads again.	Fehlgeschlagene Downloads und Uploads erneut versuchen.
+	Saving to InFocus Drive	Speichern auf InFocus Drive
+	closing the project	das Projekt geschlossen wird
+	signing out	du dich abmeldest
+	quitting	die App beendet wird
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Deine letzten Änderungen sind noch nicht auf InFocus Drive. Wenn du jetzt gehst, bleiben sie nur auf diesem Mac, und dein Team bekommt sie nicht.
+	Sending your edits to InFocus Drive before {doing}…	Deine Änderungen gehen an InFocus Drive, bevor {doing}…
+	Wait	Warten
+	Leave Anyway	Trotzdem verlassen
+	Can't export yet. Still downloading: {list}	Noch kein Export möglich. Wird noch geladen: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Noch kein Export möglich. Wird noch geladen: {list} und {count} weitere
+	Asking for the lock…	Sperre wird angefragt…
+	Edit this sequence. Teammates see it read-only until you release it.	Diese Sequenz bearbeiten. Dein Team sieht sie schreibgeschützt, bis du sie freigibst.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Ein Teammitglied diese Sequenz bearbeiten lassen. Deine Änderungen werden vorher im Drive gespeichert.
+	Read-only: {who}. You can edit it once the lock is free.	Schreibgeschützt: {who}. Du kannst sie bearbeiten, sobald die Sperre frei ist.
+	Release Lock	Sperre freigeben
+	Requested	Angefragt
+	Take	Übernehmen
+	Take Lock	Sperre übernehmen
+	Take the lock to edit this sequence.	Übernimm die Sperre, um diese Sequenz zu bearbeiten.
+	Team	Team
+	Team video editing for InFocus, synced through InFocus Drive.	Videoschnitt im Team für InFocus, synchronisiert über InFocus Drive.
+	You're editing this sequence.	Du bearbeitest diese Sequenz.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Du bearbeitest diese Sequenz. Einige Änderungen sind noch nicht im Drive.

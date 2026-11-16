@@ -20,6 +20,8 @@
 //! - `ui.playback {action: play|stop|toggle, speed?}`
 //! - `ui.screenshot {path?, panel?}`: PNG of the window (or one panel)
 //! - `ui.resize {width, height}` / `ui.focus` / `app.quit`
+//! - `team.*`: InFocus Cut team projects, answered by the host's `TeamUi::control` (debug builds
+//!   of the desktop app only)
 
 use std::sync::mpsc::Sender;
 
@@ -608,6 +610,11 @@ pub fn handle(app: &mut FilmcraftApp, ctx: &egui::Context, req: &ControlRequest)
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             ok(Value::Null)
         }
+        m if m.starts_with("team.") => match app.hooks.team.as_mut().and_then(|team| team.control(&mut app.session, m, p)) {
+            Some(Ok(v)) => ok(v),
+            Some(Err(e)) => err(e),
+            None => err(format!("unknown method `{m}` (team methods need a debug build of the desktop app)")),
+        },
         m => err(format!("unknown method `{m}`")),
     }
 }

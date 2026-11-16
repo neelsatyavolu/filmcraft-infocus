@@ -3,10 +3,11 @@
 //! threads. The UI crate stays free of the network so the web build keeps working.
 
 use chrono::TimeZone;
+use filmcraft_drive::{Person, ProjectSummary, Role};
 use filmcraft_engine::Session;
 use filmcraft_project::ItemId;
 use filmcraft_team_link::{ControllerConfig, Leave, Phase, TeamSessionController};
-use filmcraft_ui_egui::team_ui::{TeamAction, TeamLeave, TeamLeaving, TeamOpenView, TeamPhase, TeamProjectRow, TeamUi, TeamView};
+use filmcraft_ui_egui::team_ui::{TeamAction, TeamLeave, TeamLeaving, TeamOpenView, TeamPerson, TeamPhase, TeamProjectRow, TeamRole, TeamUi, TeamView};
 
 /// The team side of the app; `Err` when the controller could not be set up (shown in the panel).
 pub struct Team(Result<TeamSessionController, String>);
@@ -34,25 +35,55 @@ fn item_name(s: &Session, id: ItemId) -> String {
     s.project.item(id).map_or_else(|| format!("item {}", id.0), |i| i.name.clone())
 }
 
+fn person(p: &Person) -> TeamPerson {
+    TeamPerson { username: p.username.clone(), name: p.shown().to_string() }
+}
+
+/// A project of the list as the panel shows it. Lock holders go by their display name; the
+/// sequences they edit are named when the project is open here.
+fn row(c: &TeamSessionController, s: &Session, p: &ProjectSummary) -> TeamProjectRow {
+    let shown = |user: &str| -> String {
+        // the panel says "You're editing …" for the signed-in member's own user name
+        if c.user() == Some(user) {
+            return user.to_string();
+        }
+        p.members.iter().find(|m| m.username == user).map_or_else(|| user.to_string(), |m| m.shown().to_string())
+    };
+    let is_open = c.open_project().is_some_and(|o| o.id == p.id);
+    let mut editors: Vec<String> = p.locks.values().map(|l| shown(&l.holder)).collect();
+    editors.sort();
+    editors.dedup();
+    let editing = p.locks.iter().map(|(seq, l)| (shown(&l.holder), is_open.then(|| s.project.item(ItemId(*seq)).map(|i| i.name.clone())).flatten())).collect();
+    let role = match p.role {
+        Role::Member => TeamRole::Member,
+        Role::Invited => TeamRole::Invited,
+        Role::Open => TeamRole::Open,
+    };
+    TeamProjectRow {
+        id: p.id.clone(),
+        name: p.name.clone(),
+        role,
+        invited_by: p.invited_by.clone(),
+        members: p.members.iter().map(person).collect(),
+        invites: p.invites.iter().map(|i| TeamPerson { username: i.username.clone(), name: i.shown().to_string() }).collect(),
+        editors,
+        editing,
+        media_count: p.media_count,
+        media_bytes: p.media_bytes,
+        moves_on: p.cleanup.as_ref().and_then(|k| k.move_after).and_then(day),
+        keep_forever: p.cleanup.as_ref().is_some_and(|k| k.keep),
+    }
+}
+
 fn view(c: &TeamSessionController, s: &Session) -> TeamView {
-    let projects = c
-        .projects()
-        .iter()
-        .map(|p| {
-            let mut editors: Vec<String> = p.locks.values().map(|l| l.holder.clone()).collect();
-            editors.sort();
-            editors.dedup();
-            let keep_forever = p.cleanup.as_ref().is_some_and(|k| k.keep);
-            let moves_on = p.cleanup.as_ref().and_then(|k| k.move_after).and_then(day);
-            TeamProjectRow { id: p.id.clone(), name: p.name.clone(), editors, moves_on, keep_forever }
-        })
-        .collect();
+    let projects = c.projects().iter().map(|p| row(c, s, p)).collect();
     let open = c.open_project().map(|o| TeamOpenView {
         id: o.id.clone(),
         name: o.name.clone(),
         feed_live: c.feed_live(),
         link_error: c.link_error(),
         downloads: c.media().map(|m| m.progress().into_iter().map(|(id, f)| (item_name(s, id), f)).collect()).unwrap_or_default(),
+        proxies: c.media().map(|m| m.proxy_progress(s).into_iter().map(|(id, f)| (item_name(s, id), f)).collect()).unwrap_or_default(),
         failures: c.media().map(|m| m.failures().into_iter().map(|(id, e)| (item_name(s, id), e)).collect()).unwrap_or_default(),
         uploads: c.uploads().map(|u| u.progress()).unwrap_or_default(),
         upload_failures: c.uploads().map(|u| u.failures()).unwrap_or_default(),
@@ -65,7 +96,27 @@ fn view(c: &TeamSessionController, s: &Session) -> TeamView {
         Phase::SignedIn => TeamPhase::SignedIn,
     };
     let error = c.error().map(str::to_string).or_else(|| s.team.as_ref().and_then(|t| t.problem.clone()));
-    TeamView { phase, user: c.user().map(str::to_string), busy: c.busy().map(str::to_string), error, projects, open }
+    TeamView {
+        phase,
+        user: c.user().map(str::to_string),
+        busy: c.busy().map(str::to_string),
+        error,
+        projects,
+        open,
+        people: c.people().iter().map(person).collect(),
+        invite_prompt: c.invite_prompt().map(str::to_string),
+    }
+}
+
+/// "Add Footage…": imports the files; a refusal or a failed import shows in the panel.
+fn add_footage(c: &mut TeamSessionController, s: &mut Session, paths: &[String]) {
+    match c.add_footage(s, paths) {
+        Ok(n) => s.log.push(filmcraft_engine::panels::Level::Info, "team", format!("Added {n} footage files to the team project")),
+        Err(e) => {
+            s.log.push(filmcraft_engine::panels::Level::Warning, "team", e.clone());
+            c.report(e);
+        }
+    }
 }
 
 impl TeamUi for Team {
@@ -99,6 +150,14 @@ impl TeamUi for Team {
             TeamAction::LeaveWait => c.leave_wait(s),
             TeamAction::LeaveAnyway => c.leave_anyway(s),
             TeamAction::LeaveCancel => c.cancel_leave(),
+            TeamAction::LoadPeople => c.load_people(),
+            TeamAction::Invite(id, users) => c.invite(&id, &users),
+            TeamAction::CancelInvite(id, user) => c.cancel_invite(&id, &user),
+            TeamAction::Join(id) => c.join(&id),
+            TeamAction::Decline(id) => c.decline(&id),
+            TeamAction::LeaveTeam(id) => c.leave_team(s, &id),
+            TeamAction::DismissInvitePrompt => c.dismiss_invite_prompt(),
+            TeamAction::AddFootage(paths) => add_footage(c, s, &paths),
         }
     }
 
@@ -124,6 +183,17 @@ impl TeamUi for Team {
 
     fn take_quit(&mut self) -> bool {
         self.0.as_mut().is_ok_and(TeamSessionController::take_quit)
+    }
+
+    /// `team.*` control methods, for test scripts driving the app (debug builds only).
+    fn control(&mut self, s: &mut Session, method: &str, params: &serde_json::Value) -> Option<Result<serde_json::Value, String>> {
+        if !cfg!(debug_assertions) {
+            return None;
+        }
+        Some(match self.0.as_mut() {
+            Ok(c) => crate::team_control::handle(c, s, method, params),
+            Err(e) => Err(e.clone()),
+        })
     }
 
     fn export_missing(&mut self, s: &Session, sequences: &[ItemId]) -> Vec<ItemId> {

@@ -3754,3 +3754,113 @@
 	Toggle Color Grading Section	カラーグレーディングのセクションを切り替え
 	Color Grading Section	カラーグレーディングのセクション
 	Read Video Scopes	ビデオスコープを読み取る
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	「{name}」にチームメイトを招待
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	プロジェクトを InFocus Drive に置きました。一緒に作る人を選んでください。相手のチームパネルに招待が届きます。
+	They get an invitation in their Team panel.	相手のチームパネルに招待が届きます。
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	まだ招待できる人がいません。チームメイトにはまず InFocus Drive のアカウントが必要です。
+	Everyone on InFocus Drive is already in this project or invited.	InFocus Drive の全員がすでにこのプロジェクトのメンバーか招待済みです。
+	Search by name	名前で検索
+	A project can have up to {n} people.	1 つのプロジェクトには最大 {n} 人まで参加できます。
+	No one matches that name.	その名前に一致する人はいません。
+	Send Invitations	招待を送信
+	Invite 1 Person	1 人を招待
+	Invite {n} People	{n} 人を招待
+	Skip for Now	今はしない
+	You can invite people later with Invite… on the project.	あとでプロジェクトの「招待…」から招待できます。
+	Team editing is available in the desktop app.	チーム編集はデスクトップアプリで使えます。
+	Signed in as {user}	{user} としてサインイン中
+	Connecting to InFocus Drive…	InFocus Drive に接続中…
+	Not signed in	サインインしていません
+	Sign Out	サインアウト
+	Check that this Mac is online, then press Refresh.	この Mac がオンラインか確認してから、「更新」を押してください。
+	Press Sign In to continue.	続けるには「サインイン」を押してください。
+	Ask whoever runs your InFocus Drive for its address.	InFocus Drive の管理者にアドレスを聞いてください。
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	「更新」を押してください。それでも見つからない場合は、チームメイトにもう一度招待してもらってください。
+	Dismiss	閉じる
+	Edit together on InFocus Drive	InFocus Drive でいっしょに編集
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	InFocus Drive のアカウントでサインインすると、チームプロジェクトを作り、仲間を招待して、素材を共有できます。
+	Sign In…	サインイン…
+	Your browser opens to finish signing in.	ブラウザが開くのでサインインを完了してください。
+	No footage yet	まだ素材がありません
+	1 file · {size}	1 ファイル · {size}
+	{n} files · {size}	{n} ファイル · {size}
+	Invitations	招待
+	Invited by {name}	{name} からの招待
+	You're invited to this project	このプロジェクトに招待されています
+	Decline	辞退
+	Turn the invitation down. A teammate can invite you again.	招待を辞退します。チームメイトはもう一度招待できます。
+	Join	参加
+	Join and open the project. Footage downloads when you open a sequence.	参加してプロジェクトを開きます。素材はシーケンスを開いたときにダウンロードされます。
+	Your team projects	自分のチームプロジェクト
+	Check InFocus Drive for new invitations and changes.	InFocus Drive で新しい招待や変更を確認します。
+	New Team Project…	新規チームプロジェクト…
+	Leave the open team project first, then make a new one.	開いているチームプロジェクトを先に閉じてから、新しく作成してください。
+	Put the project you have open on InFocus Drive for your team.	開いているプロジェクトをチーム用に InFocus Drive に置きます。
+	No team projects yet	チームプロジェクトはまだありません
+	Join an invitation above, or make a team project from the project you have open.	上の招待に参加するか、開いているプロジェクトからチームプロジェクトを作成してください。
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	開いているプロジェクトから作成して、チームメイトを招待しましょう。または誰かに招待してもらってください。招待はここに表示されます。
+	New team project	新規チームプロジェクト
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	開いているプロジェクトとそのシーケンス、素材が InFocus Drive に送られます。素材は編集を続けている間にバックグラウンドでアップロードされます。
+	Project name, like “Homecoming Video”	プロジェクト名（例：「文化祭ビデオ」）
+	Create and Invite…	作成して招待…
+	You're editing {sequence}	{sequence} を編集中
+	You're editing a sequence	シーケンスを編集中
+	{name} is editing {sequence}	{name} が {sequence} を編集中
+	{name} is editing a sequence	{name} がシーケンスを編集中
+	Open now	開いています
+	Open this project here. Footage downloads when you open a sequence.	このプロジェクトをここで開きます。素材はシーケンスを開いたときにダウンロードされます。
+	Team: {names}	チーム：{names}
+	Open to everyone on InFocus Drive	InFocus Drive の全員に公開
+	Invited: {name}	招待中：{name}
+	Take this invitation back.	この招待を取り消します。
+	No one is editing right now	今は誰も編集していません
+	Moves to the Drive's recycle bin on {date}	{date} に Drive のごみ箱へ移動します
+	Keep	残す
+	Keeps the project for another 30 days.	プロジェクトをさらに 30 日残します。
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	このプロジェクトから抜けますか？リストから消え、チームメイトは作業を続けます。もう一度招待してもらうこともできます。
+	Leave Project	プロジェクトから抜ける
+	Invite…	招待…
+	Invite teammates to this project.	このプロジェクトにチームメイトを招待します。
+	Keep forever	ずっと残す
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	このプロジェクトをごみ箱に移動しません。変更できるのは作成者か Drive の管理者だけです。
+	Leave Project…	プロジェクトから抜ける…
+	Live	接続中
+	Reconnecting…	再接続中…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	このプロジェクトでの作業をここで終えます。編集内容は先に Drive に送られ、ロックは解除されます。
+	Add Footage…	素材を追加…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	ビデオ、オーディオ、写真を選びます。このプロジェクトに入り、チームメイトが使えるよう InFocus Drive にアップロードされます。
+	Downloads and uploads are paused while exporting.	書き出し中はダウンロードとアップロードを一時停止しています。
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	素材は、それを使うシーケンスを開いたときにこの Mac にダウンロードされ、スムーズに編集できるようこの Mac が自分でプロキシを作成します。
+	Downloading {name}	{name} をダウンロード中
+	Making a proxy of {name}	{name} のプロキシを作成中
+	Uploading {name}	{name} をアップロード中
+	{name}: uploading from {member}	{name}：{member} がアップロード中
+	{name} didn't download: {why}	{name} をダウンロードできませんでした：{why}
+	{name} didn't upload: {why}	{name} をアップロードできませんでした：{why}
+	Retry	再試行
+	Try the failed downloads and uploads again.	失敗したダウンロードとアップロードをもう一度試します。
+	Saving to InFocus Drive	InFocus Drive に保存中
+	closing the project	プロジェクトを閉じる
+	signing out	サインアウトする
+	quitting	終了する
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	最新の編集内容がまだ InFocus Drive に届いていません。今閉じると、この Mac だけに残り、チームメイトには届きません。
+	Sending your edits to InFocus Drive before {doing}…	{doing}前に、編集内容を InFocus Drive に送信中…
+	Wait	待つ
+	Leave Anyway	このまま閉じる
+	Can't export yet. Still downloading: {list}	まだ書き出せません。ダウンロード中：{list}
+	Can't export yet. Still downloading: {list} and {count} more	まだ書き出せません。ダウンロード中：{list} ほか {count} 件
+	Asking for the lock…	ロックを要求中…
+	Edit this sequence. Teammates see it read-only until you release it.	このシーケンスを編集します。解除するまでチームメイトには読み取り専用で表示されます。
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	このシーケンスの編集をチームメイトに譲ります。編集内容は先に Drive に保存されます。
+	Read-only: {who}. You can edit it once the lock is free.	読み取り専用：{who}。ロックが空いたら編集できます。
+	Release Lock	ロックを解除
+	Requested	要求中
+	Take	取得
+	Take Lock	ロックを取得
+	Take the lock to edit this sequence.	このシーケンスを編集するにはロックを取得してください。
+	Team	チーム
+	Team video editing for InFocus, synced through InFocus Drive.	InFocus のためのチーム動画編集。InFocus Drive で同期します。
+	You're editing this sequence.	このシーケンスを編集中です。
+	You're editing this sequence. Some edits aren't on the Drive yet.	このシーケンスを編集中です。一部の編集内容はまだ Drive にありません。

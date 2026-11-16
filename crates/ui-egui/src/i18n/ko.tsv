@@ -3698,3 +3698,113 @@
 	Toggle Color Grading Section	색 보정 섹션 전환
 	Color Grading Section	색 보정 섹션
 	Read Video Scopes	비디오 스코프 읽기
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	“{name}”에 팀원 초대
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	프로젝트가 InFocus Drive에 올라갔습니다. 함께 만들 사람을 고르세요. 상대방의 팀 패널에 초대가 표시됩니다.
+	They get an invitation in their Team panel.	상대방의 팀 패널에 초대가 표시됩니다.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	아직 초대할 수 있는 사람이 없습니다. 팀원에게 먼저 InFocus Drive 계정이 있어야 합니다.
+	Everyone on InFocus Drive is already in this project or invited.	InFocus Drive의 모든 사람이 이미 이 프로젝트에 있거나 초대되었습니다.
+	Search by name	이름으로 검색
+	A project can have up to {n} people.	프로젝트 하나에 최대 {n}명까지 참여할 수 있습니다.
+	No one matches that name.	일치하는 이름이 없습니다.
+	Send Invitations	초대 보내기
+	Invite 1 Person	1명 초대
+	Invite {n} People	{n}명 초대
+	Skip for Now	나중에
+	You can invite people later with Invite… on the project.	나중에 프로젝트의 초대…로 사람을 초대할 수 있습니다.
+	Team editing is available in the desktop app.	팀 편집은 데스크톱 앱에서 사용할 수 있습니다.
+	Signed in as {user}	{user}(으)로 로그인됨
+	Connecting to InFocus Drive…	InFocus Drive에 연결하는 중…
+	Not signed in	로그인하지 않음
+	Sign Out	로그아웃
+	Check that this Mac is online, then press Refresh.	이 Mac이 온라인인지 확인한 다음 새로 고침을 누르세요.
+	Press Sign In to continue.	계속하려면 로그인을 누르세요.
+	Ask whoever runs your InFocus Drive for its address.	InFocus Drive를 관리하는 사람에게 주소를 물어보세요.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	새로 고침을 누르세요. 그래도 없으면 팀원에게 다시 초대해 달라고 하세요.
+	Dismiss	닫기
+	Edit together on InFocus Drive	InFocus Drive에서 함께 편집하기
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	InFocus Drive 계정으로 로그인하면 팀 프로젝트를 만들고, 친구를 초대하고, 촬영본을 공유할 수 있습니다.
+	Sign In…	로그인…
+	Your browser opens to finish signing in.	로그인을 마치도록 브라우저가 열립니다.
+	No footage yet	아직 촬영본이 없음
+	1 file · {size}	파일 1개 · {size}
+	{n} files · {size}	파일 {n}개 · {size}
+	Invitations	초대
+	Invited by {name}	{name} 님의 초대
+	You're invited to this project	이 프로젝트에 초대되었습니다
+	Decline	거절
+	Turn the invitation down. A teammate can invite you again.	초대를 거절합니다. 팀원이 다시 초대할 수 있습니다.
+	Join	참여
+	Join and open the project. Footage downloads when you open a sequence.	참여하고 프로젝트를 엽니다. 촬영본은 시퀀스를 열 때 다운로드됩니다.
+	Your team projects	내 팀 프로젝트
+	Check InFocus Drive for new invitations and changes.	InFocus Drive에서 새 초대와 변경 사항을 확인합니다.
+	New Team Project…	새 팀 프로젝트…
+	Leave the open team project first, then make a new one.	먼저 열려 있는 팀 프로젝트에서 나간 다음 새로 만드세요.
+	Put the project you have open on InFocus Drive for your team.	열려 있는 프로젝트를 팀을 위해 InFocus Drive에 올립니다.
+	No team projects yet	아직 팀 프로젝트가 없음
+	Join an invitation above, or make a team project from the project you have open.	위의 초대에 참여하거나 열려 있는 프로젝트로 팀 프로젝트를 만드세요.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	열려 있는 프로젝트로 하나 만든 다음 팀원을 초대하세요. 또는 팀원에게 초대해 달라고 하세요. 초대는 여기에 표시됩니다.
+	New team project	새 팀 프로젝트
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	열려 있는 프로젝트와 시퀀스, 촬영본이 InFocus Drive로 갑니다. 편집을 계속하는 동안 촬영본은 백그라운드에서 업로드됩니다.
+	Project name, like “Homecoming Video”	프로젝트 이름(예: “축제 영상”)
+	Create and Invite…	만들고 초대…
+	You're editing {sequence}	{sequence} 편집 중
+	You're editing a sequence	시퀀스 편집 중
+	{name} is editing {sequence}	{name} 님이 {sequence} 편집 중
+	{name} is editing a sequence	{name} 님이 시퀀스 편집 중
+	Open now	지금 열림
+	Open this project here. Footage downloads when you open a sequence.	이 프로젝트를 여기에서 엽니다. 촬영본은 시퀀스를 열 때 다운로드됩니다.
+	Team: {names}	팀: {names}
+	Open to everyone on InFocus Drive	InFocus Drive의 모든 사람에게 공개
+	Invited: {name}	초대됨: {name}
+	Take this invitation back.	이 초대를 취소합니다.
+	No one is editing right now	지금은 아무도 편집하지 않음
+	Moves to the Drive's recycle bin on {date}	{date}에 Drive 휴지통으로 이동
+	Keep	유지
+	Keeps the project for another 30 days.	프로젝트를 30일 더 유지합니다.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	이 프로젝트에서 나갈까요? 목록에서 사라지고 팀원들은 계속 작업합니다. 누군가 다시 초대할 수 있습니다.
+	Leave Project	프로젝트 나가기
+	Invite…	초대…
+	Invite teammates to this project.	이 프로젝트에 팀원을 초대합니다.
+	Keep forever	영구 보관
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	이 프로젝트를 휴지통으로 옮기지 않습니다. 만든 사람이나 Drive 관리자만 바꿀 수 있습니다.
+	Leave Project…	프로젝트 나가기…
+	Live	실시간
+	Reconnecting…	다시 연결하는 중…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	여기에서 이 프로젝트 작업을 멈춥니다. 편집 내용은 먼저 Drive로 보내지고 잠금이 해제됩니다.
+	Add Footage…	촬영본 추가…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	비디오, 오디오, 사진을 고르세요. 이 프로젝트에 들어가고 팀원이 받을 수 있도록 InFocus Drive에 업로드됩니다.
+	Downloads and uploads are paused while exporting.	내보내는 동안 다운로드와 업로드가 일시 중지됩니다.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	촬영본은 그것을 쓰는 시퀀스를 열 때 이 Mac으로 다운로드되고, 매끄러운 편집을 위해 이 Mac이 자체 프록시를 만듭니다.
+	Downloading {name}	{name} 다운로드 중
+	Making a proxy of {name}	{name}의 프록시 만드는 중
+	Uploading {name}	{name} 업로드 중
+	{name}: uploading from {member}	{name}: {member} 님이 업로드 중
+	{name} didn't download: {why}	{name}을(를) 다운로드하지 못함: {why}
+	{name} didn't upload: {why}	{name}을(를) 업로드하지 못함: {why}
+	Retry	다시 시도
+	Try the failed downloads and uploads again.	실패한 다운로드와 업로드를 다시 시도합니다.
+	Saving to InFocus Drive	InFocus Drive에 저장하는 중
+	closing the project	프로젝트 닫기
+	signing out	로그아웃
+	quitting	종료
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	최근 편집 내용이 아직 InFocus Drive에 도착하지 않았습니다. 지금 나가면 이 Mac에만 남고 팀원은 받지 못합니다.
+	Sending your edits to InFocus Drive before {doing}…	{doing} 전에 편집 내용을 InFocus Drive로 보내는 중…
+	Wait	기다리기
+	Leave Anyway	그래도 나가기
+	Can't export yet. Still downloading: {list}	아직 내보낼 수 없습니다. 다운로드 중: {list}
+	Can't export yet. Still downloading: {list} and {count} more	아직 내보낼 수 없습니다. 다운로드 중: {list} 외 {count}개
+	Asking for the lock…	잠금 요청 중…
+	Edit this sequence. Teammates see it read-only until you release it.	이 시퀀스를 편집합니다. 해제할 때까지 팀원에게는 읽기 전용으로 보입니다.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	팀원이 이 시퀀스를 편집하게 합니다. 편집 내용은 먼저 Drive에 저장됩니다.
+	Read-only: {who}. You can edit it once the lock is free.	읽기 전용: {who}. 잠금이 풀리면 편집할 수 있습니다.
+	Release Lock	잠금 해제
+	Requested	요청됨
+	Take	가져오기
+	Take Lock	잠금 가져오기
+	Take the lock to edit this sequence.	이 시퀀스를 편집하려면 잠금을 가져오세요.
+	Team	팀
+	Team video editing for InFocus, synced through InFocus Drive.	InFocus를 위한 팀 영상 편집, InFocus Drive로 동기화됩니다.
+	You're editing this sequence.	이 시퀀스를 편집하고 있습니다.
+	You're editing this sequence. Some edits aren't on the Drive yet.	이 시퀀스를 편집하고 있습니다. 일부 편집 내용이 아직 Drive에 없습니다.

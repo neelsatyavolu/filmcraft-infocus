@@ -2020,6 +2020,7 @@ dependencies = [
  "craft-update",
  "eframe",
  "egui",
+ "filmcraft-drive",
  "filmcraft-engine",
  "filmcraft-export",
  "filmcraft-format",

@@ -3749,3 +3749,113 @@
 	{count} selected	Odabrano: {count}
 	{frames} frames ({seconds} s)	{frames} sličica ({seconds} s)
 	{name} already exists, so nothing was exported. To replace it, choose it in the save dialog.	{name} već postoji, pa ništa nije izvezeno. Da ga zamijenite, odaberite ga u dijalogu za čuvanje.
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Pozovi članove tima u „{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Tvoj projekat je na InFocus Driveu. Odaberi s kim ga radiš: dobit će pozivnicu u svom panelu Tim.
+	They get an invitation in their Team panel.	Dobit će pozivnicu u svom panelu Tim.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Još nema koga pozvati. Članovima tima prvo treba račun na InFocus Driveu.
+	Everyone on InFocus Drive is already in this project or invited.	Svi na InFocus Driveu su već u ovom projektu ili su pozvani.
+	Search by name	Traži po imenu
+	A project can have up to {n} people.	Projekat može imati najviše {n} osoba.
+	No one matches that name.	Niko ne odgovara tom imenu.
+	Send Invitations	Pošalji pozivnice
+	Invite 1 Person	Pozovi 1 osobu
+	Invite {n} People	Pozovi osobe: {n}
+	Skip for Now	Ne sada
+	You can invite people later with Invite… on the project.	Kasnije možeš pozvati još ljudi dugmetom Pozovi… na projektu.
+	Team editing is available in the desktop app.	Timska montaža je dostupna u desktop aplikaciji.
+	Signed in as {user}	Prijavljen kao {user}
+	Connecting to InFocus Drive…	Povezivanje s InFocus Driveom…
+	Not signed in	Nisi prijavljen
+	Sign Out	Odjavi se
+	Check that this Mac is online, then press Refresh.	Provjeri je li ovaj Mac na mreži, pa pritisni Osvježi.
+	Press Sign In to continue.	Pritisni Prijavi se da nastaviš.
+	Ask whoever runs your InFocus Drive for its address.	Pitaj za adresu osobu koja vodi vaš InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Pritisni Osvježi. Ako ga i dalje nema, zamoli člana tima da te ponovo pozove.
+	Dismiss	Zatvori
+	Edit together on InFocus Drive	Montirajte zajedno na InFocus Driveu
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Prijavi se računom na InFocus Driveu da napraviš timski projekat, pozoveš drugove iz razreda i dijeliš snimke.
+	Sign In…	Prijavi se…
+	Your browser opens to finish signing in.	Otvara se preglednik da završiš prijavu.
+	No footage yet	Još nema snimaka
+	1 file · {size}	1 datoteka · {size}
+	{n} files · {size}	Datoteke: {n} · {size}
+	Invitations	Pozivnice
+	Invited by {name}	Pozvao/la te {name}
+	You're invited to this project	Pozvan si u ovaj projekat
+	Decline	Odbij
+	Turn the invitation down. A teammate can invite you again.	Odbij pozivnicu. Član tima te može ponovo pozvati.
+	Join	Pridruži se
+	Join and open the project. Footage downloads when you open a sequence.	Pridruži se i otvori projekat. Snimci se preuzimaju kad otvoriš sekvencu.
+	Your team projects	Tvoji timski projekti
+	Check InFocus Drive for new invitations and changes.	Provjeri ima li na InFocus Driveu novih pozivnica i promjena.
+	New Team Project…	Novi timski projekat…
+	Leave the open team project first, then make a new one.	Prvo napusti otvoreni timski projekat, pa napravi novi.
+	Put the project you have open on InFocus Drive for your team.	Stavi otvoreni projekat na InFocus Drive za svoj tim.
+	No team projects yet	Još nema timskih projekata
+	Join an invitation above, or make a team project from the project you have open.	Prihvati pozivnicu iznad ili napravi timski projekat od otvorenog projekta.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Napravi ga od otvorenog projekta, pa pozovi članove tima. Ili zamoli nekoga da te pozove: pozivnice se pojavljuju ovdje.
+	New team project	Novi timski projekat
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Otvoreni projekat, njegove sekvence i snimci idu na InFocus Drive. Snimci se učitavaju u pozadini dok nastavljaš montirati.
+	Project name, like “Homecoming Video”	Naziv projekta, npr. „Video s maturske”
+	Create and Invite…	Napravi i pozovi…
+	You're editing {sequence}	Uređuješ {sequence}
+	You're editing a sequence	Uređuješ sekvencu
+	{name} is editing {sequence}	{name} uređuje {sequence}
+	{name} is editing a sequence	{name} uređuje sekvencu
+	Open now	Sada otvoren
+	Open this project here. Footage downloads when you open a sequence.	Otvori ovaj projekat ovdje. Snimci se preuzimaju kad otvoriš sekvencu.
+	Team: {names}	Tim: {names}
+	Open to everyone on InFocus Drive	Otvoren za sve na InFocus Driveu
+	Invited: {name}	Pozvan/a: {name}
+	Take this invitation back.	Povuci ovu pozivnicu.
+	No one is editing right now	Trenutno niko ne uređuje
+	Moves to the Drive's recycle bin on {date}	Ide u korpu za smeće na Driveu {date}
+	Keep	Zadrži
+	Keeps the project for another 30 days.	Zadržava projekat još 30 dana.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Napustiti ovaj projekat? Nestaje s tvoje liste, a članovi tima nastavljaju raditi na njemu. Neko te može ponovo pozvati.
+	Leave Project	Napusti projekat
+	Invite…	Pozovi…
+	Invite teammates to this project.	Pozovi članove tima u ovaj projekat.
+	Keep forever	Zadrži zauvijek
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Nikad ne premještaj ovaj projekat u korpu za smeće. To može promijeniti samo autor ili administrator Drivea.
+	Leave Project…	Napusti projekat…
+	Live	Uživo
+	Reconnecting…	Ponovno povezivanje…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Prestani raditi na ovom projektu ovdje. Tvoje izmjene se prvo šalju na Drive, a tvoja zaključavanja se oslobađaju.
+	Add Footage…	Dodaj snimke…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Odaberi video, zvuk ili fotografije. Ulaze u ovaj projekat i učitavaju se na InFocus Drive da ih tim dobije.
+	Downloads and uploads are paused while exporting.	Preuzimanja i učitavanja su pauzirana tokom izvoza.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Snimci se preuzimaju na ovaj Mac kad otvoriš sekvencu koja ih koristi, a ovaj Mac sam pravi proksije za glatku montažu.
+	Downloading {name}	Preuzimanje: {name}
+	Making a proxy of {name}	Pravljenje proksija: {name}
+	Uploading {name}	Učitavanje: {name}
+	{name}: uploading from {member}	{name}: učitava {member}
+	{name} didn't download: {why}	{name} nije preuzet: {why}
+	{name} didn't upload: {why}	{name} nije učitan: {why}
+	Retry	Pokušaj ponovo
+	Try the failed downloads and uploads again.	Ponovo pokušaj neuspjela preuzimanja i učitavanja.
+	Saving to InFocus Drive	Spremanje na InFocus Drive
+	closing the project	zatvaranja projekta
+	signing out	odjave
+	quitting	izlaska iz aplikacije
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Tvoje posljednje izmjene još nisu stigle na InFocus Drive. Ako sada odeš, ostaju samo na ovom Macu i tim ih neće dobiti.
+	Sending your edits to InFocus Drive before {doing}…	Slanje izmjena na InFocus Drive prije {doing}…
+	Wait	Čekaj
+	Leave Anyway	Ipak izađi
+	Can't export yet. Still downloading: {list}	Još se ne može izvesti. Još se preuzima: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Još se ne može izvesti. Još se preuzima: {list} i još {count}
+	Asking for the lock…	Traži se zaključavanje…
+	Edit this sequence. Teammates see it read-only until you release it.	Uredi ovu sekvencu. Tim je vidi samo za čitanje dok je ne oslobodiš.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Pusti člana tima da uređuje ovu sekvencu. Tvoje izmjene se prvo spremaju na Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Samo za čitanje: {who}. Možeš uređivati kad zaključavanje bude slobodno.
+	Release Lock	Oslobodi zaključavanje
+	Requested	Zatraženo
+	Take	Preuzmi
+	Take Lock	Preuzmi zaključavanje
+	Take the lock to edit this sequence.	Preuzmi zaključavanje da urediš ovu sekvencu.
+	Team	Tim
+	Team video editing for InFocus, synced through InFocus Drive.	Timska montaža videa za InFocus, sinhronizovana preko InFocus Drivea.
+	You're editing this sequence.	Uređuješ ovu sekvencu.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Uređuješ ovu sekvencu. Neke izmjene još nisu na Driveu.

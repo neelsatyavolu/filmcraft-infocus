@@ -3742,3 +3742,113 @@
 	Toggle Color Grading Section	Växla färggraderingsavsnitt
 	Color Grading Section	Färggraderingsavsnitt
 	Read Video Scopes	Läs av videoskop
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Bjud in lagkamrater till ”{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Ditt projekt finns på InFocus Drive. Välj vilka du gör det med: de får en inbjudan i sin Team-panel.
+	They get an invitation in their Team panel.	De får en inbjudan i sin Team-panel.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Ingen annan kan bjudas in än. Dina lagkamrater behöver först ett InFocus Drive-konto.
+	Everyone on InFocus Drive is already in this project or invited.	Alla på InFocus Drive är redan med i projektet eller inbjudna.
+	Search by name	Sök efter namn
+	A project can have up to {n} people.	Ett projekt kan ha upp till {n} personer.
+	No one matches that name.	Ingen matchar det namnet.
+	Send Invitations	Skicka inbjudningar
+	Invite 1 Person	Bjud in 1 person
+	Invite {n} People	Bjud in {n} personer
+	Skip for Now	Inte nu
+	You can invite people later with Invite… on the project.	Du kan bjuda in fler senare med Bjud in… på projektet.
+	Team editing is available in the desktop app.	Teamredigering finns i skrivbordsappen.
+	Signed in as {user}	Inloggad som {user}
+	Connecting to InFocus Drive…	Ansluter till InFocus Drive…
+	Not signed in	Inte inloggad
+	Sign Out	Logga ut
+	Check that this Mac is online, then press Refresh.	Kontrollera att den här Macen är online och tryck sedan på Uppdatera.
+	Press Sign In to continue.	Tryck på Logga in för att fortsätta.
+	Ask whoever runs your InFocus Drive for its address.	Fråga den som sköter ert InFocus Drive om adressen.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Tryck på Uppdatera. Saknas det fortfarande, be en lagkamrat bjuda in dig igen.
+	Dismiss	Stäng
+	Edit together on InFocus Drive	Redigera tillsammans på InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Logga in med ditt InFocus Drive-konto för att skapa ett teamprojekt, bjuda in klasskamrater och dela material.
+	Sign In…	Logga in…
+	Your browser opens to finish signing in.	Webbläsaren öppnas så att du kan slutföra inloggningen.
+	No footage yet	Inget material än
+	1 file · {size}	1 fil · {size}
+	{n} files · {size}	{n} filer · {size}
+	Invitations	Inbjudningar
+	Invited by {name}	Inbjuden av {name}
+	You're invited to this project	Du är inbjuden till det här projektet
+	Decline	Avböj
+	Turn the invitation down. A teammate can invite you again.	Avböj inbjudan. En lagkamrat kan bjuda in dig igen.
+	Join	Gå med
+	Join and open the project. Footage downloads when you open a sequence.	Gå med och öppna projektet. Materialet hämtas när du öppnar en sekvens.
+	Your team projects	Dina teamprojekt
+	Check InFocus Drive for new invitations and changes.	Leta efter nya inbjudningar och ändringar på InFocus Drive.
+	New Team Project…	Nytt teamprojekt…
+	Leave the open team project first, then make a new one.	Lämna det öppna teamprojektet först och skapa sedan ett nytt.
+	Put the project you have open on InFocus Drive for your team.	Lägg det öppna projektet på InFocus Drive för ditt team.
+	No team projects yet	Inga teamprojekt än
+	Join an invitation above, or make a team project from the project you have open.	Gå med via en inbjudan ovan eller skapa ett teamprojekt av det öppna projektet.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Skapa ett av det öppna projektet och bjud sedan in dina lagkamrater. Eller be någon bjuda in dig: inbjudningar visas här.
+	New team project	Nytt teamprojekt
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Det öppna projektet, dess sekvenser och material skickas till InFocus Drive. Materialet laddas upp i bakgrunden medan du fortsätter redigera.
+	Project name, like “Homecoming Video”	Projektnamn, t.ex. ”Balvideo”
+	Create and Invite…	Skapa och bjud in…
+	You're editing {sequence}	Du redigerar {sequence}
+	You're editing a sequence	Du redigerar en sekvens
+	{name} is editing {sequence}	{name} redigerar {sequence}
+	{name} is editing a sequence	{name} redigerar en sekvens
+	Open now	Öppet nu
+	Open this project here. Footage downloads when you open a sequence.	Öppna projektet här. Materialet hämtas när du öppnar en sekvens.
+	Team: {names}	Team: {names}
+	Open to everyone on InFocus Drive	Öppet för alla på InFocus Drive
+	Invited: {name}	Inbjuden: {name}
+	Take this invitation back.	Dra tillbaka inbjudan.
+	No one is editing right now	Ingen redigerar just nu
+	Moves to the Drive's recycle bin on {date}	Flyttas till Drivens papperskorg {date}
+	Keep	Behåll
+	Keeps the project for another 30 days.	Behåller projektet i 30 dagar till.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Lämna projektet? Det försvinner från din lista och dina lagkamrater fortsätter arbeta. Någon kan bjuda in dig igen.
+	Leave Project	Lämna projektet
+	Invite…	Bjud in…
+	Invite teammates to this project.	Bjud in lagkamrater till projektet.
+	Keep forever	Behåll för alltid
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Flytta aldrig projektet till papperskorgen. Bara den som skapade det eller en Drive-administratör kan ändra detta.
+	Leave Project…	Lämna projektet…
+	Live	Live
+	Reconnecting…	Återansluter…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Sluta arbeta med projektet här. Dina ändringar skickas först till Driven och dina lås släpps.
+	Add Footage…	Lägg till material…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Välj video, ljud eller foton. De läggs i projektet och laddas upp till InFocus Drive så att dina lagkamrater får dem.
+	Downloads and uploads are paused while exporting.	Nedladdningar och uppladdningar pausas under export.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Material laddas ner till den här Macen när du öppnar en sekvens som använder det, och Macen gör egna proxyer för smidig redigering.
+	Downloading {name}	Laddar ner {name}
+	Making a proxy of {name}	Gör en proxy av {name}
+	Uploading {name}	Laddar upp {name}
+	{name}: uploading from {member}	{name}: laddas upp av {member}
+	{name} didn't download: {why}	{name} laddades inte ner: {why}
+	{name} didn't upload: {why}	{name} laddades inte upp: {why}
+	Retry	Försök igen
+	Try the failed downloads and uploads again.	Försök igen med misslyckade nedladdningar och uppladdningar.
+	Saving to InFocus Drive	Sparar till InFocus Drive
+	closing the project	projektet stängs
+	signing out	du loggar ut
+	quitting	appen avslutas
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Dina senaste ändringar har inte nått InFocus Drive än. Om du går nu stannar de på den här Macen och dina lagkamrater får dem inte.
+	Sending your edits to InFocus Drive before {doing}…	Skickar dina ändringar till InFocus Drive innan {doing}…
+	Wait	Vänta
+	Leave Anyway	Gå ändå
+	Can't export yet. Still downloading: {list}	Kan inte exportera än. Laddar fortfarande ner: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Kan inte exportera än. Laddar fortfarande ner: {list} och {count} till
+	Asking for the lock…	Ber om låset…
+	Edit this sequence. Teammates see it read-only until you release it.	Redigera sekvensen. Lagkamraterna ser den skrivskyddad tills du släpper den.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Låt en lagkamrat redigera sekvensen. Dina ändringar sparas först på Driven.
+	Read-only: {who}. You can edit it once the lock is free.	Skrivskyddad: {who}. Du kan redigera när låset är ledigt.
+	Release Lock	Släpp låset
+	Requested	Begärt
+	Take	Ta
+	Take Lock	Ta låset
+	Take the lock to edit this sequence.	Ta låset för att redigera sekvensen.
+	Team	Team
+	Team video editing for InFocus, synced through InFocus Drive.	Videoredigering i team för InFocus, synkad via InFocus Drive.
+	You're editing this sequence.	Du redigerar den här sekvensen.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Du redigerar den här sekvensen. Vissa ändringar finns inte på Driven än.

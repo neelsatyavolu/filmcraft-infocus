@@ -16,13 +16,43 @@ pub enum TeamPhase {
     SignedIn,
 }
 
+/// The signed-in member's place in a team project.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TeamRole {
+    #[default]
+    Member,
+    /// Invited, not joined yet: shown under Invitations with Join and Decline.
+    Invited,
+    /// An older project open to every Drive member (no member list).
+    Open,
+}
+
+/// A Drive member: the user name the Drive knows them by and the name to show.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TeamPerson {
+    pub username: String,
+    pub name: String,
+}
+
 /// One team project in the list.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TeamProjectRow {
     pub id: String,
     pub name: String,
+    pub role: TeamRole,
+    /// Who invited this member (while [`TeamRole::Invited`]).
+    pub invited_by: Option<String>,
+    /// Members (this member included).
+    pub members: Vec<TeamPerson>,
+    /// Pending invites (any member can cancel one).
+    pub invites: Vec<TeamPerson>,
     /// Who holds a sequence lock right now (each name once).
     pub editors: Vec<String>,
+    /// Who is editing which sequence: (name, sequence name when known here).
+    pub editing: Vec<(String, Option<String>)>,
+    /// Files in the project's media folder on the Drive, and their size in bytes.
+    pub media_count: u64,
+    pub media_bytes: u64,
     /// The day the Drive's cleanup moves it to the recycle bin, when a notice is out.
     pub moves_on: Option<String>,
     /// Marked "Keep forever" (only the creator or a Drive admin may change it).
@@ -40,6 +70,8 @@ pub struct TeamOpenView {
     pub link_error: Option<String>,
     /// Media downloading: (name, fraction done).
     pub downloads: Vec<(String, f32)>,
+    /// Proxies this Mac is making for downloaded footage: (name, fraction done).
+    pub proxies: Vec<(String, f32)>,
     /// Media that failed to download: (name, why).
     pub failures: Vec<(String, String)>,
     /// This member's media going up to the project's media folder: (name, fraction done).
@@ -62,6 +94,10 @@ pub struct TeamView {
     pub error: Option<String>,
     pub projects: Vec<TeamProjectRow>,
     pub open: Option<TeamOpenView>,
+    /// Drive members who can be invited (not this member).
+    pub people: Vec<TeamPerson>,
+    /// A project was just created here: offer to invite teammates to it (its id).
+    pub invite_prompt: Option<String>,
 }
 
 /// What the Team panel asks for.
@@ -80,6 +116,22 @@ pub enum TeamAction {
     SetKeepForever(String, bool),
     /// Try failed downloads and uploads again.
     RetryDownloads,
+    /// Fetch the people who can be invited again.
+    LoadPeople,
+    /// Invite these Drive user names to a project.
+    Invite(String, Vec<String>),
+    /// Take back the invite of a user name to a project.
+    CancelInvite(String, String),
+    /// Accept the invitation to a project (it opens).
+    Join(String),
+    /// Turn the invitation to a project down.
+    Decline(String),
+    /// Leave a project for good.
+    LeaveTeam(String),
+    /// Done with (or skipping) the invite step after creating a project.
+    DismissInvitePrompt,
+    /// Import these files into the open team project; they upload for the team.
+    AddFootage(Vec<String>),
     ClearError,
     /// Leaving waits on: another round of waiting for the edits to reach the Drive.
     LeaveWait,
@@ -130,6 +182,11 @@ pub trait TeamUi {
     /// True once when a held quit may go ahead.
     fn take_quit(&mut self) -> bool {
         false
+    }
+    /// A `team.*` control-channel method (debug builds of the desktop app; see
+    /// `docs/control-protocol.md`). `None`: this host doesn't offer it.
+    fn control(&mut self, _s: &mut Session, _method: &str, _params: &serde_json::Value) -> Option<Result<serde_json::Value, String>> {
+        None
     }
 }
 

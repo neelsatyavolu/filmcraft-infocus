@@ -39,6 +39,7 @@ mod native_color;
 #[cfg(target_os = "macos")]
 mod native_menu;
 mod team;
+mod team_control;
 mod window_raise;
 
 use args::{Cli, Launch};
