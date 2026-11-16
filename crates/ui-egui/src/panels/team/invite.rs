@@ -89,7 +89,7 @@ fn people(ui: &mut egui::Ui, t: &Tokens, offered: &[&TeamPerson], room: usize, s
 }
 
 fn buttons(ui: &mut egui::Ui, t: &Tokens, id: &str, from_prompt: bool, st: &mut PanelState, out: &mut Out) {
-    ui.horizontal(|ui| {
+    ui.horizontal_wrapped(|ui| {
         let n = st.picked.len();
         let text = match n {
             0 => tl!("Send Invitations").to_string(),

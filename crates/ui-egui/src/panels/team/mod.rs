@@ -38,6 +38,26 @@ type Elems = Vec<(String, Rect, String)>;
 
 /// Space between the panel's sections.
 const SECTION_GAP: f32 = 12.0;
+/// Below this width a row's buttons go under its text instead of beside it.
+const NARROW: f32 = 220.0;
+
+/// Text on the left and buttons on the right (added right to left). The buttons are placed first,
+/// so long text wraps in the space left of them instead of running under them; in a very narrow
+/// panel the buttons go on a line of their own under the text, still right-aligned.
+fn split_row(ui: &mut egui::Ui, left: impl FnOnce(&mut egui::Ui), right: impl FnOnce(&mut egui::Ui)) {
+    if ui.available_width() < NARROW {
+        ui.horizontal_wrapped(left);
+        // top-aligned: centred, the row would take the scroll area's whole height
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Min).with_main_wrap(true), right);
+        return;
+    }
+    ui.horizontal(|ui| {
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            right(ui);
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center).with_main_wrap(true), left);
+        });
+    });
+}
 
 /// What the panel remembers between frames (not part of the project).
 #[derive(Clone, Debug, Default)]
@@ -153,24 +173,31 @@ fn pick_footage(app: &mut FilmcraftApp) {
 }
 
 fn account_row(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
-    ui.horizontal(|ui| {
-        let who = match (view.phase, &view.user) {
-            (TeamPhase::SignedIn, Some(user)) => tlf!("Signed in as {user}", user),
-            (TeamPhase::Connecting, _) => tl!("Connecting to InFocus Drive…").to_string(),
-            _ => tl!("Not signed in").to_string(),
-        };
-        let r = ui.label(RichText::new(&who).color(t.text_dim));
-        out.elem("team.status", r.rect, who);
-        if view.phase == TeamPhase::SignedIn {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let r = ui.small_button(tl!("Sign Out"));
-                out.elem("team.signOut", r.rect, tl!("Sign Out"));
-                if r.clicked() {
-                    out.actions.push(TeamAction::SignOut);
-                }
-            });
+    let who = match (view.phase, &view.user) {
+        (TeamPhase::SignedIn, Some(user)) => tlf!("Signed in as {user}", user),
+        (TeamPhase::Connecting, _) => tl!("Connecting to InFocus Drive…").to_string(),
+        _ => tl!("Not signed in").to_string(),
+    };
+    let mut status = None;
+    let mut sign_out = None;
+    split_row(
+        ui,
+        |ui| status = Some(ui.label(RichText::new(&who).color(t.text_dim)).rect),
+        |ui| {
+            if view.phase == TeamPhase::SignedIn {
+                sign_out = Some(ui.small_button(tl!("Sign Out")));
+            }
+        },
+    );
+    if let Some(r) = status {
+        out.elem("team.status", r, who);
+    }
+    if let Some(r) = sign_out {
+        out.elem("team.signOut", r.rect, tl!("Sign Out"));
+        if r.clicked() {
+            out.actions.push(TeamAction::SignOut);
         }
-    });
+    }
     ui.add_space(2.0);
 }
 

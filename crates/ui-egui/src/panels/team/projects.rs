@@ -2,7 +2,7 @@
 
 use egui::{Color32, RichText};
 
-use super::{Out, PanelState, SECTION_GAP, footage_text, heading, primary_button};
+use super::{Out, PanelState, SECTION_GAP, footage_text, heading, primary_button, split_row};
 use crate::team_ui::{TeamAction, TeamProjectRow, TeamRole, TeamView};
 use crate::theme::Tokens;
 
@@ -17,16 +17,19 @@ pub(super) fn invitations(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &
         let frame = egui::Frame::new().fill(t.accent.gamma_multiply(0.14)).corner_radius(4.0).inner_margin(egui::Margin::symmetric(8, 6));
         let r = frame.show(ui, |ui| {
             ui.set_width(ui.available_width());
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    ui.label(RichText::new(&p.name).strong().color(t.text));
-                    let by = match &p.invited_by {
-                        Some(by) => tlf!("Invited by {name}", name = by),
-                        None => tl!("You're invited to this project").to_string(),
-                    };
-                    ui.label(RichText::new(by).small().color(t.text_dim));
-                });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            split_row(
+                ui,
+                |ui| {
+                    ui.vertical(|ui| {
+                        ui.add(egui::Label::new(RichText::new(&p.name).strong().color(t.text)).wrap());
+                        let by = match &p.invited_by {
+                            Some(by) => tlf!("Invited by {name}", name = by),
+                            None => tl!("You're invited to this project").to_string(),
+                        };
+                        ui.label(RichText::new(by).small().color(t.text_dim));
+                    });
+                },
+                |ui| {
                     let r = ui.button(tl!("Decline"));
                     out.elem(format!("team.invitation.{}.decline", p.id), r.rect, tl!("Decline"));
                     if r.on_hover_text(tl!("Turn the invitation down. A teammate can invite you again.")).clicked() {
@@ -37,8 +40,8 @@ pub(super) fn invitations(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &
                     if r.on_hover_text(tl!("Join and open the project. Footage downloads when you open a sequence.")).clicked() {
                         out.actions.push(TeamAction::Join(p.id.clone()));
                     }
-                });
-            });
+                },
+            );
         });
         out.elem(format!("team.invitation.{}", p.id), r.response.rect, p.name.clone());
         ui.add_space(4.0);
@@ -58,9 +61,6 @@ pub(super) fn list(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, in_team: bool
             if r.on_hover_text(tl!("Check InFocus Drive for new invitations and changes.")).clicked() {
                 out.actions.push(TeamAction::Refresh);
             }
-            if !st.creating && !mine.is_empty() {
-                new_button(ui, in_team, suggested, st, out);
-            }
         });
     });
     let r = ui.available_rect_before_wrap();
@@ -79,10 +79,14 @@ pub(super) fn list(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, in_team: bool
     for (i, p) in mine.into_iter().enumerate() {
         row(ui, t, p, view.user.as_deref(), open_id == Some(p.id.as_str()), i % 2 == 1, st, out);
     }
+    if !st.creating {
+        ui.add_space(6.0);
+        new_button(ui, in_team, suggested, st, out);
+    }
 }
 
 fn new_button(ui: &mut egui::Ui, in_team: bool, suggested: Option<&str>, st: &mut PanelState, out: &mut Out) {
-    let r = ui.add_enabled(!in_team, egui::Button::new(tl!("New Team Project…")).small());
+    let r = ui.add_enabled(!in_team, egui::Button::new(tl!("New Team Project…")));
     out.elem("team.new", r.rect, tl!("New Team Project…"));
     let tip = if in_team {
         tl!("Leave the open team project first, then make a new one.")
@@ -99,7 +103,7 @@ fn new_button(ui: &mut egui::Ui, in_team: bool, suggested: Option<&str>, st: &mu
 fn empty_state(ui: &mut egui::Ui, t: &Tokens, in_team: bool, invited: bool, suggested: Option<&str>, st: &mut PanelState, out: &mut Out) {
     ui.add_space(8.0);
     ui.vertical_centered(|ui| {
-        ui.set_max_width(360.0);
+        ui.set_max_width(ui.available_width().min(360.0));
         let title = tl!("No team projects yet");
         let r = ui.label(RichText::new(title).strong().color(t.text));
         out.elem("team.empty", r.rect, title);
@@ -141,7 +145,7 @@ fn create_form(ui: &mut egui::Ui, t: &Tokens, in_team: bool, st: &mut PanelState
         out.elem("team.create.name", r.rect, st.name.clone());
         let submit = r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
         ui.add_space(6.0);
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             let ok = !st.name.trim().is_empty() && !in_team;
             let r = primary_button(ui, t, tl!("Create and Invite…"), ok);
             out.elem("team.create", r.rect, tl!("Create and Invite…"));
@@ -187,9 +191,12 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
     let frame = egui::Frame::new().fill(fill).inner_margin(egui::Margin::symmetric(8, 6)).corner_radius(4.0);
     let r = frame.show(ui, |ui| {
         ui.set_width(ui.available_width());
-        ui.horizontal(|ui| {
-            ui.label(RichText::new(&p.name).strong().color(t.text));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        split_row(
+            ui,
+            |ui| {
+                ui.add(egui::Label::new(RichText::new(&p.name).strong().color(t.text)).wrap());
+            },
+            |ui| {
                 if is_open {
                     ui.label(RichText::new(tl!("Open now")).small().color(t.text_dim));
                 } else {
@@ -199,8 +206,8 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
                         out.actions.push(TeamAction::Open(p.id.clone()));
                     }
                 }
-            });
-        });
+            },
+        );
         let small = |ui: &mut egui::Ui, text: &str, color| ui.add(egui::Label::new(RichText::new(text).small().color(color)).wrap());
         if !p.members.is_empty() {
             let names: Vec<&str> = p.members.iter().map(|m| if m.name.is_empty() { m.username.as_str() } else { m.name.as_str() }).collect();
@@ -211,7 +218,7 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
             small(ui, tl!("Open to everyone on InFocus Drive"), t.text_dim);
         }
         for inv in &p.invites {
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 ui.label(
                     RichText::new(tlf!("Invited: {name}", name = if inv.name.is_empty() { &inv.username } else { &inv.name })).small().color(t.text_faint),
                 );
@@ -268,7 +275,7 @@ fn actions(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, st: &mut PanelStat
             )
             .wrap(),
         );
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             let r = ui.button(tl!("Leave Project"));
             out.elem("team.confirm.leave", r.rect, tl!("Leave Project"));
             if r.clicked() {
@@ -283,7 +290,7 @@ fn actions(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, st: &mut PanelStat
         });
         return;
     }
-    ui.horizontal(|ui| {
+    ui.horizontal_wrapped(|ui| {
         if p.role == TeamRole::Member {
             let r = ui.small_button(tl!("Invite…"));
             out.elem(format!("team.project.{}.invite", p.id), r.rect, tl!("Invite…"));
@@ -301,13 +308,11 @@ fn actions(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, st: &mut PanelStat
             out.actions.push(TeamAction::SetKeepForever(p.id.clone(), keep));
         }
         if p.role == TeamRole::Member {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let r = ui.small_button(RichText::new(tl!("Leave Project…")).color(t.text_dim));
-                out.elem(format!("team.project.{}.leaveTeam", p.id), r.rect, tl!("Leave Project…"));
-                if r.clicked() {
-                    st.confirm_leave = Some(p.id.clone());
-                }
-            });
+            let r = ui.small_button(RichText::new(tl!("Leave Project…")).color(t.text_dim));
+            out.elem(format!("team.project.{}.leaveTeam", p.id), r.rect, tl!("Leave Project…"));
+            if r.clicked() {
+                st.confirm_leave = Some(p.id.clone());
+            }
         }
     });
 }

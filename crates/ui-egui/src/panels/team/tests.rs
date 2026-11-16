@@ -49,14 +49,19 @@ fn app_with(view: TeamView) -> (FilmcraftApp, Acts, Rc<RefCell<TeamView>>) {
 struct Harness {
     ctx: egui::Context,
     time: f64,
+    width: f32,
 }
 
 impl Harness {
     fn frame(&mut self, app: &mut FilmcraftApp, events: Vec<egui::Event>) {
         app.auto.begin_frame();
         self.time += 0.05;
-        let input =
-            egui::RawInput { time: Some(self.time), events, screen_rect: Some(Rect::from_min_size(pos2(0.0, 0.0), vec2(420.0, 900.0))), ..Default::default() };
+        let input = egui::RawInput {
+            time: Some(self.time),
+            events,
+            screen_rect: Some(Rect::from_min_size(pos2(0.0, 0.0), vec2(self.width, 900.0))),
+            ..Default::default()
+        };
         self.ctx
             .run_ui(input, |ui| {
                 let rect = ui.max_rect();
@@ -86,7 +91,7 @@ impl Harness {
 }
 
 fn harness() -> Harness {
-    Harness { ctx: egui::Context::default(), time: 0.0 }
+    Harness { ctx: egui::Context::default(), time: 0.0, width: 420.0 }
 }
 
 fn label(app: &FilmcraftApp, id: &str) -> Option<String> {
@@ -254,6 +259,38 @@ fn open_project_shows_downloads_proxies_failures_and_connection() {
     h.click(&mut app, "team.retry");
     h.click(&mut app, "team.error.dismiss");
     assert_eq!(*acts.borrow(), vec![TeamAction::RetryDownloads, TeamAction::ClearError]);
+}
+
+/// In a narrow panel the buttons go under the text instead of over it; a little wider, long text
+/// wraps beside them. Either way nothing overlaps or sticks out of the panel.
+#[test]
+fn narrow_panels_keep_text_and_buttons_apart() {
+    for width in [200.0, 300.0] {
+        let mut view = signed_in(vec![TeamProjectRow {
+            id: "p1".into(),
+            name: "A Very Long Homecoming Project Name".into(),
+            role: TeamRole::Invited,
+            invited_by: Some("Ana".into()),
+            ..Default::default()
+        }]);
+        view.user = Some("a-rather-long-user-name".into());
+        view.open = Some(TeamOpenView { id: "p2".into(), name: "Spring Musical Rehearsals And Final Cut".into(), feed_live: true, ..Default::default() });
+        let (mut app, _, _) = app_with(view);
+        let mut h = harness();
+        h.width = width;
+        h.frames(&mut app, 3);
+        let rect = |id: &str| {
+            let e = app.auto.find(id).unwrap_or_else(|| panic!("no {id}"));
+            Rect::from_min_size(pos2(e.rect[0], e.rect[1]), vec2(e.rect[2], e.rect[3]))
+        };
+        for (text, button) in [("team.status", "team.signOut"), ("team.open", "team.leave")] {
+            assert!(!rect(text).intersects(rect(button)), "{width}: {button} overlaps {text}");
+            assert!(rect(button).min.y < rect(text).max.y + 40.0, "{width}: {button} drifted away from {text}: {:?}", rect(button));
+        }
+        for id in ["team.signOut", "team.leave", "team.invitation.p1.join", "team.invitation.p1.decline", "team.footage.add"] {
+            assert!(rect(id).max.x <= width + 0.5, "{width}: {id} sticks out of the panel: {:?}", rect(id));
+        }
+    }
 }
 
 #[test]

@@ -3,33 +3,37 @@
 
 use egui::{Align2, Rect, RichText, Sense, pos2, vec2};
 
-use super::{Out, PanelState, SECTION_GAP, footage_text, heading};
+use super::{Out, PanelState, SECTION_GAP, footage_text, heading, split_row};
 use crate::team_ui::{TeamAction, TeamOpenView, TeamProjectRow, TeamRole};
 use crate::theme::Tokens;
 
 pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: Option<&TeamProjectRow>, st: &mut PanelState, out: &mut Out) {
     heading(ui, t, tl!("Open now"));
-    ui.horizontal(|ui| {
-        let (dot, state) = if open.feed_live { (t.render_green, tl!("Live")) } else { (t.render_yellow, tl!("Reconnecting…")) };
-        let (r, _) = ui.allocate_exact_size(vec2(10.0, 10.0), Sense::hover());
-        ui.painter().circle_filled(r.center(), 4.0, dot);
-        let r = ui.label(RichText::new(&open.name).strong().color(t.text));
-        ui.label(RichText::new(state).small().color(t.text_dim));
-        out.elem("team.open", r.rect, format!("{} ({state})", open.name));
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+    let (dot, state) = if open.feed_live { (t.render_green, tl!("Live")) } else { (t.render_yellow, tl!("Reconnecting…")) };
+    let mut name_rect = Rect::NOTHING;
+    split_row(
+        ui,
+        |ui| {
+            let (r, _) = ui.allocate_exact_size(vec2(10.0, 10.0), Sense::hover());
+            ui.painter().circle_filled(r.center(), 4.0, dot);
+            name_rect = ui.label(RichText::new(&open.name).strong().color(t.text)).rect;
+            ui.label(RichText::new(state).small().color(t.text_dim));
+        },
+        |ui| {
             let r = ui.button(tl!("Close"));
             out.elem("team.leave", r.rect, tl!("Close"));
             if r.on_hover_text(tl!("Stop working on this project here. Your edits are sent to the Drive first and your locks are released.")).clicked() {
                 out.actions.push(TeamAction::Close);
             }
-        });
-    });
+        },
+    );
+    out.elem("team.open", name_rect, format!("{} ({state})", open.name));
     if let Some(e) = &open.link_error
         && !open.feed_live
     {
         ui.add(egui::Label::new(RichText::new(e).small().color(t.text_faint)).wrap());
     }
-    ui.horizontal(|ui| {
+    ui.horizontal_wrapped(|ui| {
         let r = ui.button(tl!("Add Footage…"));
         out.elem("team.footage.add", r.rect, tl!("Add Footage…"));
         if r.on_hover_text(tl!("Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.")).clicked() {
