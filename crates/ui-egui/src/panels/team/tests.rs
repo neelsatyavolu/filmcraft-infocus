@@ -172,11 +172,14 @@ fn members_show_who_is_online() {
     ana.online = Some(true);
     let mut leo = person("leo", "Leo");
     leo.last_seen = Some(1_000);
-    let view = signed_in(vec![TeamProjectRow { id: "p1".into(), name: "Robotics".into(), members: vec![ana, leo], ..Default::default() }]);
+    let mut view = signed_in(vec![TeamProjectRow { id: "p1".into(), name: "Robotics".into(), members: vec![ana, leo], ..Default::default() }]);
+    view.open = Some(TeamOpenView { id: "p1".into(), name: "Robotics".into(), feed_live: true, ..Default::default() });
     let (mut app, _, _) = app_with(view);
     let mut h = harness();
     h.frames(&mut app, 3);
     assert_eq!(label(&app, "team.project.p1.member.ana").as_deref(), Some("Ana: Online now"));
+    // the open project shows its team at the top too
+    assert_eq!(label(&app, "team.open.member.ana").as_deref(), Some("Ana: Online now"));
     assert!(label(&app, "team.project.p1.member.leo").is_some_and(|l| l.starts_with("Leo: Last seen")));
     assert_eq!(projects::presence_text(None, Some(1_000), 1_000 + 3 * 3600).as_deref(), Some("Last seen 3 hours ago"));
     assert_eq!(projects::presence_text(None, Some(1_000), 1_030).as_deref(), Some("Last seen just now"));
@@ -308,6 +311,7 @@ fn open_project_shows_downloads_proxies_failures_and_connection() {
     assert!(app.auto.find("team.project.p1.open").is_none(), "the open project has no Open button");
     assert!(app.auto.find("team.footage.add").is_some());
     assert_eq!(label(&app, "team.drive_only").as_deref(), Some("1 new file on InFocus Drive · 3 MB"));
+    assert_eq!(label(&app, "team.open.footage").as_deref(), Some("1 file · 2 MB on InFocus Drive"));
     h.click(&mut app, "team.retry");
     h.click(&mut app, "team.error.dismiss");
     h.click(&mut app, "team.drive_only.add");

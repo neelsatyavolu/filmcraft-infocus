@@ -49,12 +49,16 @@ pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: O
                 out.actions.push(TeamAction::SearchPeople(String::new()));
             }
         }
-        if let Some(row) = row {
-            let text = tlf!("{footage} on InFocus Drive", footage = footage_text(row.media_count, row.media_bytes));
-            let r = ui.label(RichText::new(&text).small().color(t.text_dim));
-            out.elem("team.open.footage", r.rect, text);
-        }
     });
+    if let Some(row) = row {
+        // who is here and what's on the Drive, without scrolling down to the project's card
+        let text = tlf!("{footage} on InFocus Drive", footage = footage_text(row.media_count, row.media_bytes));
+        let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.text_dim)).wrap());
+        out.elem("team.open.footage", r.rect, text);
+        if !row.members.is_empty() {
+            super::projects::members(ui, t, row, "team.open", out);
+        }
+    }
     drive_only(ui, t, open, out);
     if open.exporting {
         ui.label(RichText::new(tl!("Downloads and uploads are paused while exporting.")).small().color(t.text_dim));
@@ -131,7 +135,9 @@ fn transfers(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, st: &mut PanelS
         let text = if open.uploads_resumed.contains(name) { tlf!("Resuming upload of {name}", name) } else { tlf!("Uploading {name}", name) };
         progress_row(ui, t, &text, *frac, format!("team.upload.{i}"), out);
     }
-    for (i, name) in open.uploads_done.iter().enumerate() {
+    // the "Add footage" step lists its own uploads
+    let done: &[String] = if st.setup_open { &[] } else { &open.uploads_done };
+    for (i, name) in done.iter().enumerate() {
         let text = tlf!("{name} uploaded", name);
         let r = ui.add(egui::Label::new(RichText::new(format!("✓ {text}")).small().color(t.render_green)).truncate());
         out.elem(format!("team.upload.done.{i}"), r.rect, text);

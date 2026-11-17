@@ -215,7 +215,7 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
         );
         let small = |ui: &mut egui::Ui, text: &str, color| ui.add(egui::Label::new(RichText::new(text).small().color(color)).wrap());
         if !p.members.is_empty() {
-            members(ui, t, p, out);
+            members(ui, t, p, &format!("team.project.{}", p.id), out);
         } else if p.role == TeamRole::Open {
             small(ui, tl!("Open to everyone on InFocus Drive"), t.text_dim);
         }
@@ -250,7 +250,7 @@ fn row(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, me: Option<&str>, is_o
 
 /// "Team:" and each member with a dot: green while online, grey otherwise, with when they were
 /// last seen on hover (when the Drive says).
-fn members(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, out: &mut Out) {
+pub(super) fn members(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, id: &str, out: &mut Out) {
     let names: Vec<&str> = p.members.iter().map(|m| if m.name.is_empty() { m.username.as_str() } else { m.name.as_str() }).collect();
     let text = tlf!("Team: {names}", names = names.join(", "));
     let now = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
@@ -274,13 +274,13 @@ fn members(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, out: &mut Out) {
                 Some(p) => format!("{name}: {p}"),
                 None => name.to_string(),
             };
-            out.elem(format!("team.project.{}.member.{}", p.id, m.username), r.rect, label);
+            out.elem(format!("{id}.member.{}", m.username), r.rect, label);
             if let Some(presence) = presence {
                 r.on_hover_text(presence);
             }
         }
     });
-    out.elem(format!("team.project.{}.members", p.id), r.response.rect, text);
+    out.elem(format!("{id}.members"), r.response.rect, text);
 }
 
 /// "Online now", "Last seen 5 minutes ago", "Last seen 3 hours ago", "Last seen 2 days ago".

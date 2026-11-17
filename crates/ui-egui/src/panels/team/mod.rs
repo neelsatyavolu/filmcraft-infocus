@@ -84,6 +84,8 @@ struct PanelState {
     footage_done: Option<String>,
     /// Files seen uploading during the "Add footage" step (listed as uploaded once done).
     setup_files: Vec<String>,
+    /// The "Add footage" step is showing (it lists the uploads itself).
+    setup_open: bool,
     /// Something has downloaded or uploaded in this panel: the "how footage gets here" line
     /// has done its job and stays hidden.
     seen_transfer: bool,
@@ -150,11 +152,12 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
         ui.add_space(4.0);
         // the open project (who is editing, what is moving) comes first: it is what a member
         // checks most, and a narrow panel shouldn't push it below the fold
+        let footage_step = view.invite_prompt.as_deref().is_some_and(|id| st.footage_done.as_deref() != Some(id));
+        st.setup_open = footage_step;
         if let Some(open) = &view.open {
             let row = view.projects.iter().find(|p| p.id == open.id);
             open::section(ui, &t, open, row, &mut st, &mut out);
         }
-        let footage_step = view.invite_prompt.as_deref().is_some_and(|id| st.footage_done.as_deref() != Some(id));
         if footage_step {
             setup::footage_step(ui, &t, &view, &mut st, &mut out);
         } else if let Some(id) = st.invite_for.clone() {
@@ -265,7 +268,8 @@ fn account_row(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
             chip = r.union(text);
         });
         if narrow {
-            ui.horizontal_wrapped(account);
+            // same order as the wide row (Switch Account, then Sign Out on the right)
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Min).with_main_wrap(true), account);
         }
         out.elem("team.status", chip, status);
         if view.dashboard_url.is_some() {
