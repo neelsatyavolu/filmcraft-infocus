@@ -156,7 +156,7 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
         st.setup_open = footage_step;
         if let Some(open) = &view.open {
             let row = view.projects.iter().find(|p| p.id == open.id);
-            open::section(ui, &t, open, row, &mut st, &mut out);
+            open::section(ui, &t, open, row, view.user.as_deref(), &mut st, &mut out);
         }
         if footage_step {
             setup::footage_step(ui, &t, &view, &mut st, &mut out);

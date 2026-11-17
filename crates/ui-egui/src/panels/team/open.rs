@@ -7,7 +7,7 @@ use super::{Out, PanelState, SECTION_GAP, footage_text, heading, split_row};
 use crate::team_ui::{TeamAction, TeamOpenView, TeamProjectRow, TeamRole};
 use crate::theme::Tokens;
 
-pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: Option<&TeamProjectRow>, st: &mut PanelState, out: &mut Out) {
+pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: Option<&TeamProjectRow>, me: Option<&str>, st: &mut PanelState, out: &mut Out) {
     heading(ui, t, tl!("Open now"));
     let (dot, state) = if open.feed_live { (t.render_green, tl!("Live")) } else { (t.render_yellow, tl!("Reconnecting…")) };
     let mut name_rect = Rect::NOTHING;
@@ -51,7 +51,18 @@ pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: O
         }
     });
     if let Some(row) = row {
-        // who is here and what's on the Drive, without scrolling down to the project's card
+        // who is editing which sequence, then who is here and what's on the Drive, without
+        // scrolling down to the project's card
+        let lines = super::projects::editing_lines(row, me);
+        if lines.is_empty() {
+            let text = tl!("No one is editing right now");
+            let r = ui.add(egui::Label::new(RichText::new(text).small().color(t.text_faint)).wrap());
+            out.elem("team.open.editing", r.rect, text);
+        }
+        for (i, line) in lines.iter().enumerate() {
+            let r = ui.add(egui::Label::new(RichText::new(line).small().color(t.render_green)).wrap());
+            out.elem(format!("team.open.editing.{i}"), r.rect, line.clone());
+        }
         let text = tlf!("{footage} on InFocus Drive", footage = footage_text(row.media_count, row.media_bytes));
         let r = ui.add(egui::Label::new(RichText::new(&text).small().color(t.text_dim)).wrap());
         out.elem("team.open.footage", r.rect, text);

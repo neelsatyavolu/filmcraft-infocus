@@ -80,6 +80,12 @@ fn row(c: &TeamSessionController, s: &Session, p: &ProjectSummary) -> TeamProjec
     }
 }
 
+/// The display name of `username` among the members of project `id`, when they are one.
+fn member_name(projects: &[ProjectSummary], id: &str, username: &str) -> Option<String> {
+    let p = projects.iter().find(|p| p.id == id)?;
+    p.members.iter().find(|m| m.username == username).map(|m| m.shown().to_string())
+}
+
 fn view(c: &TeamSessionController, s: &Session) -> TeamView {
     let projects = c.projects().iter().map(|p| row(c, s, p)).collect();
     let open = c.open_project().map(|o| TeamOpenView {
@@ -177,6 +183,11 @@ impl TeamUi for Team {
         }
     }
 
+    fn display_name(&self, username: &str) -> Option<String> {
+        let c = self.0.as_ref().ok()?;
+        member_name(c.projects(), &c.open_project()?.id, username)
+    }
+
     fn leaving(&self) -> Option<TeamLeaving> {
         let (what, timed_out) = self.0.as_ref().ok()?.leaving()?;
         let what = match what {
@@ -246,5 +257,18 @@ mod tests {
         let d = day(1_796_000_000.0).unwrap();
         assert!(d.ends_with(", 2026"), "{d}");
         assert_eq!(day(f64::NAN), None);
+    }
+
+    #[test]
+    fn member_name_is_the_display_name_in_that_project() {
+        let person = |username: &str, name: &str| Person { username: username.into(), name: name.into(), ..Person::default() };
+        let projects = vec![
+            ProjectSummary { id: "a".into(), members: vec![person("student1", "Student One"), person("student2", "")], ..ProjectSummary::default() },
+            ProjectSummary { id: "b".into(), members: vec![person("student3", "Student Three")], ..ProjectSummary::default() },
+        ];
+        assert_eq!(member_name(&projects, "a", "student1").as_deref(), Some("Student One"));
+        assert_eq!(member_name(&projects, "a", "student2").as_deref(), Some("student2"), "no display name: the user name");
+        assert_eq!(member_name(&projects, "a", "student3"), None, "a member of another project");
+        assert_eq!(member_name(&projects, "z", "student1"), None);
     }
 }

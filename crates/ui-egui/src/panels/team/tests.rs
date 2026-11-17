@@ -367,3 +367,25 @@ fn without_the_host_hook_there_is_no_team_panel() {
     let (app, _, _) = app_with(TeamView::default());
     assert!(crate::menus::menu_items(&app).iter().any(|it| it.id == team));
 }
+
+#[test]
+fn open_project_header_says_who_is_editing_which_sequence() {
+    let row = TeamProjectRow {
+        id: "p1".into(),
+        name: "Robotics".into(),
+        members: vec![person("maya", "Maya Lee"), person("student1", "Student One")],
+        editing: vec![("Student One".into(), Some("Interview cut".into())), ("maya".into(), Some("Trailer".into()))],
+        ..Default::default()
+    };
+    let mut view = signed_in(vec![row]);
+    view.open = Some(TeamOpenView { id: "p1".into(), name: "Robotics".into(), feed_live: true, ..Default::default() });
+    let (mut app, _, view) = app_with(view);
+    let mut h = harness();
+    h.frames(&mut app, 3);
+    assert_eq!(label(&app, "team.open.editing.0").as_deref(), Some("Student One is editing Interview cut"));
+    assert_eq!(label(&app, "team.open.editing.1").as_deref(), Some("You're editing Trailer"));
+    view.borrow_mut().projects[0].editing.clear();
+    h.frames(&mut app, 2);
+    assert_eq!(label(&app, "team.open.editing").as_deref(), Some("No one is editing right now"));
+    assert_eq!(label(&app, "team.open.editing.0"), None);
+}

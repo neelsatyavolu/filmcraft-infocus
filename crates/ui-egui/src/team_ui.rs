@@ -4,6 +4,7 @@
 //! Without it (the web app, headless tests) there is no Team panel and nothing here runs.
 
 use filmcraft_engine::Session;
+use filmcraft_engine::team::SequenceStatus;
 use filmcraft_project::ItemId;
 
 /// Where sign-in stands.
@@ -206,10 +207,27 @@ pub trait TeamUi {
     fn take_quit(&mut self) -> bool {
         false
     }
+    /// The display name of a member of the open team project, by Drive user name. `None`: not a
+    /// member, or no project is open.
+    fn display_name(&self, _username: &str) -> Option<String> {
+        None
+    }
     /// A `team.*` control-channel method (debug builds of the desktop app; see
     /// `docs/control-protocol.md`). `None`: this host doesn't offer it.
     fn control(&mut self, _s: &mut Session, _method: &str, _params: &serde_json::Value) -> Option<Result<serde_json::Value, String>> {
         None
+    }
+}
+
+/// `status` with a lock holder's Drive user name swapped for their display name, when `team`
+/// knows it (the sequence tab says "Student One is editing this", not "student1 …").
+pub(crate) fn with_display_name(status: SequenceStatus, team: Option<&dyn TeamUi>) -> SequenceStatus {
+    match status {
+        SequenceStatus::ReadOnly { holder } => {
+            let holder = team.and_then(|t| t.display_name(&holder)).unwrap_or(holder);
+            SequenceStatus::ReadOnly { holder }
+        }
+        other => other,
     }
 }
 
@@ -356,6 +374,22 @@ mod tests {
         fn active(&self) -> bool {
             false
         }
+        fn display_name(&self, username: &str) -> Option<String> {
+            (username == "maya").then(|| "Maya Lee".to_string())
+        }
+    }
+
+    #[test]
+    fn sequence_tab_names_the_lock_holder_by_display_name() {
+        let host = Missing { exporting: Rc::default() };
+        let held = |who: &str| SequenceStatus::ReadOnly { holder: who.into() };
+        assert_eq!(with_display_name(held("maya"), Some(&host)), held("Maya Lee"));
+        // unknown to the open project (or no host): the user name stays
+        assert_eq!(with_display_name(held("ana"), Some(&host)), held("ana"));
+        assert_eq!(with_display_name(held("maya"), None), held("maya"));
+        assert_eq!(with_display_name(SequenceStatus::Free, Some(&host)), SequenceStatus::Free);
+        let badge = crate::dock::tab_badge(&with_display_name(held("maya"), Some(&host)));
+        assert_eq!(badge.text, "Maya Lee is editing this");
     }
 
     #[test]

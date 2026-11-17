@@ -246,7 +246,16 @@ impl FilmcraftApp {
                 })
                 .collect(),
             active: self.session.state.active_sequence.map(|id| id.0),
-            team: self.session.state.open_sequences.iter().filter_map(|id| self.session.team_status(*id).map(|st| (id.0, st))).collect(),
+            team: self
+                .session
+                .state
+                .open_sequences
+                .iter()
+                .filter_map(|id| {
+                    let st = self.session.team_status(*id)?;
+                    Some((id.0, crate::team_ui::with_display_name(st, self.hooks.team.as_deref())))
+                })
+                .collect(),
         };
         let style = dock_style(ui, &t);
         // No `monitors`: the monitor list comes with the egui fork's `ViewportInfo::monitors`.

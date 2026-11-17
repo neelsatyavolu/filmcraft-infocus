@@ -171,7 +171,7 @@ fn create_form(ui: &mut egui::Ui, t: &Tokens, in_team: bool, st: &mut PanelState
 }
 
 /// "Ana is editing Main Edit", "You're editing a sequence": who is editing what, one line each.
-fn editing_lines(p: &TeamProjectRow, me: Option<&str>) -> Vec<String> {
+pub(super) fn editing_lines(p: &TeamProjectRow, me: Option<&str>) -> Vec<String> {
     let line = |who: &str, seq: Option<&str>| match (me == Some(who), seq) {
         (true, Some(seq)) => tlf!("You're editing {sequence}", sequence = seq),
         (true, None) => tl!("You're editing a sequence").to_string(),
