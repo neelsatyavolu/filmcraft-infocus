@@ -23,6 +23,10 @@ const VALUED: &[&str] = &[
     "--data-dir",
     "--settings",
     "--gpu-rendering",
+    "--dir",
+    "--drive",
+    "--token-file",
+    "--device",
 ];
 
 #[derive(Debug, Default)]
@@ -180,6 +184,16 @@ mod tests {
         assert_eq!(args("mcp --automation-read-root X").unknown_opt(&allowed), Some("--automation-read-root"));
         assert_eq!(args("mcp --bridge=a --typo=1").unknown_opt(&allowed), Some("--typo"));
         assert_eq!(args("mcp --project p --bridge a").unknown_opt(&allowed), None);
+    }
+
+    #[test]
+    fn team_options_take_values() {
+        let a = args("team login --dir m1 --drive http://127.0.0.1:8791 --token-file t --device Lab");
+        assert_eq!(a.positionals, ["team", "login"]);
+        assert_eq!(
+            (a.opt("--dir"), a.opt("--drive"), a.opt("--token-file"), a.opt("--device")),
+            (Some("m1"), Some("http://127.0.0.1:8791"), Some("t"), Some("Lab"))
+        );
     }
 
     #[test]

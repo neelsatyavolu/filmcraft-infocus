@@ -200,6 +200,38 @@ sequence as tone-mapped SDR.
 Ctrl), `Ctrl` (macOS ⌃), `Alt`, `Shift`. The dialog (Edit ▸ Keyboard Shortcuts…, ⌥⌘K) uses ids
 `shortcuts.*` (`shortcuts.key.K`, `shortcuts.cell.<command>`, `shortcuts.ok`, …).
 
+### Team projects (debug builds)
+
+Debug builds of the desktop app (InFocus Cut) answer `team.*` methods so a test script can drive
+team editing without clicking (`apps/filmcraft/src/team_control.rs`). Each starts the work the
+Team panel's buttons start and answers at once with `{"started": true}` (or the result named
+below); poll `team.status` to see where it got to. Release builds answer "unknown method".
+
+- `team.status`: `phase` (`signed_out` | `connecting` | `signed_in`), `user`, `user_name`,
+  `dashboard_url`, `busy`, `error`,
+  `invite_prompt`, `people` (`[{username, name}]`), `projects` (`[{id, name, role: member |
+  invited | open, members, invites, invited_by, media_count, media_bytes, locks: [{sequence,
+  holder}]}]`), `open` (`{id, name, feed_live, link_error, downloads, proxies,
+  download_failures, uploads, upload_failures, uploads_busy, drive_only}`, downloads and proxies
+  as `[{item, name, done}]`, `drive_only` as `[{path, size}]`: files in the media folder no item
+  uses on two checks in a row), `media` (`[{id, name, path, proxy, offline}]`: a `drive:/` path is not on this
+  Mac yet), `sequences` (`[{id, name, status}]`) and `open_sequences`.
+- `team.refresh`: fetch the project list and the open project's media folder again.
+- `team.add_drive_footage`: Add to Project for the `drive_only` files (they download, then go
+  into the project's bin for the team).
+- `team.switch_account`: sign out, then start signing in again (the browser opens).
+- `team.create {name}`: make the open project a team project.
+- `team.invite {project, users: [user names]}`, `team.join {project}`, `team.open {project}`.
+- `team.open_sequence {sequence: id | name}`: open a sequence (its footage starts downloading);
+  answers `{sequence}`.
+- `team.add_footage {paths: [files]}`: import files into the open team project (they upload for
+  the team); answers `{added}`.
+- `team.take_lock {sequence: id | name}`: ask for the lock to edit a sequence; answers
+  `{sequence}`.
+
+Sign-in for such a script: `INFOCUS_DRIVE_TOKEN_FILE` and `FILMCRAFT_DATA_DIR`
+([team-editing.md](team-editing.md#two-copies-on-one-mac-development)).
+
 ## MCP
 `filmcraft-cli mcp` serves MCP on stdio: headless (in-process session; `--demo` / `--project p.fcproj`)
 or `--bridge 127.0.0.1:9876` to drive the running app. Tools: `command_list`, `command_run`,

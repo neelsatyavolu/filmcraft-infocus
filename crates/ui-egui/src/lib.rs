@@ -6,12 +6,23 @@
 
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 
-/// FilmCraft as craft-update knows it, with its 128 px icon and accent colour: the update
-/// prompt shows both, and an AppImage's menu entry gets the icon.
+/// InFocus Cut as craft-update knows it: Help ▸ Check for Updates and the check at start look
+/// only at this fork's GitHub releases, never upstream FilmCraft's, so an InFocus Cut install is
+/// never offered (or replaced by) a FilmCraft build. Its own id keeps it out of the ArtCraft
+/// launcher's per-app version choices for FilmCraft, and its bundle id and name match
+/// `packaging/macos` (`InFocus Cut.app`, `org.infocus.cut`). A release it can install names its
+/// assets `infocus-cut-<version>-<os>-<arch>.<ext>` and publishes `SHA256SUMS.txt`, as craft-update
+/// expects; until the fork publishes one, a check finds nothing newer.
 #[cfg(not(target_arch = "wasm32"))]
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
+    id: "infocus-cut",
+    name: "InFocus Cut",
+    tagline: "Team video editing over InFocus Drive",
+    repo: "neelsatyavolu/filmcraft-infocus",
     icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.filmcraft.png")),
     accent: Some([0x8b, 0x5c, 0xf6]),
+    developer: "InFocus",
+    bundle_id_override: Some("org.infocus.cut"),
     ..craft_update::suite::FILMCRAFT
 };
 
@@ -39,7 +50,6 @@ macro_rules! tlf {
 }
 
 pub mod automation;
-pub mod brand;
 pub mod calc;
 pub mod capture;
 mod cjk;
@@ -70,6 +80,7 @@ pub mod scrub;
 mod shuttle;
 pub mod source_playback;
 pub mod state;
+pub mod team_ui;
 pub mod theme;
 mod theme_favorites;
 pub mod updates_ui;

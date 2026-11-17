@@ -190,7 +190,10 @@ pub(super) fn preview_column(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Re
         if let Some(job) = active_job {
             job.progress.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
         } else {
-            let r = app.session.execute("file.exportMedia", export_params(app));
+            let seqs: Vec<_> = app.session.state.active_sequence.into_iter().collect();
+            let r = crate::team_ui::export_guard(app, &seqs)
+                .map_err(filmcraft_engine::EngineError::Other)
+                .and_then(|()| app.session.execute("file.exportMedia", export_params(app)));
             match r {
                 Ok(v) => app.ui.status = tlf!("Exporting {path}", path = v["path"].as_str().unwrap_or("")),
                 Err(e) => app.ui.status = e.to_string(),

@@ -246,6 +246,16 @@ impl FilmcraftApp {
                 })
                 .collect(),
             active: self.session.state.active_sequence.map(|id| id.0),
+            team: self
+                .session
+                .state
+                .open_sequences
+                .iter()
+                .filter_map(|id| {
+                    let st = self.session.team_status(*id)?;
+                    Some((id.0, crate::team_ui::with_display_name(st, self.hooks.team.as_deref())))
+                })
+                .collect(),
         };
         let style = dock_style(ui, &t);
         // No `monitors`: the monitor list comes with the egui fork's `ViewportInfo::monitors`.
@@ -319,6 +329,7 @@ impl FilmcraftApp {
                         self.session.execute("sequence.open", json!({"item": id}))
                     }
                 }
+                SeqAction::Take(id) => self.session.team_take_lock(filmcraft_project::ItemId(id)).map(|()| Value::Null),
                 SeqAction::Close(id) => self.session.execute("sequence.close", json!({"item": id})),
                 SeqAction::Move(id, index) => self.session.execute("sequence.moveTab", json!({"item": id, "index": index})),
                 SeqAction::Menu(id, pos) => {

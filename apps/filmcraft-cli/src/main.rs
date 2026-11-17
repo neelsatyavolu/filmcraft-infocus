@@ -33,6 +33,8 @@ macro_rules! out {
 mod args;
 mod probe;
 mod project_lock;
+mod team;
+mod team_bench;
 
 use args::{Args, parse_value};
 use filmcraft_automation::BridgeClient;
@@ -99,6 +101,14 @@ SUBCOMMANDS
                                 --image-sequence <media> is the first numbered still of a sequence
   bench-decode <media> [--frames N]
   mcp                           MCP server on stdio (headless, or --bridge to the live app)
+  team <command> --dir <member folder>
+                                InFocus Cut team member for scripts: `team login --drive URL
+                                --token-file F [--device NAME]`, then `team session` (one command
+                                per stdin line, one JSON answer per line: create <name> <p.fcproj>,
+                                open <id>, list, invite <id> <user>…, join <id>, lock/release <seq>, edit <seq> <new name>,
+                                exec <id> <json>, delete <seq>, import <file>, fetch, sync, status,
+                                split, freeze <secs>, quit), or one of them as `team <command>
+                                [<id>] …` (open <id> --out p.fcproj writes the merged project)
   help                          this text
   --version                     print the version
 
@@ -334,6 +344,7 @@ async fn cli() {
         "export" => cli_export(&a).await,
         "render" => cli_render(&a).await,
         "mcp" => cli_mcp(&a).await,
+        "team" => team::cli_team(&a).await,
         other => usage(format!("unknown subcommand `{other}`")),
     }
 }

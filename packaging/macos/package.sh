@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build, sign and (optionally) notarize the macOS release artifacts:
 #
-#   $DIST/filmcraft-<version>-macos-<arch>.dmg          FilmCraft.app on a drag-to-Applications DMG
+#   $DIST/filmcraft-<version>-macos-<arch>.dmg          InFocus Cut.app on a drag-to-Applications DMG
 #   $DIST/filmcraft-cli-<version>-macos-<arch>.zip      the headless CLI
 #
 # Usage: packaging/macos/package.sh [--arch universal|aarch64|x86_64] [--skip-build]
@@ -10,8 +10,9 @@
 #   MACOS_SIGN_IDENTITY   codesign identity (name or SHA-1). Default "-" = ad-hoc (local testing;
 #                         Gatekeeper will reject the result on other Macs). In CI, import-cert.sh sets it.
 #   MACOS_KEYCHAIN        keychain holding the identity (optional)
-# Notarization (env; all three needed, and a real identity):
+# Notarization (env; a real identity and one of):
 #   APPLE_ID, APPLE_PASSWORD (app-specific password), APPLE_TEAM_ID
+#   APPLE_API_KEY_PATH (App Store Connect .p8), APPLE_API_KEY (key id), APPLE_API_ISSUER
 set -euo pipefail
 # shellcheck source=../env.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
@@ -39,7 +40,9 @@ export MACOSX_DEPLOYMENT_TARGET=11.0
 IDENTITY="${MACOS_SIGN_IDENTITY:--}"
 SHORT_VERSION="${VERSION%%-*}"
 WORK="$CARGO_TARGET_DIR/macos-package"
-APP="$WORK/FilmCraft.app"
+# InFocus Cut fork: the bundle's name (Info.plist.in's CFBundleName / CFBundleExecutable).
+APP_NAME="InFocus Cut"
+APP="$WORK/$APP_NAME.app"
 DMG="$DIST/filmcraft-$VERSION-macos-$ARCH.dmg"
 CLI_ZIP="$DIST/filmcraft-cli-$VERSION-macos-$ARCH.zip"
 
@@ -48,11 +51,15 @@ if [[ "$IDENTITY" = "-" ]]; then
   warn "macOS: ad-hoc signing (no MACOS_SIGN_IDENTITY); artifacts are not notarized"
 elif [[ -n "${APPLE_ID:-}" ]] && [[ -n "${APPLE_PASSWORD:-}" ]] && [[ -n "${APPLE_TEAM_ID:-}" ]]; then
   NOTARIZE=1
+  NOTARY_AUTH=(--apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID")
+elif [[ -n "${APPLE_API_KEY_PATH:-}" ]] && [[ -n "${APPLE_API_KEY:-}" ]] && [[ -n "${APPLE_API_ISSUER:-}" ]]; then
+  NOTARIZE=1
+  NOTARY_AUTH=(--key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER")
 else
-  warn "macOS: APPLE_ID / APPLE_PASSWORD / APPLE_TEAM_ID incomplete; signed but not notarized"
+  warn "macOS: no complete Apple ID or API key notarization credentials; signed but not notarized"
 fi
 
-echo "==> FilmCraft $VERSION for macOS ($ARCH), identity: $IDENTITY, notarize: $NOTARIZE"
+echo "==> $APP_NAME $VERSION for macOS ($ARCH), identity: $IDENTITY, notarize: $NOTARIZE"
 
 # ---- build -------------------------------------------------------------------------------------
 if [[ "$SKIP_BUILD" = 0 ]]; then
@@ -99,26 +106,25 @@ stapler_retry() {
 notarize() {
   local file="$1" out id status
   echo "==> notarizing $(basename "$file") (this can take a few minutes)"
-  out="$(xcrun notarytool submit "$file" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" \
-    --team-id "$APPLE_TEAM_ID" --wait --timeout 1h --output-format json)" || true
+  out="$(xcrun notarytool submit "$file" "${NOTARY_AUTH[@]}" --wait --timeout 1h --output-format json)" || true
   echo "$out"
   id="$(printf '%s' "$out" | plutil -extract id raw -o - - 2>/dev/null || true)"
   status="$(printf '%s' "$out" | plutil -extract status raw -o - - 2>/dev/null || true)"
   if [[ "$status" != "Accepted" ]]; then
     if [[ -n "$id" ]]; then
-      xcrun notarytool log "$id" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" || true
+      xcrun notarytool log "$id" "${NOTARY_AUTH[@]}" || true
     fi
     echo "error: notarization of $(basename "$file") failed (status: ${status:-unknown})" >&2
     exit 1
   fi
 }
 
-# ---- FilmCraft.app ----------------------------------------------------------------------------
+# ---- InFocus Cut.app ---------------------------------------------------------------------------
 echo "==> assembling $APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 # Executable and icon carry the display name (CFBundleExecutable / CFBundleIconFile).
-cp "$WORK/bin/filmcraft" "$APP/Contents/MacOS/FilmCraft"
-cp "$ROOT/assets/app-icon/filmcraft.icns" "$APP/Contents/Resources/FilmCraft.icns"
+cp "$WORK/bin/filmcraft" "$APP/Contents/MacOS/$APP_NAME"
+cp "$ROOT/assets/app-icon/filmcraft.icns" "$APP/Contents/Resources/$APP_NAME.icns"
 cp "$ROOT/NOTICE" "$APP/Contents/Resources/"
 sed -e "s/@VERSION@/$VERSION/g" -e "s/@SHORT_VERSION@/$SHORT_VERSION/g" \
   -e "s/@BUILD_SHA@/${FILMCRAFT_BUILD_SHA:-unknown}/g" \
@@ -130,13 +136,13 @@ copy_font_licences "$APP/Contents/Resources"
 
 # Sign inside-out: nested code first, then the bundle itself (no --deep on the final signature).
 # Today the only nested code is the main executable; frameworks/helpers would be signed here too.
-sign --options runtime --entitlements "$HERE/entitlements.plist" "$APP/Contents/MacOS/FilmCraft"
+sign --options runtime --entitlements "$HERE/entitlements.plist" "$APP/Contents/MacOS/$APP_NAME"
 sign --options runtime --entitlements "$HERE/entitlements.plist" "$APP"
 codesign --verify --strict --deep --verbose=2 "$APP"
 
 if [[ "$NOTARIZE" = 1 ]]; then
-  ditto -c -k --keepParent "$APP" "$WORK/FilmCraft-notarize.zip"
-  notarize "$WORK/FilmCraft-notarize.zip"
+  ditto -c -k --keepParent "$APP" "$WORK/InFocus-Cut-notarize.zip"
+  notarize "$WORK/InFocus-Cut-notarize.zip"
   stapler_retry staple "$APP"
   stapler_retry validate "$APP"
   spctl --assess --type execute -vvv "$APP"
@@ -146,7 +152,9 @@ fi
 echo "==> building $DMG"
 STAGE="$WORK/dmg"
 mkdir -p "$STAGE"
-ditto "$APP" "$STAGE/FilmCraft.app"
+# The volume name and dmg/dmg-layout.DS_Store (icon positions) still say FilmCraft: regenerating
+# the layout needs a Finder session (packaging/macos/dmg/README.md).
+ditto "$APP" "$STAGE/$APP_NAME.app"
 ln -s /Applications "$STAGE/Applications"
 # Finder window layout: background, icon size and positions (packaging/macos/dmg/README.md).
 mkdir -p "$STAGE/.background"

@@ -139,7 +139,9 @@ pub fn quick_export(app: &mut FilmcraftApp, ctx: &egui::Context, anchor: egui::P
     }
     if go && !busy {
         let p = json!({"preset": app.ui.export.quick_preset, "path": app.ui.export.quick_path});
-        match app.session.execute("export.quick", p) {
+        let seqs: Vec<_> = app.session.state.active_sequence.into_iter().collect();
+        let r = crate::team_ui::export_guard(app, &seqs).map_err(filmcraft_engine::EngineError::Other).and_then(|()| app.session.execute("export.quick", p));
+        match r {
             Ok(v) => app.ui.status = tlf!("Quick Export: {path}", path = v["path"].as_str().unwrap_or("")),
             Err(e) => app.ui.status = e.to_string(),
         }

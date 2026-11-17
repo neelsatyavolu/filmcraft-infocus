@@ -9,7 +9,7 @@
 # 净室实现：每条译文均由英文含义直接译出，使用通用的中文视频剪辑术语（剪辑、时间轴、序列、
 #   轨道、关键帧……）。未参考或复制任何专有本地化资源、字符串表或产品界面。产品与技术名称
 #   （FilmCraft、ArtCraft、ProRes、LUFS……）保留原文拼写。
-	About FilmCraft	关于 FilmCraft
+	About InFocus Cut	关于 InFocus Cut
 	Add Audio Submix Track	添加音频子混音轨道
 	Add Caption at Playhead	在播放头处添加字幕
 	Add Chapter Marker…	添加章节标记…
@@ -35,7 +35,6 @@
 	Apply Default Transitions to Selection	对所选对象应用默认过渡
 	Apply Video Transition	应用视频过渡
 	Arrange	排列
-	ArtCraft Website	ArtCraft 官网
 	Assembly	组装
 	Attach Proxies…	附加代理文件…
 	Audio Channels…	音频声道…
@@ -133,8 +132,7 @@
 	File…	文件…
 	Fill frame	填满帧
 	FilmCraft Help…	FilmCraft 帮助…
-	FilmCraft on GitHub	GitHub 上的 FilmCraft
-	FilmCraft on getartcraft.com	getartcraft.com 上的 FilmCraft
+	Source Code on GitHub	GitHub 上的源代码
 	Find Next	查找下一个
 	Find…	查找…
 	Fit	适配
@@ -181,7 +179,6 @@
 	Insert Frame Hold Segment	插入帧定格片段
 	Install Motion Graphics Template…	安装动态图形模板…
 	Interpret Footage…	解释素材…
-	Join the ArtCraft Discord…	加入 ArtCraft Discord…
 	Keyboard Shortcuts…	键盘快捷键…
 	Label	标签
 	Labels…	标签…
@@ -378,7 +375,6 @@
 	Master volume: use the Audio Track Mixer	主音量：请使用音频轨道混音器调整
 	Search	搜索
 	Quick Export	快速导出
-	Join the ArtCraft Discord (discord.gg/artcraft)	加入 ArtCraft Discord（discord.gg/artcraft）
 	Cancel	取消
 	OK	确定
 	Interpret Footage	解释素材
@@ -417,8 +413,6 @@
 	Delete Audio Tracks	删除音频轨道
 	All Empty Tracks	所有空轨道
 	Version {version}	版本 {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	一款净室实现的纯 Rust 非线性视频编辑器，属于 ArtCraft 家族。
-	Join the ArtCraft Discord	加入 ArtCraft Discord
 	Source code on GitHub	GitHub 上的源代码
 	Report an issue	报告问题
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT 或 Apache-2.0。字体：Inter、Noto Serif 与 JetBrains Mono（SIL OFL 1.1）。
@@ -438,8 +432,8 @@
 	No background jobs.	无后台任务。
 	Recover Unsaved Changes	恢复未保存的更改
 	Untitled	未命名
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft 在“{name}”存在未保存的更改时被关闭。
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft 在“{name}”存在未保存的更改时意外退出。
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut 在“{name}”存在未保存的更改时被关闭。
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut 在“{name}”存在未保存的更改时意外退出。
 	Recover unsaved changes from {when}?	恢复 {when} 的未保存更改吗？
 	The project had not been saved yet.	该项目尚未保存。
 	{n} sessions have unsaved changes:	{n} 个会话存在未保存的更改：
@@ -461,8 +455,6 @@
 	A cut sequence with transitions, effects and music	一段包含过渡、效果与音乐的剪辑序列
 	Bars and Tone	彩条与音调
 	SMPTE HD bars with 1 kHz reference tone	带 1 kHz 参考音调的 SMPTE HD 彩条
-	Community	社区
-	Join us on Discord	在 Discord 上加入我们
 	OMF Export Settings	OMF 导出设置
 	AAF Export Settings	AAF 导出设置
 	OMF Title:	OMF 标题：
@@ -2975,7 +2967,7 @@
 	Drag a clip to slide it between its neighbours.	拖动剪辑以在其相邻剪辑之间滑动。
 	Drag to scroll the timeline.	拖动以滚动时间轴。
 	Click to zoom in; Opt-click to zoom out.	单击以放大；Opt-单击以缩小。
-	FilmCraft hit an error	FilmCraft 遇到错误
+	InFocus Cut hit an error	InFocus Cut 遇到错误
 	Details: {path}	详细信息：{path}
 	Opened {url}	已打开 {url}
 	(empty)	（空）
@@ -3237,7 +3229,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime，ProRes 4444 (4:4:4)，带 Alpha 通道，24 位 48 kHz PCM
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime，ProRes 4444 XQ (4:4:4)，24 位 48 kHz PCM
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime，ProRes 422，24 位 48 kHz PCM
-	Quit FilmCraft	退出 FilmCraft
+	Quit InFocus Cut	退出 InFocus Cut
 	Rate Stretch Tool	速率伸缩工具
 	Razor Tool	剃刀工具
 	Rectangle Tool	矩形工具
@@ -3602,7 +3594,6 @@
 	Delete this preset	删除此预设
 	Saves this session's log and shows it in your file manager.	保存本次会话的日志并在文件管理器中显示。
 	Shows a report on this computer.	显示本机的报告。
-	Shows the version, community links and credits in a FilmCraft window.	在 FilmCraft 窗口中显示版本、社区链接和致谢。
 	Couldn't open your web browser	无法打开网页浏览器
 	Open this address in your browser yourself:	请自行在浏览器中打开此地址：
 # View > Reset Interface Zoom (#2253).
@@ -3724,7 +3715,7 @@
 	FilmCraft {version} is currently the newest version available.	FilmCraft {version} 目前已是最新版本。
 	Gradient Angle	渐变角度
 	Hardware decoding: Auto uses the system's video decoder (VideoToolbox on macOS, Media Foundation on Windows, VA-API or NVDEC for H.264 and HEVC on Linux) for the streams it supports, and FilmCraft's own decoder for everything else or if the hardware fails. Media that is already open keeps its decoder until it is reopened.	硬件解码：自动模式对支持的流使用系统视频解码器（macOS 的 VideoToolbox、Windows 的 Media Foundation、Linux 上 H.264 和 HEVC 的 VA-API 或 NVDEC），对其余内容或在硬件故障时使用 FilmCraft 自带的解码器。已打开的媒体在重新打开之前会保留其解码器。
-	Hide FilmCraft	隐藏 FilmCraft
+	Hide InFocus Cut	隐藏 InFocus Cut
 	Hide Others	隐藏其他
 	Light Theme	浅色主题
 	Linear Gradient	线性渐变
@@ -3773,3 +3764,149 @@
 	Toggle Color Grading Section	切换色彩分级分区
 	Color Grading Section	色彩分级分区
 	Read Video Scopes	读取视频示波器
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	邀请队友加入“{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	你的项目已在 InFocus Drive 上。选择和你一起做的人：他们会在自己的团队面板中收到邀请。
+	They get an invitation in their Team panel.	他们会在自己的团队面板中收到邀请。
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	暂时没有可邀请的人。你的队友需要先有 InFocus Drive 账户。
+	Everyone on InFocus Drive is already in this project or invited.	InFocus Drive 上的所有人都已在此项目中或已被邀请。
+	Search by name	按名字搜索
+	A project can have up to {n} people.	一个项目最多可有 {n} 人。
+	No one matches that name.	没有匹配该名字的人。
+	Send Invitations	发送邀请
+	Invite 1 Person	邀请 1 人
+	Invite {n} People	邀请 {n} 人
+	Skip for Now	暂不邀请
+	You can invite people later with Invite… on the project.	之后可以在项目上用“邀请…”邀请更多人。
+	Team editing is available in the desktop app.	团队剪辑仅在桌面应用中提供。
+	Signed in as {user}	已登录为 {user}
+	Connecting to InFocus Drive…	正在连接 InFocus Drive…
+	Not signed in	未登录
+	Sign Out	退出登录
+	Check that this Mac is online, then press Refresh.	请确认这台 Mac 已联网，然后点击“刷新”。
+	Press Sign In to continue.	点击“登录”继续。
+	Ask whoever runs your InFocus Drive for its address.	请向管理你们 InFocus Drive 的人询问地址。
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	点击“刷新”。如果仍然没有，请队友重新邀请你。
+	Dismiss	关闭
+	Edit together on InFocus Drive	在 InFocus Drive 上一起剪辑
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	使用 InFocus Drive 账户登录，即可创建团队项目、邀请同学并共享素材。
+	Sign In…	登录…
+	Your browser opens to finish signing in.	浏览器将打开以完成登录。
+	No footage yet	还没有素材
+	1 file · {size}	1 个文件 · {size}
+	{n} files · {size}	{n} 个文件 · {size}
+	Invitations	邀请
+	Invited by {name}	{name} 邀请了你
+	You're invited to this project	你被邀请加入此项目
+	Decline	拒绝
+	Turn the invitation down. A teammate can invite you again.	拒绝邀请。队友可以再次邀请你。
+	Join	加入
+	Join and open the project. Footage downloads when you open a sequence.	加入并打开项目。打开序列时会下载素材。
+	Your team projects	你的团队项目
+	Check InFocus Drive for new invitations and changes.	检查 InFocus Drive 上的新邀请和更改。
+	New Team Project…	新建团队项目…
+	Leave the open team project first, then make a new one.	请先离开当前打开的团队项目，再新建一个。
+	Put the project you have open on InFocus Drive for your team.	把当前打开的项目放到 InFocus Drive 上供团队使用。
+	No team projects yet	还没有团队项目
+	Join an invitation above, or make a team project from the project you have open.	接受上方的邀请，或用当前打开的项目创建团队项目。
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	用当前打开的项目创建一个，然后邀请队友。也可以请队友邀请你：邀请会显示在这里。
+	New team project	新建团队项目
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	当前打开的项目及其序列和素材会上传到 InFocus Drive。你继续剪辑时，素材会在后台上传。
+	Project name, like “Homecoming Video”	项目名称，例如“校庆视频”
+	Create and Invite…	创建并邀请…
+	You're editing {sequence}	你正在编辑 {sequence}
+	You're editing a sequence	你正在编辑一个序列
+	{name} is editing {sequence}	{name} 正在编辑 {sequence}
+	{name} is editing a sequence	{name} 正在编辑一个序列
+	Open now	当前打开
+	Open this project here. Footage downloads when you open a sequence.	在这里打开此项目。打开序列时会下载素材。
+	Team: {names}	团队：{names}
+	Open to everyone on InFocus Drive	对 InFocus Drive 上的所有人开放
+	Invited: {name}	已邀请：{name}
+	Take this invitation back.	撤回此邀请。
+	No one is editing right now	目前没有人在编辑
+	Moves to the Drive's recycle bin on {date}	将于 {date} 移入 Drive 的回收站
+	Keep	保留
+	Keeps the project for another 30 days.	再保留此项目 30 天。
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	要离开此项目吗？它会从你的列表中消失，队友会继续工作。之后可以再邀请你。
+	Leave Project	离开项目
+	Invite…	邀请…
+	Invite teammates to this project.	邀请队友加入此项目。
+	Keep forever	永久保留
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	永不将此项目移入回收站。只有创建者或 Drive 管理员可以更改此设置。
+	Leave Project…	离开项目…
+	Live	实时
+	Reconnecting…	正在重新连接…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	在这里停止处理此项目。你的编辑会先发送到 Drive，并释放你的锁定。
+	Add Footage…	添加素材…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	选择视频、音频或照片。它们会加入此项目并上传到 InFocus Drive，供队友使用。
+	Downloads and uploads are paused while exporting.	导出期间下载和上传已暂停。
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	当你打开使用素材的序列时，素材会下载到这台 Mac，这台 Mac 会自己生成代理文件，让剪辑更流畅。
+	Downloading {name}	正在下载 {name}
+	Making a proxy of {name}	正在为 {name} 生成代理文件
+	Uploading {name}	正在上传 {name}
+	{name}: uploading from {member}	{name}：{member} 正在上传
+	{name} didn't download: {why}	{name} 未能下载：{why}
+	{name} didn't upload: {why}	{name} 未能上传：{why}
+	Retry	重试
+	Try the failed downloads and uploads again.	重新尝试失败的下载和上传。
+	Saving to InFocus Drive	正在保存到 InFocus Drive
+	closing the project	关闭项目
+	signing out	退出登录
+	quitting	退出
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	你最近的编辑还没有到达 InFocus Drive。如果现在离开，它们只会留在这台 Mac 上，队友收不到。
+	Sending your edits to InFocus Drive before {doing}…	正在{doing}前将你的编辑发送到 InFocus Drive…
+	Wait	等待
+	Leave Anyway	仍然离开
+	Can't export yet. Still downloading: {list}	暂时无法导出。仍在下载：{list}
+	Can't export yet. Still downloading: {list} and {count} more	暂时无法导出。仍在下载：{list} 等另外 {count} 个
+	Asking for the lock…	正在请求锁定…
+	Edit this sequence. Teammates see it read-only until you release it.	编辑此序列。在你释放之前，队友只能以只读方式查看。
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	让队友编辑此序列。你的编辑会先保存到 Drive。
+	Read-only: {who}. You can edit it once the lock is free.	只读：{who}。锁定释放后即可编辑。
+	Release Lock	释放锁定
+	Requested	已请求
+	Take	获取
+	Take Lock	获取锁定
+	Take the lock to edit this sequence.	获取锁定以编辑此序列。
+	Team	团队
+	Team video editing for InFocus, synced through InFocus Drive.	为 InFocus 打造的团队视频剪辑，通过 InFocus Drive 同步。
+	You're editing this sequence.	你正在编辑此序列。
+	You're editing this sequence. Some edits aren't on the Drive yet.	你正在编辑此序列。部分编辑尚未到达 Drive。
+	Finish signing in in your browser. This panel updates by itself.	请在浏览器中完成登录。此面板会自动更新。
+	Signed in as {name} ({user})	已登录为 {name}（{user}）
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	在这台 Mac 上退出 InFocus Drive。会先发送你的编辑。
+	Switch Account	切换账户
+	Sign out, then sign in with another InFocus Drive account.	退出，然后用另一个 InFocus Drive 账户登录。
+	Open the team dashboard ↗	打开团队仪表板 ↗
+	See your team projects, footage and invitations on the web.	在网页上查看你的团队项目、素材和邀请。
+	Press Sign in with InFocus Drive to continue.	点按“使用 InFocus Drive 登录”以继续。
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive 是 InFocus 存放共享素材和项目的地方。
+	Sign in with your school account to make a team project, invite classmates and share footage.	使用学校账户登录，即可创建团队项目、邀请同学并共享素材。
+	Sign in with InFocus Drive	使用 InFocus Drive 登录
+	Add footage to “{name}”	向“{name}”添加素材
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	队友打开用到它的序列时会下载。你继续剪辑时，它会在后台上传。
+	Next: Invite Teammates	下一步：邀请队友
+	Skip	跳过
+	Add footage later with Add Footage… on the open project.	以后可在打开的项目中用“添加素材…”添加。
+	Drop to add to the project	松开即可添加到项目
+	Drop video, audio or photos here	将视频、音频或照片拖放到这里
+	Choose Files…	选择文件…
+	Team:	团队：
+	Online now	在线
+	Last seen just now	刚刚在线
+	Last seen {n} minutes ago	{n} 分钟前在线
+	Last seen {n} hours ago	{n} 小时前在线
+	Last seen {n} days ago	{n} 天前在线
+	1 new file on InFocus Drive · {size}	InFocus Drive 上有 1 个新文件 · {size}
+	{n} new files on InFocus Drive · {size}	InFocus Drive 上有 {n} 个新文件 · {size}
+	{list} and {count} more	{list} 等另外 {count} 个
+	Add to Project	添加到项目
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	在 Drive 网站上添加。它们会下载到这台 Mac，并放入整个团队的项目素材箱。
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	这台 Mac 似乎已离线。请连接 Wi-Fi 或学校网络后重试。
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	现在无法连接 InFocus Drive。请检查网络连接，或一分钟后重试。
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	此账户不是 InFocus Drive 成员。请用学校账户登录，或请 InFocus 管理员添加你。
+	Sign-in was cancelled in the browser.	已在浏览器中取消登录。
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	浏览器中的登录未完成。请重试；如果 Drive 提示你的账户不是成员，请让 InFocus 管理员添加你。
+	Adding footage from InFocus Drive	正在从 InFocus Drive 添加素材

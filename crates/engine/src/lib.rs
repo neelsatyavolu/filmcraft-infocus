@@ -58,6 +58,8 @@ pub mod shortcut_presets;
 pub mod shortcuts;
 pub mod source_monitor;
 pub mod sync;
+pub mod team;
+pub mod team_media;
 pub mod transcript;
 pub mod trim;
 pub mod voiceover;
@@ -594,6 +596,8 @@ pub struct Session {
     pub media_stamps: std::collections::HashMap<String, media_watch::Stamp>,
     /// The stamps being taken on a worker thread ([`Session::start_media_scan`]).
     pub media_scan: Option<media_watch::MediaScan>,
+    /// Team project state (InFocus Cut); None for an ordinary project.
+    pub team: Option<team::TeamState>,
 }
 
 /// An export advanced a batch at a time on the host's thread ([`Session::pump_jobs`]).
@@ -689,6 +693,7 @@ impl Session {
             command_origin: None,
             media_stamps: Default::default(),
             media_scan: None,
+            team: None,
         }
     }
 
@@ -773,6 +778,9 @@ impl Session {
     /// Apply worker notifications (call regularly, e.g. once per UI frame). Also applies the
     /// results of finished proxy / ingest jobs.
     pub fn poll_persistence(&mut self) {
+        if self.team.is_some() {
+            self.poll_team(web_time::Instant::now());
+        }
         proxies::poll(self);
         masks::poll(self);
         scene_detect::poll(self);
@@ -870,6 +878,7 @@ impl Session {
             && !matches!(id, "edit.undo" | "edit.redo" | "file.newProject" | "file.openDemoProject" | "file.open" | "file.revert" | "file.recover"))
         .then(|| self.project.clone());
         let outermost = self.exec_depth == 0;
+        let team_before = if outermost { team::before_command(self) } else { None };
         if outermost {
             self.command_origin = Some(id.to_string());
         }
@@ -877,7 +886,7 @@ impl Session {
         // Last-resort guard: a panic in a command (a bug that escaped the never-crash rules)
         // becomes an error for the caller (UI, CLI, control channel, MCP) instead of taking the
         // session and its unsaved project down. The panic hook has logged where it happened.
-        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| (spec.run)(self, &params)))
+        let mut r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| (spec.run)(self, &params)))
             .unwrap_or_else(|_| Err(EngineError::Other(format!("internal error in `{id}` (see the crash log); the command did not complete"))));
         self.exec_depth -= 1;
         if outermost {
@@ -898,6 +907,13 @@ impl Session {
             let message = format!("Automatic transcription: {e}");
             self.log.push(panels::Level::Warning, id, message.clone());
             self.events.push(Event::Toast { message, error: true });
+        }
+        // team projects: an edit of a sequence someone else is editing is taken back here
+        if let Some(before) = team_before
+            && let Err(e) = team::after_command(self, id, before)
+            && r.is_ok()
+        {
+            r = Err(e);
         }
         if self.exec_depth == 0
             && let Err(e) = &r
@@ -1521,6 +1537,10 @@ mod shortcuts_tests;
 mod split_edit_ripple_trim_tests;
 #[cfg(test)]
 mod stored_paths_tests;
+#[cfg(test)]
+mod team_media_tests;
+#[cfg(test)]
+mod team_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

@@ -29,6 +29,10 @@ filmcraft-codecs = { workspace = true }
 filmcraft-platform = { workspace = true }
 craft-media = { workspace = true, features = ["mpegts", "mxf", "ogg"] }
 filmcraft-automation = { workspace = true }
+filmcraft-drive = { workspace = true }
+filmcraft-format = { workspace = true }
+filmcraft-team = { workspace = true }
+filmcraft-team-link = { workspace = true }
 serde_json = { workspace = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 

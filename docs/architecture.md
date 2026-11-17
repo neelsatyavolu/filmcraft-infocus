@@ -23,9 +23,9 @@ Design principles:
 
 ```text
  L6  apps/filmcraft · apps/filmcraft-cli · apps/filmcraft-web
- L5  ui-egui · automation · platform
+ L5  ui-egui · automation · platform · drive · team-link
  L4  engine
- L3  render · gpu · export · golden (test-only)
+ L3  render · gpu · export · team · golden (test-only)
  L2  edit · codecs · interchange · captions · speech · tts · tts-text
  L1  frame · media · project · audio-dsp · text
  L0  foundation: time · geom · color · bitstream · testkit (dev-dependency only)
@@ -66,9 +66,12 @@ and `filmcraft-cli`.
 | `golden` | L3 | test-only: golden-image tests of the CPU renderer and GPU-vs-CPU parity; empty library, dev-dependencies only |
 | `scopes` | L3 | video scope maths: waveform, parade, histogram, YUV / HLS vectorscopes, numeric summaries ([crates/scopes/README.md](../crates/scopes/README.md)) |
 | `export` | L3 | render → encode → mux pipeline, progress/cancel |
+| `team` | L3 | InFocus Cut fork: team projects split into shared and per-sequence parts, merged back, and edits classified by part; validates incoming parts through `format` (same-layer edge) |
 | `engine` | L4 | `Session`, command registry, undo history, media pool, jobs, interchange glue |
 | `ui-egui` | L5 | the egui frontend: docking, panels, timeline, monitors, playback, control-channel handlers |
 | `automation` | L5 | MCP server (`rmcp`, stdio), headless or bridged to the running app |
+| `drive` | L5 | InFocus Cut fork: the InFocus Drive client (sign-in, team project routes, change feed, resumable media downloads and uploads); no UI, and the engine never depends on it |
+| `team-link` | L5 | InFocus Cut fork: connects a team session to the Drive: the engine's `TeamLink` and `Downloader` over `drive` on worker threads, and the controller the UI calls (same-layer edge to `drive`) |
 | `platform` | L5 | OS media FFI only: hardware video decoding (VideoToolbox H.264 / HEVC on macOS; Media Foundation / Direct3D 11 H.264 / HEVC / VP9 / AV1 on Windows; VA-API H.264 / HEVC on Linux, with our own parsers and DPBs driving the stateless hardware; a no-op elsewhere) behind `codecs::VideoDecoder`, with transparent fallback to our decoders, and hardware H.264 encoding (VideoToolbox, opt-in) and H.265 encoding (VideoToolbox, the only H.265 encoder; the format exists only where a hardware encoder does) and NVIDIA NVENC H.264 (Windows and 64-bit Linux, opt-in) and H.265 (Windows, FilmCraft's only H.265 encoder there) encoding behind `export::VideoEncoder`; H.264 declines to the built-in encoder for what the hardware does not take. The one crate allowed `unsafe` ([ADR 0001](adr/0001-platform-ffi.md), [README](../crates/platform/README.md)) |
 | `filmcraft` | L6 | desktop binary: eframe/wgpu window, cpal audio output, file dialogs, native macOS menu, TCP control server |
 | `filmcraft-cli` | L6 | headless CLI: `exec`, `run`, `inspect`, `describe`, `commands`, `import`, `export`, `render`, `probe`, `mcp`; `--bridge` targets the running app |

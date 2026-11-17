@@ -14,7 +14,7 @@
 # way. Product and technology names (FilmCraft, ArtCraft, ProRes, LUFS…) keep their
 # spelling. "video" is written without an accent, as in the rest of this catalog.
 
-	About FilmCraft	Acerca de FilmCraft
+	About InFocus Cut	Acerca de InFocus Cut
 	Add Audio Submix Track	Añadir pista de submezcla de audio
 	Add Caption at Playhead	Añadir subtítulo en el cabezal
 	Add Chapter Marker…	Añadir marcador de capítulo…
@@ -40,7 +40,6 @@
 	Apply Default Transitions to Selection	Aplicar transiciones predeterminadas a la selección
 	Apply Video Transition	Aplicar transición de video
 	Arrange	Organizar
-	ArtCraft Website	Sitio web de ArtCraft
 	Assembly	Ensamblaje
 	Attach Proxies…	Adjuntar proxies…
 	Audio Channels…	Canales de audio…
@@ -138,8 +137,7 @@
 	File…	Archivo…
 	Fill frame	Rellenar fotograma
 	FilmCraft Help…	Ayuda de FilmCraft…
-	FilmCraft on GitHub	FilmCraft en GitHub
-	FilmCraft on getartcraft.com	FilmCraft en getartcraft.com
+	Source Code on GitHub	Código fuente en GitHub
 	Find Next	Buscar siguiente
 	Find…	Buscar…
 	Fit	Ajustar
@@ -186,7 +184,6 @@
 	Insert Frame Hold Segment	Insertar segmento de fotograma congelado
 	Install Motion Graphics Template…	Instalar plantilla de animación…
 	Interpret Footage…	Interpretar material…
-	Join the ArtCraft Discord…	Únete al Discord de ArtCraft…
 	Keyboard Shortcuts…	Atajos de teclado…
 	Label	Etiqueta
 	Labels…	Etiquetas…
@@ -383,7 +380,6 @@
 	Master volume: use the Audio Track Mixer	Volumen maestro: usa el mezclador de pistas de audio
 	Search	Buscar
 	Quick Export	Exportación rápida
-	Join the ArtCraft Discord (discord.gg/artcraft)	Únete al Discord de ArtCraft (discord.gg/artcraft)
 	Cancel	Cancelar
 	OK	Aceptar
 	Interpret Footage	Interpretar material
@@ -426,8 +422,6 @@
 	Delete Caption Track	Eliminar pista de subtítulos
 	Delete Empty Caption Tracks	Eliminar pistas de subtítulos vacías
 	Version {version}	Versión {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Un editor de video no lineal en Rust puro, desarrollado en sala limpia. Parte de la familia ArtCraft.
-	Join the ArtCraft Discord	Únete al Discord de ArtCraft
 	Source code on GitHub	Código fuente en GitHub
 	Report an issue	Informar de un problema
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Fuentes: Inter, Noto Serif y JetBrains Mono (SIL OFL 1.1).
@@ -447,8 +441,8 @@
 	No background jobs.	No hay tareas en segundo plano.
 	Recover Unsaved Changes	Recuperar cambios no guardados
 	Untitled	Sin título
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft se cerró mientras “{name}” tenía cambios sin guardar.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft se cerró de forma inesperada mientras “{name}” tenía cambios sin guardar.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut se cerró mientras “{name}” tenía cambios sin guardar.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut se cerró de forma inesperada mientras “{name}” tenía cambios sin guardar.
 	Recover unsaved changes from {when}?	¿Recuperar los cambios no guardados de {when}?
 	The project had not been saved yet.	El proyecto aún no se había guardado.
 	{n} sessions have unsaved changes:	{n} sesiones tienen cambios sin guardar:
@@ -470,8 +464,6 @@
 	A cut sequence with transitions, effects and music	Una secuencia montada con transiciones, efectos y música
 	Bars and Tone	Barras y tono
 	SMPTE HD bars with 1 kHz reference tone	Barras SMPTE HD con tono de referencia de 1 kHz
-	Community	Comunidad
-	Join us on Discord	Únete a nosotros en Discord
 	OMF Export Settings	Ajustes de exportación OMF
 	AAF Export Settings	Ajustes de exportación AAF
 	OMF Title:	Título OMF:
@@ -1853,7 +1845,7 @@
 	Height	Altura
 	Hexagon	Hexágono
 	Hide Back Face	Ocultar la cara posterior
-	Hide FilmCraft	Ocultar FilmCraft
+	Hide InFocus Cut	Ocultar InFocus Cut
 	Hide Others	Ocultar otras
 	High	Alta
 	High Cutoff	Corte de agudos
@@ -2996,7 +2988,7 @@
 	Drag a clip to slide it between its neighbours.	Arrastra un clip para deslizarlo entre sus vecinos.
 	Drag to scroll the timeline.	Arrastra para desplazar la línea de tiempo.
 	Click to zoom in; Opt-click to zoom out.	Haz clic para acercar; Opción+clic para alejar.
-	FilmCraft hit an error	FilmCraft ha encontrado un error
+	InFocus Cut hit an error	InFocus Cut ha encontrado un error
 	Details: {path}	Detalles: {path}
 	Opened {url}	Abierto {url}
 	(empty)	(vacío)
@@ -3258,7 +3250,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) con canal alfa, PCM de 24 bits y 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), PCM de 24 bits y 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, PCM de 24 bits y 48 kHz
-	Quit FilmCraft	Salir de FilmCraft
+	Quit InFocus Cut	Salir de InFocus Cut
 	Rate Stretch Tool	Herramienta Ajuste de velocidad
 	Razor Tool	Herramienta Cuchilla
 	Rectangle Tool	Herramienta Rectángulo
@@ -3627,7 +3619,6 @@
 	Delete this preset	Eliminar este ajuste preestablecido
 	Saves this session's log and shows it in your file manager.	Guarda el registro de esta sesión y lo muestra en el explorador de archivos.
 	Shows a report on this computer.	Muestra un informe sobre este equipo.
-	Shows the version, community links and credits in a FilmCraft window.	Muestra la versión, los enlaces de la comunidad y los créditos en una ventana de FilmCraft.
 	Couldn't open your web browser	No se pudo abrir el navegador web
 	Open this address in your browser yourself:	Abre esta dirección tú mismo en el navegador:
 # View > Reset Interface Zoom (#2253).
@@ -3755,3 +3746,149 @@
 	Toggle Color Grading Section	Alternar sección de gradación de color
 	Color Grading Section	Sección de gradación de color
 	Read Video Scopes	Leer medidores de vídeo
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Invita a compañeros a “{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Tu proyecto ya está en InFocus Drive. Elige con quién lo haces: recibirán una invitación en su panel Equipo.
+	They get an invitation in their Team panel.	Recibirán una invitación en su panel Equipo.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Todavía no hay nadie a quien invitar. Tus compañeros necesitan primero una cuenta de InFocus Drive.
+	Everyone on InFocus Drive is already in this project or invited.	Todos los de InFocus Drive ya están en este proyecto o invitados.
+	Search by name	Buscar por nombre
+	A project can have up to {n} people.	Un proyecto puede tener hasta {n} personas.
+	No one matches that name.	Nadie coincide con ese nombre.
+	Send Invitations	Enviar invitaciones
+	Invite 1 Person	Invitar a 1 persona
+	Invite {n} People	Invitar a {n} personas
+	Skip for Now	Ahora no
+	You can invite people later with Invite… on the project.	Puedes invitar a más personas luego con Invitar… en el proyecto.
+	Team editing is available in the desktop app.	La edición en equipo está disponible en la app de escritorio.
+	Signed in as {user}	Sesión iniciada como {user}
+	Connecting to InFocus Drive…	Conectando con InFocus Drive…
+	Not signed in	Sin iniciar sesión
+	Sign Out	Cerrar sesión
+	Check that this Mac is online, then press Refresh.	Comprueba que este Mac tenga conexión y pulsa Actualizar.
+	Press Sign In to continue.	Pulsa Iniciar sesión para continuar.
+	Ask whoever runs your InFocus Drive for its address.	Pide la dirección a quien administra tu InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Pulsa Actualizar. Si sigue sin aparecer, pide a un compañero que te invite de nuevo.
+	Dismiss	Descartar
+	Edit together on InFocus Drive	Editad juntos en InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Inicia sesión con tu cuenta de InFocus Drive para crear un proyecto de equipo, invitar a compañeros y compartir el metraje.
+	Sign In…	Iniciar sesión…
+	Your browser opens to finish signing in.	Se abre tu navegador para terminar de iniciar sesión.
+	No footage yet	Aún no hay metraje
+	1 file · {size}	1 archivo · {size}
+	{n} files · {size}	{n} archivos · {size}
+	Invitations	Invitaciones
+	Invited by {name}	Te invitó {name}
+	You're invited to this project	Te han invitado a este proyecto
+	Decline	Rechazar
+	Turn the invitation down. A teammate can invite you again.	Rechaza la invitación. Un compañero puede volver a invitarte.
+	Join	Unirse
+	Join and open the project. Footage downloads when you open a sequence.	Únete y abre el proyecto. El metraje se descarga cuando abres una secuencia.
+	Your team projects	Tus proyectos de equipo
+	Check InFocus Drive for new invitations and changes.	Busca en InFocus Drive invitaciones y cambios nuevos.
+	New Team Project…	Nuevo proyecto de equipo…
+	Leave the open team project first, then make a new one.	Primero sal del proyecto de equipo abierto y luego crea uno nuevo.
+	Put the project you have open on InFocus Drive for your team.	Pon el proyecto que tienes abierto en InFocus Drive para tu equipo.
+	No team projects yet	Aún no hay proyectos de equipo
+	Join an invitation above, or make a team project from the project you have open.	Acepta una invitación de arriba o crea un proyecto de equipo a partir del proyecto abierto.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Crea uno a partir del proyecto abierto y luego invita a tus compañeros. O pide a un compañero que te invite: las invitaciones aparecen aquí.
+	New team project	Nuevo proyecto de equipo
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Tu proyecto abierto, sus secuencias y su metraje van a InFocus Drive. El metraje se sube en segundo plano mientras sigues editando.
+	Project name, like “Homecoming Video”	Nombre del proyecto, como “Video de Homecoming”
+	Create and Invite…	Crear e invitar…
+	You're editing {sequence}	Estás editando {sequence}
+	You're editing a sequence	Estás editando una secuencia
+	{name} is editing {sequence}	{name} está editando {sequence}
+	{name} is editing a sequence	{name} está editando una secuencia
+	Open now	Abierto ahora
+	Open this project here. Footage downloads when you open a sequence.	Abre este proyecto aquí. El metraje se descarga cuando abres una secuencia.
+	Team: {names}	Equipo: {names}
+	Open to everyone on InFocus Drive	Abierto a todos en InFocus Drive
+	Invited: {name}	Invitado: {name}
+	Take this invitation back.	Retira esta invitación.
+	No one is editing right now	Nadie está editando ahora
+	Moves to the Drive's recycle bin on {date}	Pasa a la papelera del Drive el {date}
+	Keep	Conservar
+	Keeps the project for another 30 days.	Conserva el proyecto 30 días más.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	¿Salir de este proyecto? Desaparece de tu lista y tus compañeros siguen trabajando en él. Alguien puede volver a invitarte.
+	Leave Project	Salir del proyecto
+	Invite…	Invitar…
+	Invite teammates to this project.	Invita a compañeros a este proyecto.
+	Keep forever	Conservar siempre
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	No mover nunca este proyecto a la papelera. Solo su creador o un administrador del Drive puede cambiarlo.
+	Leave Project…	Salir del proyecto…
+	Live	En directo
+	Reconnecting…	Reconectando…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Deja de trabajar en este proyecto aquí. Tus ediciones se envían antes al Drive y se liberan tus bloqueos.
+	Add Footage…	Añadir metraje…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Elige video, audio o fotos. Entran en este proyecto y se suben a InFocus Drive para que tus compañeros los reciban.
+	Downloads and uploads are paused while exporting.	Las descargas y subidas se pausan durante la exportación.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	El metraje se descarga en este Mac cuando abres una secuencia que lo usa, y este Mac crea sus propios proxies para editar con fluidez.
+	Downloading {name}	Descargando {name}
+	Making a proxy of {name}	Creando un proxy de {name}
+	Uploading {name}	Subiendo {name}
+	{name}: uploading from {member}	{name}: subiéndose desde {member}
+	{name} didn't download: {why}	{name} no se descargó: {why}
+	{name} didn't upload: {why}	{name} no se subió: {why}
+	Retry	Reintentar
+	Try the failed downloads and uploads again.	Vuelve a intentar las descargas y subidas que fallaron.
+	Saving to InFocus Drive	Guardando en InFocus Drive
+	closing the project	cerrar el proyecto
+	signing out	cerrar sesión
+	quitting	salir
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Tus últimas ediciones aún no han llegado a InFocus Drive. Si sales ahora, se quedan solo en este Mac y tus compañeros no las recibirán.
+	Sending your edits to InFocus Drive before {doing}…	Enviando tus ediciones a InFocus Drive antes de {doing}…
+	Wait	Esperar
+	Leave Anyway	Salir de todos modos
+	Can't export yet. Still downloading: {list}	Aún no se puede exportar. Se sigue descargando: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Aún no se puede exportar. Se sigue descargando: {list} y {count} más
+	Asking for the lock…	Pidiendo el bloqueo…
+	Edit this sequence. Teammates see it read-only until you release it.	Edita esta secuencia. Tus compañeros la ven en solo lectura hasta que la liberes.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Deja que un compañero edite esta secuencia. Antes se guardan tus ediciones en el Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Solo lectura: {who}. Podrás editarla cuando el bloqueo quede libre.
+	Release Lock	Liberar bloqueo
+	Requested	Pedido
+	Take	Tomar
+	Take Lock	Tomar bloqueo
+	Take the lock to edit this sequence.	Toma el bloqueo para editar esta secuencia.
+	Team	Equipo
+	Team video editing for InFocus, synced through InFocus Drive.	Edición de video en equipo para InFocus, sincronizada con InFocus Drive.
+	You're editing this sequence.	Estás editando esta secuencia.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Estás editando esta secuencia. Algunas ediciones aún no están en el Drive.
+	Finish signing in in your browser. This panel updates by itself.	Termina de iniciar sesión en el navegador. Este panel se actualiza solo.
+	Signed in as {name} ({user})	Sesión iniciada como {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Cierra sesión en InFocus Drive en este Mac. Tus cambios se envían antes.
+	Switch Account	Cambiar de cuenta
+	Sign out, then sign in with another InFocus Drive account.	Cierra sesión y entra con otra cuenta de InFocus Drive.
+	Open the team dashboard ↗	Abrir el panel del equipo ↗
+	See your team projects, footage and invitations on the web.	Mira tus proyectos de equipo, metraje e invitaciones en la web.
+	Press Sign in with InFocus Drive to continue.	Pulsa Iniciar sesión con InFocus Drive para continuar.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive es donde InFocus guarda el metraje y los proyectos compartidos.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Inicia sesión con tu cuenta del instituto para crear un proyecto de equipo, invitar a compañeros y compartir metraje.
+	Sign in with InFocus Drive	Iniciar sesión con InFocus Drive
+	Add footage to “{name}”	Añadir metraje a «{name}»
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Tu equipo lo descarga al abrir una secuencia que lo usa. Se sube en segundo plano mientras sigues editando.
+	Next: Invite Teammates	Siguiente: invitar al equipo
+	Skip	Omitir
+	Add footage later with Add Footage… on the open project.	Añade metraje más tarde con Añadir metraje… en el proyecto abierto.
+	Drop to add to the project	Suelta para añadir al proyecto
+	Drop video, audio or photos here	Suelta aquí vídeo, audio o fotos
+	Choose Files…	Elegir archivos…
+	Team:	Equipo:
+	Online now	En línea ahora
+	Last seen just now	Visto hace un momento
+	Last seen {n} minutes ago	Visto hace {n} min
+	Last seen {n} hours ago	Visto hace {n} h
+	Last seen {n} days ago	Visto hace {n} días
+	1 new file on InFocus Drive · {size}	1 archivo nuevo en InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	{n} archivos nuevos en InFocus Drive · {size}
+	{list} and {count} more	{list} y {count} más
+	Add to Project	Añadir al proyecto
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Añadidos en la web del Drive. Se descargan en este Mac y van a la carpeta del proyecto para todo el equipo.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Este Mac parece estar sin conexión. Conéctate al Wi-Fi o a la red del instituto y vuelve a intentarlo.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	Ahora no se puede conectar con InFocus Drive. Revisa tu conexión o vuelve a intentarlo en un minuto.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Esta cuenta no es miembro de InFocus Drive. Inicia sesión con tu cuenta del instituto o pide a un administrador de InFocus que te añada.
+	Sign-in was cancelled in the browser.	Se canceló el inicio de sesión en el navegador.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	El inicio de sesión no terminó en el navegador. Vuelve a intentarlo y, si el Drive dijo que tu cuenta no es miembro, pide a un administrador de InFocus que te añada.
+	Adding footage from InFocus Drive	Añadiendo metraje de InFocus Drive

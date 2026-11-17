@@ -16,7 +16,7 @@
 #     (not 効果), ぼかし, 音量, ビデオ, 再生ヘッド, イン点/アウト点.
 #   - "Horizontal"/"Vertical" are 水平/垂直 (guides, blur, axes); vertical text is "Vertical Text".
 
-	About FilmCraft	FilmCraft について
+	About InFocus Cut	InFocus Cut について
 	Check for Updates…	アップデートを確認…
 	Checking for updates…	アップデートを確認中…
 	Could not check for updates:\n{error}	アップデートを確認できませんでした:\n{error}
@@ -47,7 +47,6 @@
 	Apply Default Transitions to Selection	選択範囲に既定のトランジションを適用
 	Apply Video Transition	ビデオトランジションを適用
 	Arrange	重ね順
-	ArtCraft Website	ArtCraft の Web サイト
 	Assembly	アセンブリ
 	Attach Proxies…	プロキシを関連付け…
 	Audio Channels…	オーディオチャンネル…
@@ -145,8 +144,7 @@
 	File…	ファイル…
 	Fill frame	フレームを埋める
 	FilmCraft Help…	FilmCraft ヘルプ…
-	FilmCraft on GitHub	GitHub の FilmCraft
-	FilmCraft on getartcraft.com	getartcraft.com の FilmCraft
+	Source Code on GitHub	GitHub のソースコード
 	Find Next	次を検索
 	Find…	検索…
 	Fit	合わせる
@@ -193,7 +191,6 @@
 	Insert Frame Hold Segment	フレームホールドセグメントを挿入
 	Install Motion Graphics Template…	モーショングラフィックステンプレートをインストール…
 	Interpret Footage…	素材を解釈…
-	Join the ArtCraft Discord…	ArtCraft の Discord に参加…
 	Keyboard Shortcuts…	キーボードショートカット…
 	Label	ラベル
 	Labels…	ラベル…
@@ -389,7 +386,6 @@
 	Master volume: use the Audio Track Mixer	マスター音量はオーディオトラックミキサーで調整してください
 	Search	検索
 	Quick Export	クイック書き出し
-	Join the ArtCraft Discord (discord.gg/artcraft)	ArtCraft の Discord に参加 (discord.gg/artcraft)
 	Cancel	キャンセル
 	OK	OK
 	Interpret Footage	素材を解釈
@@ -428,8 +424,6 @@
 	Delete Audio Tracks	オーディオトラックを削除する
 	All Empty Tracks	すべての空のトラック
 	Version {version}	バージョン {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Rust だけで書かれた、クリーンルーム設計のノンリニアビデオ編集ソフトです。ArtCraft ファミリーの一員です。
-	Join the ArtCraft Discord	ArtCraft の Discord に参加
 	Source code on GitHub	GitHub のソースコード
 	Report an issue	問題を報告
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0。フォント: Inter、Noto Serif、JetBrains Mono (SIL OFL 1.1)。
@@ -449,8 +443,8 @@
 	No background jobs.	バックグラウンドジョブはありません。
 	Recover Unsaved Changes	未保存の変更を復元
 	Untitled	名称未設定
-	FilmCraft was closed while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で FilmCraft が終了しました。
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で FilmCraft が予期せず終了しました。
+	InFocus Cut was closed while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で InFocus Cut が終了しました。
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	「{name}」に未保存の変更がある状態で InFocus Cut が予期せず終了しました。
 	Recover unsaved changes from {when}?	{when} の未保存の変更を復元しますか？
 	The project had not been saved yet.	このプロジェクトはまだ保存されていませんでした。
 	{n} sessions have unsaved changes:	{n} 件のセッションに未保存の変更があります:
@@ -472,8 +466,6 @@
 	A cut sequence with transitions, effects and music	トランジション、エフェクト、音楽を含む編集済みのシーケンス
 	Bars and Tone	カラーバーとトーン
 	SMPTE HD bars with 1 kHz reference tone	1 kHz 基準トーン付きの SMPTE HD カラーバー
-	Community	コミュニティ
-	Join us on Discord	Discord に参加
 	OMF Export Settings	OMF 書き出し設定
 	AAF Export Settings	AAF 書き出し設定
 	OMF Title:	OMF タイトル:
@@ -2986,7 +2978,7 @@
 	Drag a clip to slide it between its neighbours.	クリップをドラッグすると、前後のクリップの間でスライドします。
 	Drag to scroll the timeline.	ドラッグしてタイムラインをスクロールします。
 	Click to zoom in; Opt-click to zoom out.	クリックでズームイン、Opt+クリックでズームアウトします。
-	FilmCraft hit an error	FilmCraft でエラーが発生しました
+	InFocus Cut hit an error	InFocus Cut でエラーが発生しました
 	Details: {path}	詳細: {path}
 	Opened {url}	{url} を開きました
 	(empty)	(空)
@@ -3249,9 +3241,9 @@
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime、ProRes 4444 XQ (4:4:4)、24-bit 48 kHz PCM
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime、ProRes 422、24-bit 48 kHz PCM
 	Settings	設定
-	Hide FilmCraft	FilmCraft を隠す
+	Hide InFocus Cut	InFocus Cut を隠す
 	Hide Others	ほかを隠す
-	Quit FilmCraft	FilmCraft を終了
+	Quit InFocus Cut	InFocus Cut を終了
 	Rate Stretch Tool	レートストレッチツール
 	Razor Tool	カミソリツール
 	Rectangle Tool	長方形ツール
@@ -3634,7 +3626,6 @@
 	Delete this preset	このプリセットを削除
 	Saves this session's log and shows it in your file manager.	このセッションのログを保存し、ファイルマネージャーで表示します。
 	Shows a report on this computer.	このコンピューターのレポートを表示します。
-	Shows the version, community links and credits in a FilmCraft window.	バージョン、コミュニティへのリンク、クレジットを FilmCraft のウィンドウに表示します。
 	Looks for a newer FilmCraft release and offers to update.	FilmCraft の新しいリリースを確認し、アップデートを提案します。
 	Couldn't open your web browser	ウェブブラウザーを開けませんでした
 	Open this address in your browser yourself:	このアドレスをご自身でブラウザーで開いてください：
@@ -3763,3 +3754,149 @@
 	Toggle Color Grading Section	カラーグレーディングのセクションを切り替え
 	Color Grading Section	カラーグレーディングのセクション
 	Read Video Scopes	ビデオスコープを読み取る
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	「{name}」にチームメイトを招待
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	プロジェクトを InFocus Drive に置きました。一緒に作る人を選んでください。相手のチームパネルに招待が届きます。
+	They get an invitation in their Team panel.	相手のチームパネルに招待が届きます。
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	まだ招待できる人がいません。チームメイトにはまず InFocus Drive のアカウントが必要です。
+	Everyone on InFocus Drive is already in this project or invited.	InFocus Drive の全員がすでにこのプロジェクトのメンバーか招待済みです。
+	Search by name	名前で検索
+	A project can have up to {n} people.	1 つのプロジェクトには最大 {n} 人まで参加できます。
+	No one matches that name.	その名前に一致する人はいません。
+	Send Invitations	招待を送信
+	Invite 1 Person	1 人を招待
+	Invite {n} People	{n} 人を招待
+	Skip for Now	今はしない
+	You can invite people later with Invite… on the project.	あとでプロジェクトの「招待…」から招待できます。
+	Team editing is available in the desktop app.	チーム編集はデスクトップアプリで使えます。
+	Signed in as {user}	{user} としてサインイン中
+	Connecting to InFocus Drive…	InFocus Drive に接続中…
+	Not signed in	サインインしていません
+	Sign Out	サインアウト
+	Check that this Mac is online, then press Refresh.	この Mac がオンラインか確認してから、「更新」を押してください。
+	Press Sign In to continue.	続けるには「サインイン」を押してください。
+	Ask whoever runs your InFocus Drive for its address.	InFocus Drive の管理者にアドレスを聞いてください。
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	「更新」を押してください。それでも見つからない場合は、チームメイトにもう一度招待してもらってください。
+	Dismiss	閉じる
+	Edit together on InFocus Drive	InFocus Drive でいっしょに編集
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	InFocus Drive のアカウントでサインインすると、チームプロジェクトを作り、仲間を招待して、素材を共有できます。
+	Sign In…	サインイン…
+	Your browser opens to finish signing in.	ブラウザが開くのでサインインを完了してください。
+	No footage yet	まだ素材がありません
+	1 file · {size}	1 ファイル · {size}
+	{n} files · {size}	{n} ファイル · {size}
+	Invitations	招待
+	Invited by {name}	{name} からの招待
+	You're invited to this project	このプロジェクトに招待されています
+	Decline	辞退
+	Turn the invitation down. A teammate can invite you again.	招待を辞退します。チームメイトはもう一度招待できます。
+	Join	参加
+	Join and open the project. Footage downloads when you open a sequence.	参加してプロジェクトを開きます。素材はシーケンスを開いたときにダウンロードされます。
+	Your team projects	自分のチームプロジェクト
+	Check InFocus Drive for new invitations and changes.	InFocus Drive で新しい招待や変更を確認します。
+	New Team Project…	新規チームプロジェクト…
+	Leave the open team project first, then make a new one.	開いているチームプロジェクトを先に閉じてから、新しく作成してください。
+	Put the project you have open on InFocus Drive for your team.	開いているプロジェクトをチーム用に InFocus Drive に置きます。
+	No team projects yet	チームプロジェクトはまだありません
+	Join an invitation above, or make a team project from the project you have open.	上の招待に参加するか、開いているプロジェクトからチームプロジェクトを作成してください。
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	開いているプロジェクトから作成して、チームメイトを招待しましょう。または誰かに招待してもらってください。招待はここに表示されます。
+	New team project	新規チームプロジェクト
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	開いているプロジェクトとそのシーケンス、素材が InFocus Drive に送られます。素材は編集を続けている間にバックグラウンドでアップロードされます。
+	Project name, like “Homecoming Video”	プロジェクト名（例：「文化祭ビデオ」）
+	Create and Invite…	作成して招待…
+	You're editing {sequence}	{sequence} を編集中
+	You're editing a sequence	シーケンスを編集中
+	{name} is editing {sequence}	{name} が {sequence} を編集中
+	{name} is editing a sequence	{name} がシーケンスを編集中
+	Open now	開いています
+	Open this project here. Footage downloads when you open a sequence.	このプロジェクトをここで開きます。素材はシーケンスを開いたときにダウンロードされます。
+	Team: {names}	チーム：{names}
+	Open to everyone on InFocus Drive	InFocus Drive の全員に公開
+	Invited: {name}	招待中：{name}
+	Take this invitation back.	この招待を取り消します。
+	No one is editing right now	今は誰も編集していません
+	Moves to the Drive's recycle bin on {date}	{date} に Drive のごみ箱へ移動します
+	Keep	残す
+	Keeps the project for another 30 days.	プロジェクトをさらに 30 日残します。
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	このプロジェクトから抜けますか？リストから消え、チームメイトは作業を続けます。もう一度招待してもらうこともできます。
+	Leave Project	プロジェクトから抜ける
+	Invite…	招待…
+	Invite teammates to this project.	このプロジェクトにチームメイトを招待します。
+	Keep forever	ずっと残す
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	このプロジェクトをごみ箱に移動しません。変更できるのは作成者か Drive の管理者だけです。
+	Leave Project…	プロジェクトから抜ける…
+	Live	接続中
+	Reconnecting…	再接続中…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	このプロジェクトでの作業をここで終えます。編集内容は先に Drive に送られ、ロックは解除されます。
+	Add Footage…	素材を追加…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	ビデオ、オーディオ、写真を選びます。このプロジェクトに入り、チームメイトが使えるよう InFocus Drive にアップロードされます。
+	Downloads and uploads are paused while exporting.	書き出し中はダウンロードとアップロードを一時停止しています。
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	素材は、それを使うシーケンスを開いたときにこの Mac にダウンロードされ、スムーズに編集できるようこの Mac が自分でプロキシを作成します。
+	Downloading {name}	{name} をダウンロード中
+	Making a proxy of {name}	{name} のプロキシを作成中
+	Uploading {name}	{name} をアップロード中
+	{name}: uploading from {member}	{name}：{member} がアップロード中
+	{name} didn't download: {why}	{name} をダウンロードできませんでした：{why}
+	{name} didn't upload: {why}	{name} をアップロードできませんでした：{why}
+	Retry	再試行
+	Try the failed downloads and uploads again.	失敗したダウンロードとアップロードをもう一度試します。
+	Saving to InFocus Drive	InFocus Drive に保存中
+	closing the project	プロジェクトを閉じる
+	signing out	サインアウトする
+	quitting	終了する
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	最新の編集内容がまだ InFocus Drive に届いていません。今閉じると、この Mac だけに残り、チームメイトには届きません。
+	Sending your edits to InFocus Drive before {doing}…	{doing}前に、編集内容を InFocus Drive に送信中…
+	Wait	待つ
+	Leave Anyway	このまま閉じる
+	Can't export yet. Still downloading: {list}	まだ書き出せません。ダウンロード中：{list}
+	Can't export yet. Still downloading: {list} and {count} more	まだ書き出せません。ダウンロード中：{list} ほか {count} 件
+	Asking for the lock…	ロックを要求中…
+	Edit this sequence. Teammates see it read-only until you release it.	このシーケンスを編集します。解除するまでチームメイトには読み取り専用で表示されます。
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	このシーケンスの編集をチームメイトに譲ります。編集内容は先に Drive に保存されます。
+	Read-only: {who}. You can edit it once the lock is free.	読み取り専用：{who}。ロックが空いたら編集できます。
+	Release Lock	ロックを解除
+	Requested	要求中
+	Take	取得
+	Take Lock	ロックを取得
+	Take the lock to edit this sequence.	このシーケンスを編集するにはロックを取得してください。
+	Team	チーム
+	Team video editing for InFocus, synced through InFocus Drive.	InFocus のためのチーム動画編集。InFocus Drive で同期します。
+	You're editing this sequence.	このシーケンスを編集中です。
+	You're editing this sequence. Some edits aren't on the Drive yet.	このシーケンスを編集中です。一部の編集内容はまだ Drive にありません。
+	Finish signing in in your browser. This panel updates by itself.	ブラウザーでサインインを完了してください。このパネルは自動で更新されます。
+	Signed in as {name} ({user})	{name}（{user}）としてサインイン中
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	この Mac で InFocus Drive からサインアウトします。編集内容は先に送信されます。
+	Switch Account	アカウントを切り替え
+	Sign out, then sign in with another InFocus Drive account.	サインアウトして、別の InFocus Drive アカウントでサインインします。
+	Open the team dashboard ↗	チームダッシュボードを開く ↗
+	See your team projects, footage and invitations on the web.	チームプロジェクト、素材、招待を Web で確認します。
+	Press Sign in with InFocus Drive to continue.	続けるには「InFocus Drive でサインイン」を押してください。
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive は、InFocus が共有の素材とプロジェクトを保管する場所です。
+	Sign in with your school account to make a team project, invite classmates and share footage.	学校のアカウントでサインインすると、チームプロジェクトを作ってクラスメートを招待し、素材を共有できます。
+	Sign in with InFocus Drive	InFocus Drive でサインイン
+	Add footage to “{name}”	「{name}」に素材を追加
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	チームメイトは、その素材を使うシーケンスを開いたときにダウンロードします。編集を続けている間、バックグラウンドでアップロードされます。
+	Next: Invite Teammates	次へ：チームメイトを招待
+	Skip	スキップ
+	Add footage later with Add Footage… on the open project.	素材はあとで、開いているプロジェクトの「素材を追加…」から追加できます。
+	Drop to add to the project	ドロップしてプロジェクトに追加
+	Drop video, audio or photos here	ここにビデオ、オーディオ、写真をドロップ
+	Choose Files…	ファイルを選択…
+	Team:	チーム:
+	Online now	オンライン
+	Last seen just now	最終確認：たった今
+	Last seen {n} minutes ago	最終確認：{n} 分前
+	Last seen {n} hours ago	最終確認：{n} 時間前
+	Last seen {n} days ago	最終確認：{n} 日前
+	1 new file on InFocus Drive · {size}	InFocus Drive に新しいファイル 1 件 · {size}
+	{n} new files on InFocus Drive · {size}	InFocus Drive に新しいファイル {n} 件 · {size}
+	{list} and {count} more	{list} ほか {count} 件
+	Add to Project	プロジェクトに追加
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Drive の Web サイトで追加されたものです。この Mac にダウンロードされ、チーム全員のプロジェクトのビンに入ります。
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	この Mac はオフラインのようです。Wi-Fi か学校のネットワークに接続してから、もう一度お試しください。
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	現在 InFocus Drive に接続できません。接続を確認するか、少ししてからもう一度お試しください。
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	このアカウントは InFocus Drive のメンバーではありません。学校のアカウントでサインインするか、InFocus の管理者に追加を依頼してください。
+	Sign-in was cancelled in the browser.	ブラウザーでサインインがキャンセルされました。
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	ブラウザーでのサインインが完了しませんでした。もう一度お試しください。Drive にアカウントがメンバーではないと表示された場合は、InFocus の管理者に追加を依頼してください。
+	Adding footage from InFocus Drive	InFocus Drive から素材を追加しています

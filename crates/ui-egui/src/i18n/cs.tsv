@@ -14,7 +14,7 @@
 #   escapes  \n  \t  \\ inside a column. Keep {name} placeholders in both columns.
 #   lines starting with # and blank lines are ignored.
 
-	About FilmCraft	O aplikaci FilmCraft
+	About InFocus Cut	O aplikaci InFocus Cut
 	Add Audio Submix Track	Přidat stopu zvukové podskupiny
 	Add Caption at Playhead	Přidat titulek na pozici přehrávací hlavy
 	Add Chapter Marker…	Přidat značku kapitoly…
@@ -40,7 +40,6 @@
 	Apply Default Transitions to Selection	Použít výchozí přechody na výběr
 	Apply Video Transition	Použít videopřechod
 	Arrange	Uspořádat
-	ArtCraft Website	Web ArtCraft
 	Assembly	Sestavení
 	Attach Proxies…	Připojit proxy soubory…
 	Audio Channels…	Zvukové kanály…
@@ -134,8 +133,7 @@
 	File…	Soubor…
 	Fill frame	Vyplnit snímek
 	FilmCraft Help…	Nápověda k FilmCraft…
-	FilmCraft on GitHub	FilmCraft na GitHubu
-	FilmCraft on getartcraft.com	FilmCraft na getartcraft.com
+	Source Code on GitHub	Zdrojový kód na GitHubu
 	Find Next	Najít další
 	Find…	Najít…
 	Fit	Přizpůsobit
@@ -167,7 +165,7 @@
 	Guide Templates	Šablony vodítek
 	Help	Nápověda
 	Hide All Caption Tracks	Skrýt všechny stopy titulků
-	Hide FilmCraft	Skrýt FilmCraft
+	Hide InFocus Cut	Skrýt InFocus Cut
 	Hide Others	Skrýt ostatní
 	High Quality Playback	Přehrávání ve vysoké kvalitě
 	History	Historie
@@ -181,7 +179,6 @@
 	Insert Frame Hold Segment	Vložit segment se zmrazeným snímkem
 	Install Motion Graphics Template…	Nainstalovat šablonu pohyblivé grafiky…
 	Interpret Footage…	Interpretovat záběry…
-	Join the ArtCraft Discord…	Připojit se k Discordu ArtCraft…
 	Keyboard Shortcuts…	Klávesové zkratky…
 	Label	Štítek
 	Labels…	Štítky…
@@ -374,7 +371,6 @@
 	Master volume: use the Audio Track Mixer	Celkovou hlasitost nastavte v mixážním pultu zvukových stop.
 	Search	Hledat
 	Quick Export	Rychlý export
-	Join the ArtCraft Discord (discord.gg/artcraft)	Připojit se k Discordu ArtCraft (discord.gg/artcraft)
 	Cancel	Zrušit
 	OK	Potvrdit
 	Interpret Footage	Interpretovat záběry
@@ -417,8 +413,6 @@
 	Delete Caption Track	Odstranit stopu titulků
 	Delete Empty Caption Tracks	Odstranit prázdné stopy titulků
 	Version {version}	Verze {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Nelineární videoeditor napsaný čistě v Rustu, vytvořený nezávislou implementací. Součást rodiny ArtCraft.
-	Join the ArtCraft Discord	Připojit se k Discordu ArtCraft
 	Source code on GitHub	Zdrojový kód na GitHubu
 	Report an issue	Nahlásit problém
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Písma: Inter, Noto Serif a JetBrains Mono (SIL OFL 1.1).
@@ -438,8 +432,8 @@
 	No background jobs.	Žádné úlohy na pozadí.
 	Recover Unsaved Changes	Obnovit neuložené změny
 	Untitled	Bez názvu
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft byl zavřen, když projekt „{name}“ obsahoval neuložené změny.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft se neočekávaně ukončil, když projekt „{name}“ obsahoval neuložené změny.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut byl zavřen, když projekt „{name}“ obsahoval neuložené změny.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut se neočekávaně ukončil, když projekt „{name}“ obsahoval neuložené změny.
 	Recover unsaved changes from {when}?	Obnovit neuložené změny z {when}?
 	The project had not been saved yet.	Projekt ještě nebyl uložen.
 	{n} sessions have unsaved changes:	Počet relací s neuloženými změnami: {n}
@@ -458,8 +452,6 @@
 	A cut sequence with transitions, effects and music	Sestříhaná sekvence s přechody, efekty a hudbou
 	Bars and Tone	Barevné pruhy a tón
 	SMPTE HD bars with 1 kHz reference tone	Pruhy SMPTE HD s referenčním tónem 1 kHz
-	Community	Komunita
-	Join us on Discord	Připojit se k nám na Discordu
 	OMF Export Settings	Nastavení exportu OMF
 	AAF Export Settings	Nastavení exportu AAF
 	OMF Title:	Název OMF:
@@ -2969,7 +2961,7 @@
 	Drag a clip to slide it between its neighbours.	Tažením klipu jej posuňte mezi sousedními klipy.
 	Drag to scroll the timeline.	Tažením posouvejte časovou osu.
 	Click to zoom in; Opt-click to zoom out.	Kliknutím přiblížíte; Opt+kliknutím oddálíte.
-	FilmCraft hit an error	Ve FilmCraft došlo k chybě
+	InFocus Cut hit an error	Ve InFocus Cut došlo k chybě
 	Details: {path}	Podrobnosti: {path}
 	Opened {url}	Otevřeno {url}
 	(empty)	(prázdné)
@@ -3223,7 +3215,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) s alfa kanálem, 24bitové PCM 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), 24bitové PCM 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, 24bitové PCM 48 kHz
-	Quit FilmCraft	Ukončit FilmCraft
+	Quit InFocus Cut	Ukončit InFocus Cut
 	Rate Stretch Tool	Nástroj Změna rychlosti
 	Razor Tool	Nástroj Žiletka
 	Rectangle Tool	Nástroj Obdélník
@@ -3606,7 +3598,6 @@
 	Recent	Nedávné
 	Saves this session's log and shows it in your file manager.	Uloží protokol této relace a zobrazí jej ve správci souborů.
 	Shows a report on this computer.	Zobrazí zprávu o tomto počítači.
-	Shows the version, community links and credits in a FilmCraft window.	Zobrazí verzi, odkazy na komunitu a poděkování v okně FilmCraft.
 	no Korean font is installed on this system; the interface stays in English	v systému není nainstalováno korejské písmo; rozhraní zůstává v angličtině
 	Animate zoom, scrolling and menus	Animovat přibližování, posouvání a nabídky
 	No matching text.	Žádný odpovídající text.
@@ -3650,3 +3641,149 @@
 	Toggle Color Grading Section	Přepnout sekci barevných úprav
 	Color Grading Section	Sekce barevných úprav
 	Read Video Scopes	Načíst videoskopy
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Pozvat členy týmu do „{name}“
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Projekt je na InFocus Drive. Vyber, s kým ho děláš: pozvánku dostanou ve svém panelu Tým.
+	They get an invitation in their Team panel.	Pozvánku dostanou ve svém panelu Tým.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Zatím není koho pozvat. Členové týmu nejdřív potřebují účet InFocus Drive.
+	Everyone on InFocus Drive is already in this project or invited.	Všichni na InFocus Drive už jsou v tomto projektu nebo pozvaní.
+	Search by name	Hledat podle jména
+	A project can have up to {n} people.	Projekt může mít až {n} lidí.
+	No one matches that name.	Tomuto jménu nikdo neodpovídá.
+	Send Invitations	Odeslat pozvánky
+	Invite 1 Person	Pozvat 1 osobu
+	Invite {n} People	Pozvat osoby: {n}
+	Skip for Now	Teď ne
+	You can invite people later with Invite… on the project.	Další lidi můžeš pozvat později tlačítkem Pozvat… u projektu.
+	Team editing is available in the desktop app.	Týmová střižna je dostupná v desktopové aplikaci.
+	Signed in as {user}	Přihlášen jako {user}
+	Connecting to InFocus Drive…	Připojování k InFocus Drive…
+	Not signed in	Nepřihlášen
+	Sign Out	Odhlásit se
+	Check that this Mac is online, then press Refresh.	Zkontroluj, že je tento Mac online, a pak klikni na Aktualizovat.
+	Press Sign In to continue.	Pokračuj kliknutím na Přihlásit se.
+	Ask whoever runs your InFocus Drive for its address.	Zeptej se na adresu toho, kdo spravuje váš InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Klikni na Aktualizovat. Pokud tam pořád není, požádej někoho z týmu, ať tě pozve znovu.
+	Dismiss	Zavřít
+	Edit together on InFocus Drive	Stříhejte spolu na InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Přihlas se účtem InFocus Drive a můžeš vytvořit týmový projekt, pozvat spolužáky a sdílet záběry.
+	Sign In…	Přihlásit se…
+	Your browser opens to finish signing in.	Otevře se prohlížeč, kde dokončíš přihlášení.
+	No footage yet	Zatím žádné záběry
+	1 file · {size}	1 soubor · {size}
+	{n} files · {size}	Soubory: {n} · {size}
+	Invitations	Pozvánky
+	Invited by {name}	Pozval(a) tě {name}
+	You're invited to this project	Máš pozvánku do tohoto projektu
+	Decline	Odmítnout
+	Turn the invitation down. A teammate can invite you again.	Odmítne pozvánku. Někdo z týmu tě může pozvat znovu.
+	Join	Přidat se
+	Join and open the project. Footage downloads when you open a sequence.	Přidá tě a otevře projekt. Záběry se stáhnou, když otevřeš sekvenci.
+	Your team projects	Tvoje týmové projekty
+	Check InFocus Drive for new invitations and changes.	Zkontroluje na InFocus Drive nové pozvánky a změny.
+	New Team Project…	Nový týmový projekt…
+	Leave the open team project first, then make a new one.	Nejdřív opusť otevřený týmový projekt a pak vytvoř nový.
+	Put the project you have open on InFocus Drive for your team.	Umístí otevřený projekt na InFocus Drive pro tvůj tým.
+	No team projects yet	Zatím žádné týmové projekty
+	Join an invitation above, or make a team project from the project you have open.	Přijmi pozvánku výše, nebo vytvoř týmový projekt z otevřeného projektu.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Vytvoř ho z otevřeného projektu a pak pozvi členy týmu. Nebo někoho požádej o pozvánku: pozvánky se zobrazí tady.
+	New team project	Nový týmový projekt
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Otevřený projekt, jeho sekvence a záběry půjdou na InFocus Drive. Záběry se nahrávají na pozadí, zatímco dál stříháš.
+	Project name, like “Homecoming Video”	Název projektu, např. „Video z maturáku“
+	Create and Invite…	Vytvořit a pozvat…
+	You're editing {sequence}	Upravuješ {sequence}
+	You're editing a sequence	Upravuješ sekvenci
+	{name} is editing {sequence}	{name} upravuje {sequence}
+	{name} is editing a sequence	{name} upravuje sekvenci
+	Open now	Teď otevřený
+	Open this project here. Footage downloads when you open a sequence.	Otevře tento projekt tady. Záběry se stáhnou, když otevřeš sekvenci.
+	Team: {names}	Tým: {names}
+	Open to everyone on InFocus Drive	Otevřený pro všechny na InFocus Drive
+	Invited: {name}	Pozván(a): {name}
+	Take this invitation back.	Stáhne tuto pozvánku zpět.
+	No one is editing right now	Teď nikdo neupravuje
+	Moves to the Drive's recycle bin on {date}	Přesune se do koše Drive {date}
+	Keep	Ponechat
+	Keeps the project for another 30 days.	Ponechá projekt dalších 30 dní.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Opustit tento projekt? Zmizí z tvého seznamu a tým na něm bude pracovat dál. Někdo tě může pozvat znovu.
+	Leave Project	Opustit projekt
+	Invite…	Pozvat…
+	Invite teammates to this project.	Pozve členy týmu do tohoto projektu.
+	Keep forever	Ponechat navždy
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Nikdy nepřesouvat tento projekt do koše. Změnit to může jen jeho autor nebo správce Drive.
+	Leave Project…	Opustit projekt…
+	Live	Živě
+	Reconnecting…	Znovu se připojuje…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Ukončí tady práci na tomto projektu. Tvoje úpravy se nejdřív pošlou na Drive a tvoje zámky se uvolní.
+	Add Footage…	Přidat záběry…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Vyber videa, zvuk nebo fotky. Přidají se do projektu a nahrají na InFocus Drive, aby je tým dostal.
+	Downloads and uploads are paused while exporting.	Stahování a nahrávání je během exportu pozastavené.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Záběry se stáhnou do tohoto Macu, když otevřeš sekvenci, která je používá, a tento Mac si sám vytvoří proxy pro plynulý střih.
+	Downloading {name}	Stahování: {name}
+	Making a proxy of {name}	Vytváření proxy: {name}
+	Uploading {name}	Nahrávání: {name}
+	{name}: uploading from {member}	{name}: nahrává {member}
+	{name} didn't download: {why}	{name} se nestáhl: {why}
+	{name} didn't upload: {why}	{name} se nenahrál: {why}
+	Retry	Zkusit znovu
+	Try the failed downloads and uploads again.	Znovu zkusí neúspěšná stahování a nahrávání.
+	Saving to InFocus Drive	Ukládání na InFocus Drive
+	closing the project	zavřením projektu
+	signing out	odhlášením
+	quitting	ukončením aplikace
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Tvoje poslední úpravy ještě nejsou na InFocus Drive. Pokud teď odejdeš, zůstanou jen na tomto Macu a tým je nedostane.
+	Sending your edits to InFocus Drive before {doing}…	Odesílání úprav na InFocus Drive před {doing}…
+	Wait	Počkat
+	Leave Anyway	Přesto odejít
+	Can't export yet. Still downloading: {list}	Zatím nelze exportovat. Stále se stahuje: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Zatím nelze exportovat. Stále se stahuje: {list} a {count} dalších
+	Asking for the lock…	Žádost o zámek…
+	Edit this sequence. Teammates see it read-only until you release it.	Upravit tuto sekvenci. Tým ji vidí jen pro čtení, dokud ji neuvolníš.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Nechat někoho z týmu upravit tuto sekvenci. Tvoje úpravy se nejdřív uloží na Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Jen pro čtení: {who}. Upravovat můžeš, až bude zámek volný.
+	Release Lock	Uvolnit zámek
+	Requested	Vyžádáno
+	Take	Převzít
+	Take Lock	Převzít zámek
+	Take the lock to edit this sequence.	Převezmi zámek, abys mohl(a) upravit tuto sekvenci.
+	Team	Tým
+	Team video editing for InFocus, synced through InFocus Drive.	Týmový střih videa pro InFocus, synchronizovaný přes InFocus Drive.
+	You're editing this sequence.	Upravuješ tuto sekvenci.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Upravuješ tuto sekvenci. Některé úpravy ještě nejsou na Drive.
+	Finish signing in in your browser. This panel updates by itself.	Dokonči přihlášení v prohlížeči. Tento panel se obnoví sám.
+	Signed in as {name} ({user})	Přihlášen jako {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Odhlásí tě z InFocus Drive na tomto Macu. Tvé úpravy se nejdřív odešlou.
+	Switch Account	Přepnout účet
+	Sign out, then sign in with another InFocus Drive account.	Odhlásí tě a pak se přihlásíš jiným účtem InFocus Drive.
+	Open the team dashboard ↗	Otevřít týmový přehled ↗
+	See your team projects, footage and invitations on the web.	Zobrazí tvé týmové projekty, záběry a pozvánky na webu.
+	Press Sign in with InFocus Drive to continue.	Pokračuj kliknutím na Přihlásit se přes InFocus Drive.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive je místo, kde InFocus uchovává sdílené záběry a projekty.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Přihlas se školním účtem, abys mohl vytvořit týmový projekt, pozvat spolužáky a sdílet záběry.
+	Sign in with InFocus Drive	Přihlásit se přes InFocus Drive
+	Add footage to “{name}”	Přidat záběry do „{name}“
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Tvůj tým si je stáhne, když otevře sekvenci, která je používá. Nahrávají se na pozadí, zatímco dál stříháš.
+	Next: Invite Teammates	Dál: Pozvat tým
+	Skip	Přeskočit
+	Add footage later with Add Footage… on the open project.	Záběry přidáš později pomocí Přidat záběry… u otevřeného projektu.
+	Drop to add to the project	Pusť a přidej do projektu
+	Drop video, audio or photos here	Sem přetáhni video, zvuk nebo fotky
+	Choose Files…	Vybrat soubory…
+	Team:	Tým:
+	Online now	Teď online
+	Last seen just now	Naposledy viděn právě teď
+	Last seen {n} minutes ago	Naposledy viděn před {n} min
+	Last seen {n} hours ago	Naposledy viděn před {n} h
+	Last seen {n} days ago	Naposledy viděn před {n} dny
+	1 new file on InFocus Drive · {size}	1 nový soubor na InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	Nové soubory na InFocus Drive: {n} · {size}
+	{list} and {count} more	{list} a další ({count})
+	Add to Project	Přidat do projektu
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Přidáno na webu Drive. Stáhnou se do tohoto Macu a přidají do koše projektu pro celý tým.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Tento Mac je nejspíš offline. Připoj se k Wi-Fi nebo školní síti a zkus to znovu.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	InFocus Drive teď není dostupný. Zkontroluj připojení nebo to zkus za minutu znovu.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Tento účet není členem InFocus Drive. Přihlas se školním účtem nebo požádej správce InFocus, ať tě přidá.
+	Sign-in was cancelled in the browser.	Přihlášení bylo v prohlížeči zrušeno.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Přihlášení v prohlížeči nedoběhlo. Zkus to znovu, a pokud Drive napsal, že tvůj účet není členem, požádej správce InFocus, ať tě přidá.
+	Adding footage from InFocus Drive	Přidávání záběrů z InFocus Drive

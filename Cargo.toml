@@ -4,7 +4,7 @@ members = ["crates/*", "apps/*", "xtask"]
 default-members = ["crates/*", "apps/*", "xtask"]
 
 [workspace.package]
-version = "0.20.1"
+version = "1.0.0-beta.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"
@@ -39,6 +39,9 @@ filmcraft-gpu = { path = "crates/gpu" }
 filmcraft-scopes = { path = "crates/scopes" }
 filmcraft-export = { path = "crates/export" }
 filmcraft-format = { path = "crates/format" }
+filmcraft-team = { path = "crates/team" }
+filmcraft-drive = { path = "crates/drive" }
+filmcraft-team-link = { path = "crates/team-link" }
 filmcraft-engine = { path = "crates/engine" }
 filmcraft-ui-egui = { path = "crates/ui-egui" }
 filmcraft-automation = { path = "crates/automation" }

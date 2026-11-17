@@ -5,7 +5,7 @@
 # localization resources were used. AI-assisted (Claude Code), not yet reviewed by a native speaker;
 # the wording is shared with storytold/craft-i18n (locales/bs/filmcraft.tsv and common.tsv).
 
-	About FilmCraft	O FilmCraftu
+	About InFocus Cut	O InFocus Cutu
 	Add Audio Submix Track	Dodaj audio podmiks traku
 	Add Caption at Playhead	Dodaj titl na glavu za reprodukciju
 	Add Chapter Marker…	Dodaj marker poglavlja…
@@ -31,7 +31,6 @@
 	Apply Default Transitions to Selection	Primijeni zadane prijelaze na odabir
 	Apply Video Transition	Primijeni video prijelaz
 	Arrange	Rasporedi
-	ArtCraft Website	Web stranica ArtCrafta
 	Assembly	Sklapanje
 	Attach Proxies…	Priloži proksije…
 	Audio	Zvuk
@@ -128,8 +127,7 @@
 	File…	Datoteka…
 	Fill frame	Ispuni kadar
 	FilmCraft Help…	Pomoć za FilmCraft…
-	FilmCraft on GitHub	FilmCraft na GitHubu
-	FilmCraft on getartcraft.com	FilmCraft na getartcraft.com
+	Source Code on GitHub	Izvorni kod na GitHubu
 	Find Next	Pronađi sljedeće
 	Find…	Pronađi…
 	Fit	Uklopi
@@ -173,7 +171,6 @@
 	Insert Frame Hold Segment	Umetni segment zadržavanja sličice
 	Install Motion Graphics Template…	Instaliraj predložak animirane grafike…
 	Interpret Footage…	Interpretiraj snimak…
-	Join the ArtCraft Discord…	Pridružite se ArtCraft Discordu…
 	Keyboard Shortcuts…	Prečice na tastaturi…
 	Label	Oznaka
 	Labels…	Oznake…
@@ -372,7 +369,7 @@
 	FCPXML…	FCPXML…
 	Final Cut Pro XML…	Final Cut Pro XML…
 	General…	Općenito…
-	Hide FilmCraft	Sakrij FilmCraft
+	Hide InFocus Cut	Sakrij InFocus Cut
 	Hide Others	Sakrij ostale
 	Iris	Iris
 	Magenta	Magenta
@@ -380,7 +377,7 @@
 	OMF…	OMF…
 	OpenTimelineIO…	OpenTimelineIO…
 	Proxy	Proksi
-	Quit FilmCraft	Zatvori FilmCraft
+	Quit InFocus Cut	Zatvori InFocus Cut
 	Save Changes to this Workspace	Sačuvaj promjene u ovom radnom prostoru
 	Save as New Workspace…	Sačuvaj kao novi radni prostor…
 	Refresh Changed Media	Osvježi promijenjene medije
@@ -394,7 +391,6 @@
 	Master volume: use the Audio Track Mixer	Glavna jačina: koristite mikser audio traka
 	Search	Pretraga
 	Quick Export	Brzi izvoz
-	Join the ArtCraft Discord (discord.gg/artcraft)	Pridružite se ArtCraft Discordu (discord.gg/artcraft)
 	Cancel	Otkaži
 	OK	U redu
 	Interpret Footage	Interpretiraj snimak
@@ -437,8 +433,6 @@
 	Delete Caption Track	Izbriši traku titlova
 	Delete Empty Caption Tracks	Izbriši prazne trake titlova
 	Version {version}	Verzija {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Nelinearni video uređivač u čistom Rustu, napisan od nule. Dio porodice ArtCraft.
-	Join the ArtCraft Discord	Pridružite se ArtCraft Discordu
 	Source code on GitHub	Izvorni kod na GitHubu
 	Report an issue	Prijavi problem
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Fontovi: Inter, Noto Serif i JetBrains Mono (SIL OFL 1.1).
@@ -458,8 +452,8 @@
 	No background jobs.	Nema pozadinskih zadataka.
 	Recover Unsaved Changes	Oporavi nesačuvane promjene
 	Untitled	Bez naslova
-	FilmCraft was closed while “{name}” had unsaved changes.	FilmCraft je zatvoren dok je „{name}” imao nesačuvane promjene.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	FilmCraft se neočekivano zatvorio dok je „{name}” imao nesačuvane promjene.
+	InFocus Cut was closed while “{name}” had unsaved changes.	InFocus Cut je zatvoren dok je „{name}” imao nesačuvane promjene.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	InFocus Cut se neočekivano zatvorio dok je „{name}” imao nesačuvane promjene.
 	Recover unsaved changes from {when}?	Oporaviti nesačuvane promjene od {when}?
 	The project had not been saved yet.	Projekat još nije bio sačuvan.
 	{n} sessions have unsaved changes:	Sesije s nesačuvanim promjenama: {n}
@@ -478,8 +472,6 @@
 	A cut sequence with transitions, effects and music	Montirana sekvenca s prijelazima, efektima i muzikom
 	Bars and Tone	Trake i ton
 	SMPTE HD bars with 1 kHz reference tone	SMPTE HD trake s referentnim tonom 1 kHz
-	Community	Zajednica
-	Join us on Discord	Pridružite nam se na Discordu
 	OMF Export Settings	Postavke izvoza OMF
 	AAF Export Settings	Postavke izvoza AAF
 	OMF Title:	OMF naslov:
@@ -2976,7 +2968,7 @@
 	Drag a clip to slide it between its neighbours.	Prevucite klip da ga kližete između susjednih.
 	Drag to scroll the timeline.	Prevucite za pomjeranje vremenske linije.
 	Click to zoom in; Opt-click to zoom out.	Kliknite za uvećanje; Opt-klik za umanjenje.
-	FilmCraft hit an error	FilmCraft je naišao na grešku
+	InFocus Cut hit an error	InFocus Cut je naišao na grešku
 	Details: {path}	Detalji: {path}
 	Opened {url}	Otvoreno: {url}
 	(empty)	(prazno)
@@ -3598,7 +3590,6 @@
 	Opens in your web browser: {url}	Otvara se u vašem web pregledniku: {url}
 	Saves this session's log and shows it in your file manager.	Čuva zapisnik ove sesije i prikazuje ga u upravitelju datoteka.
 	Shows a report on this computer.	Prikazuje izvještaj o ovom računaru.
-	Shows the version, community links and credits in a FilmCraft window.	Prikazuje verziju, veze zajednice i zasluge u FilmCraft prozoru.
 	Couldn't open your web browser	Nije moguće otvoriti vaš web preglednik
 	Open this address in your browser yourself:	Sami otvorite ovu adresu u svom pregledniku:
 	The control server is disabled: FILMCRAFT_CONTROL_TOKEN must contain 64 random hex characters (see docs/control-protocol.md)	Kontrolni server je onemogućen: FILMCRAFT_CONTROL_TOKEN mora sadržavati 64 nasumična heksadecimalna znaka (pogledajte docs/control-protocol.md)
@@ -3758,3 +3749,149 @@
 	{count} selected	Odabrano: {count}
 	{frames} frames ({seconds} s)	{frames} sličica ({seconds} s)
 	{name} already exists, so nothing was exported. To replace it, choose it in the save dialog.	{name} već postoji, pa ništa nije izvezeno. Da ga zamijenite, odaberite ga u dijalogu za čuvanje.
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Pozovi članove tima u „{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Tvoj projekat je na InFocus Driveu. Odaberi s kim ga radiš: dobit će pozivnicu u svom panelu Tim.
+	They get an invitation in their Team panel.	Dobit će pozivnicu u svom panelu Tim.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Još nema koga pozvati. Članovima tima prvo treba račun na InFocus Driveu.
+	Everyone on InFocus Drive is already in this project or invited.	Svi na InFocus Driveu su već u ovom projektu ili su pozvani.
+	Search by name	Traži po imenu
+	A project can have up to {n} people.	Projekat može imati najviše {n} osoba.
+	No one matches that name.	Niko ne odgovara tom imenu.
+	Send Invitations	Pošalji pozivnice
+	Invite 1 Person	Pozovi 1 osobu
+	Invite {n} People	Pozovi osobe: {n}
+	Skip for Now	Ne sada
+	You can invite people later with Invite… on the project.	Kasnije možeš pozvati još ljudi dugmetom Pozovi… na projektu.
+	Team editing is available in the desktop app.	Timska montaža je dostupna u desktop aplikaciji.
+	Signed in as {user}	Prijavljen kao {user}
+	Connecting to InFocus Drive…	Povezivanje s InFocus Driveom…
+	Not signed in	Nisi prijavljen
+	Sign Out	Odjavi se
+	Check that this Mac is online, then press Refresh.	Provjeri je li ovaj Mac na mreži, pa pritisni Osvježi.
+	Press Sign In to continue.	Pritisni Prijavi se da nastaviš.
+	Ask whoever runs your InFocus Drive for its address.	Pitaj za adresu osobu koja vodi vaš InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Pritisni Osvježi. Ako ga i dalje nema, zamoli člana tima da te ponovo pozove.
+	Dismiss	Zatvori
+	Edit together on InFocus Drive	Montirajte zajedno na InFocus Driveu
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Prijavi se računom na InFocus Driveu da napraviš timski projekat, pozoveš drugove iz razreda i dijeliš snimke.
+	Sign In…	Prijavi se…
+	Your browser opens to finish signing in.	Otvara se preglednik da završiš prijavu.
+	No footage yet	Još nema snimaka
+	1 file · {size}	1 datoteka · {size}
+	{n} files · {size}	Datoteke: {n} · {size}
+	Invitations	Pozivnice
+	Invited by {name}	Pozvao/la te {name}
+	You're invited to this project	Pozvan si u ovaj projekat
+	Decline	Odbij
+	Turn the invitation down. A teammate can invite you again.	Odbij pozivnicu. Član tima te može ponovo pozvati.
+	Join	Pridruži se
+	Join and open the project. Footage downloads when you open a sequence.	Pridruži se i otvori projekat. Snimci se preuzimaju kad otvoriš sekvencu.
+	Your team projects	Tvoji timski projekti
+	Check InFocus Drive for new invitations and changes.	Provjeri ima li na InFocus Driveu novih pozivnica i promjena.
+	New Team Project…	Novi timski projekat…
+	Leave the open team project first, then make a new one.	Prvo napusti otvoreni timski projekat, pa napravi novi.
+	Put the project you have open on InFocus Drive for your team.	Stavi otvoreni projekat na InFocus Drive za svoj tim.
+	No team projects yet	Još nema timskih projekata
+	Join an invitation above, or make a team project from the project you have open.	Prihvati pozivnicu iznad ili napravi timski projekat od otvorenog projekta.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Napravi ga od otvorenog projekta, pa pozovi članove tima. Ili zamoli nekoga da te pozove: pozivnice se pojavljuju ovdje.
+	New team project	Novi timski projekat
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Otvoreni projekat, njegove sekvence i snimci idu na InFocus Drive. Snimci se učitavaju u pozadini dok nastavljaš montirati.
+	Project name, like “Homecoming Video”	Naziv projekta, npr. „Video s maturske”
+	Create and Invite…	Napravi i pozovi…
+	You're editing {sequence}	Uređuješ {sequence}
+	You're editing a sequence	Uređuješ sekvencu
+	{name} is editing {sequence}	{name} uređuje {sequence}
+	{name} is editing a sequence	{name} uređuje sekvencu
+	Open now	Sada otvoren
+	Open this project here. Footage downloads when you open a sequence.	Otvori ovaj projekat ovdje. Snimci se preuzimaju kad otvoriš sekvencu.
+	Team: {names}	Tim: {names}
+	Open to everyone on InFocus Drive	Otvoren za sve na InFocus Driveu
+	Invited: {name}	Pozvan/a: {name}
+	Take this invitation back.	Povuci ovu pozivnicu.
+	No one is editing right now	Trenutno niko ne uređuje
+	Moves to the Drive's recycle bin on {date}	Ide u korpu za smeće na Driveu {date}
+	Keep	Zadrži
+	Keeps the project for another 30 days.	Zadržava projekat još 30 dana.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Napustiti ovaj projekat? Nestaje s tvoje liste, a članovi tima nastavljaju raditi na njemu. Neko te može ponovo pozvati.
+	Leave Project	Napusti projekat
+	Invite…	Pozovi…
+	Invite teammates to this project.	Pozovi članove tima u ovaj projekat.
+	Keep forever	Zadrži zauvijek
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Nikad ne premještaj ovaj projekat u korpu za smeće. To može promijeniti samo autor ili administrator Drivea.
+	Leave Project…	Napusti projekat…
+	Live	Uživo
+	Reconnecting…	Ponovno povezivanje…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Prestani raditi na ovom projektu ovdje. Tvoje izmjene se prvo šalju na Drive, a tvoja zaključavanja se oslobađaju.
+	Add Footage…	Dodaj snimke…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Odaberi video, zvuk ili fotografije. Ulaze u ovaj projekat i učitavaju se na InFocus Drive da ih tim dobije.
+	Downloads and uploads are paused while exporting.	Preuzimanja i učitavanja su pauzirana tokom izvoza.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Snimci se preuzimaju na ovaj Mac kad otvoriš sekvencu koja ih koristi, a ovaj Mac sam pravi proksije za glatku montažu.
+	Downloading {name}	Preuzimanje: {name}
+	Making a proxy of {name}	Pravljenje proksija: {name}
+	Uploading {name}	Učitavanje: {name}
+	{name}: uploading from {member}	{name}: učitava {member}
+	{name} didn't download: {why}	{name} nije preuzet: {why}
+	{name} didn't upload: {why}	{name} nije učitan: {why}
+	Retry	Pokušaj ponovo
+	Try the failed downloads and uploads again.	Ponovo pokušaj neuspjela preuzimanja i učitavanja.
+	Saving to InFocus Drive	Spremanje na InFocus Drive
+	closing the project	zatvaranja projekta
+	signing out	odjave
+	quitting	izlaska iz aplikacije
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Tvoje posljednje izmjene još nisu stigle na InFocus Drive. Ako sada odeš, ostaju samo na ovom Macu i tim ih neće dobiti.
+	Sending your edits to InFocus Drive before {doing}…	Slanje izmjena na InFocus Drive prije {doing}…
+	Wait	Čekaj
+	Leave Anyway	Ipak izađi
+	Can't export yet. Still downloading: {list}	Još se ne može izvesti. Još se preuzima: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Još se ne može izvesti. Još se preuzima: {list} i još {count}
+	Asking for the lock…	Traži se zaključavanje…
+	Edit this sequence. Teammates see it read-only until you release it.	Uredi ovu sekvencu. Tim je vidi samo za čitanje dok je ne oslobodiš.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Pusti člana tima da uređuje ovu sekvencu. Tvoje izmjene se prvo spremaju na Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Samo za čitanje: {who}. Možeš uređivati kad zaključavanje bude slobodno.
+	Release Lock	Oslobodi zaključavanje
+	Requested	Zatraženo
+	Take	Preuzmi
+	Take Lock	Preuzmi zaključavanje
+	Take the lock to edit this sequence.	Preuzmi zaključavanje da urediš ovu sekvencu.
+	Team	Tim
+	Team video editing for InFocus, synced through InFocus Drive.	Timska montaža videa za InFocus, sinhronizovana preko InFocus Drivea.
+	You're editing this sequence.	Uređuješ ovu sekvencu.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Uređuješ ovu sekvencu. Neke izmjene još nisu na Driveu.
+	Finish signing in in your browser. This panel updates by itself.	Završi prijavu u pregledniku. Ovaj panel se sam osvježi.
+	Signed in as {name} ({user})	Prijavljen kao {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Odjavi se s InFocus Drivea na ovom Macu. Tvoje izmjene se prvo pošalju.
+	Switch Account	Promijeni račun
+	Sign out, then sign in with another InFocus Drive account.	Odjavi se, pa se prijavi drugim InFocus Drive računom.
+	Open the team dashboard ↗	Otvori timsku kontrolnu tablu ↗
+	See your team projects, footage and invitations on the web.	Pogledaj svoje timske projekte, snimke i pozivnice na webu.
+	Press Sign in with InFocus Drive to continue.	Klikni Prijavi se putem InFocus Drivea da nastaviš.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive je mjesto gdje InFocus čuva zajedničke snimke i projekte.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Prijavi se školskim računom da napraviš timski projekat, pozoveš drugove iz razreda i dijeliš snimke.
+	Sign in with InFocus Drive	Prijavi se putem InFocus Drivea
+	Add footage to “{name}”	Dodaj snimke u „{name}”
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Tvoj tim ga preuzima kad otvori sekvencu koja ga koristi. Otprema se u pozadini dok ti nastavljaš montirati.
+	Next: Invite Teammates	Dalje: Pozovi tim
+	Skip	Preskoči
+	Add footage later with Add Footage… on the open project.	Snimke dodaj kasnije pomoću Dodaj snimke… na otvorenom projektu.
+	Drop to add to the project	Pusti da dodaš u projekat
+	Drop video, audio or photos here	Ovdje pusti video, zvuk ili fotografije
+	Choose Files…	Odaberi datoteke…
+	Team:	Tim:
+	Online now	Sada na mreži
+	Last seen just now	Viđen maloprije
+	Last seen {n} minutes ago	Viđen prije {n} min
+	Last seen {n} hours ago	Viđen prije {n} h
+	Last seen {n} days ago	Viđen prije {n} dana
+	1 new file on InFocus Drive · {size}	1 nova datoteka na InFocus Driveu · {size}
+	{n} new files on InFocus Drive · {size}	Novih datoteka na InFocus Driveu: {n} · {size}
+	{list} and {count} more	{list} i još {count}
+	Add to Project	Dodaj u projekat
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Dodano na web stranici Drivea. Preuzimaju se na ovaj Mac i idu u korpu projekta za cijeli tim.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Ovaj Mac izgleda van mreže. Poveži se na Wi-Fi ili školsku mrežu pa pokušaj ponovo.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	InFocus Drive trenutno nije dostupan. Provjeri vezu ili pokušaj ponovo za minut.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Ovaj račun nije član InFocus Drivea. Prijavi se školskim računom ili zamoli InFocus administratora da te doda.
+	Sign-in was cancelled in the browser.	Prijava je otkazana u pregledniku.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Prijava nije završena u pregledniku. Pokušaj ponovo, a ako je Drive rekao da tvoj račun nije član, zamoli InFocus administratora da te doda.
+	Adding footage from InFocus Drive	Dodavanje snimaka s InFocus Drivea

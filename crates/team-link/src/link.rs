@@ -1,0 +1,466 @@
+//! [`DriveTeamLink`]: the engine's `TeamLink` over the Drive client. Each request method queues a
+//! command for the worker thread and returns at once; outcomes come back through `poll`.
+//! Heartbeats have a thread of their own, so a slow save or shared post can't hold one back past
+//! the lock's 120 s expiry. Lock
+//! tokens stay on the worker side (shared with the feed thread, which skips fetching sequences
+//! this Mac holds).
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::path::Path;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::sync::{Arc, Mutex, PoisonError};
+
+use filmcraft_drive::{DRIVE_PREFIX, DriveClient, DriveError, Fetched, SharedChange};
+use filmcraft_engine::team::{LinkError, LinkEvent, SharedPush, TeamLink};
+use filmcraft_project::{ItemId, MediaRef};
+use filmcraft_team::LocalMedia;
+use filmcraft_team::cache::CacheIndex;
+use serde_json::Value;
+
+use crate::feed::{self, FeedState};
+use crate::uploads::UploadNotes;
+
+/// Lock tokens by sequence id.
+pub(crate) type Tokens = Arc<Mutex<BTreeMap<u64, String>>>;
+
+/// How the connection is doing, for the Team panel.
+#[derive(Debug, Default)]
+pub struct LinkStatus {
+    live: AtomicBool,
+    last_error: Mutex<Option<String>>,
+    /// `media_changed` events seen on the change feed.
+    media_changes: AtomicU64,
+}
+
+impl LinkStatus {
+    /// True while the change feed is connected (otherwise the project is polled every 5 s).
+    pub fn feed_live(&self) -> bool {
+        self.live.load(Ordering::Relaxed)
+    }
+    /// The last request or feed error, until a later request succeeds.
+    pub fn last_error(&self) -> Option<String> {
+        self.last_error.lock().unwrap_or_else(PoisonError::into_inner).clone()
+    }
+    /// How many times the feed said the project's footage changed (someone added or removed a
+    /// file, from InFocus Cut, the dashboard or the Drive website).
+    pub fn media_changes(&self) -> u64 {
+        self.media_changes.load(Ordering::Relaxed)
+    }
+    pub(crate) fn media_changed(&self) {
+        self.media_changes.fetch_add(1, Ordering::Relaxed);
+    }
+    pub(crate) fn set_live(&self, live: bool) {
+        self.live.store(live, Ordering::Relaxed);
+    }
+    pub(crate) fn set_error(&self, error: Option<String>) {
+        *self.last_error.lock().unwrap_or_else(PoisonError::into_inner) = error;
+    }
+}
+
+enum Cmd {
+    Take(u64),
+    Release(u64),
+    Put { seq: u64, base: u64, json: Value },
+    Delete { seq: u64, base: u64 },
+    Shared(SharedPush),
+    Refresh,
+}
+
+/// A team session's connection to the Drive. Dropping it stops its threads (the worker after
+/// the requests already queued, such as the releases `detach_team` sends).
+pub struct DriveTeamLink {
+    /// The team project's Drive id.
+    project: String,
+    cmds: Sender<Cmd>,
+    beats: Sender<u64>,
+    events: Receiver<LinkEvent>,
+    index: Arc<Mutex<CacheIndex>>,
+    status: Arc<LinkStatus>,
+    stop: Arc<AtomicBool>,
+    notes: Option<Arc<Mutex<UploadNotes>>>,
+}
+
+impl DriveTeamLink {
+    /// Starts the worker and feed threads for `project`. `known` is what the session was opened
+    /// at (so the feed reports only what changed after); `index` mirrors this Mac's media cache
+    /// for `media_ref` and `resolve`.
+    pub fn start(client: Arc<DriveClient>, project: &str, known: FeedState, index: Arc<Mutex<CacheIndex>>) -> Self {
+        let (cmd_tx, cmd_rx) = channel();
+        let (ev_tx, ev_rx) = channel();
+        let status = Arc::new(LinkStatus::default());
+        let stop = Arc::new(AtomicBool::new(false));
+        let tokens: Tokens = Arc::default();
+        let worker = Worker {
+            client: client.clone(),
+            project: project.to_string(),
+            tokens: tokens.clone(),
+            events: ev_tx.clone(),
+            status: status.clone(),
+            lost: Arc::default(),
+        };
+        let (beat_tx, beat_rx) = channel();
+        let beater = worker.clone();
+        std::thread::Builder::new()
+            .name("team-link".into())
+            .spawn(move || worker.run(cmd_rx))
+            .map_err(|e| status.set_error(Some(format!("Could not start the Drive connection: {e}"))))
+            .ok();
+        std::thread::Builder::new()
+            .name("team-heartbeat".into())
+            .spawn(move || beater.run_beats(beat_rx))
+            .map_err(|e| status.set_error(Some(format!("Could not start the lock heartbeats: {e}"))))
+            .ok();
+        let feed = feed::Feed {
+            client,
+            project: project.to_string(),
+            tokens,
+            events: ev_tx,
+            status: status.clone(),
+            stop: stop.clone(),
+            known,
+            etags: BTreeMap::new(),
+        };
+        std::thread::Builder::new()
+            .name("team-feed".into())
+            .spawn(move || feed.run())
+            .map_err(|e| status.set_error(Some(format!("Could not start the change feed: {e}"))))
+            .ok();
+        Self { project: project.to_string(), cmds: cmd_tx, beats: beat_tx, events: ev_rx, index, status, stop, notes: None }
+    }
+
+    /// Shares who is uploading what: this member's uploading items are marked in what the link
+    /// sends, and teammates' are read from every shared part that arrives.
+    pub fn with_upload_notes(mut self, notes: Arc<Mutex<UploadNotes>>) -> Self {
+        self.notes = Some(notes);
+        self
+    }
+
+    /// The connection's status (shared with the threads).
+    pub fn status(&self) -> Arc<LinkStatus> {
+        self.status.clone()
+    }
+
+    fn send(&self, cmd: Cmd) {
+        if self.cmds.send(cmd).is_err() {
+            self.status.set_error(Some("The Drive connection stopped; open the project again".into()));
+        }
+    }
+}
+
+impl Drop for DriveTeamLink {
+    fn drop(&mut self) {
+        self.stop.store(true, Ordering::Relaxed);
+    }
+}
+
+impl TeamLink for DriveTeamLink {
+    fn take_lock(&mut self, seq: ItemId) {
+        self.send(Cmd::Take(seq.0));
+    }
+    fn heartbeat(&mut self, seq: ItemId) {
+        if self.beats.send(seq.0).is_err() {
+            self.status.set_error(Some("The lock heartbeats stopped; open the project again".into()));
+        }
+    }
+    fn release(&mut self, seq: ItemId) {
+        self.send(Cmd::Release(seq.0));
+    }
+    fn put_sequence(&mut self, seq: ItemId, base_rev: u64, json: Value) {
+        self.send(Cmd::Put { seq: seq.0, base: base_rev, json });
+    }
+    fn delete_sequence(&mut self, seq: ItemId, base_rev: u64) {
+        self.send(Cmd::Delete { seq: seq.0, base: base_rev });
+    }
+    fn post_shared(&mut self, mut push: SharedPush) {
+        if let Some(notes) = &self.notes {
+            notes.lock().unwrap_or_else(PoisonError::into_inner).mark(&mut push.upserts);
+        }
+        self.send(Cmd::Shared(push));
+    }
+    fn refresh(&mut self) {
+        self.send(Cmd::Refresh);
+    }
+    fn poll(&mut self) -> Vec<LinkEvent> {
+        let events: Vec<LinkEvent> = self.events.try_iter().collect();
+        if let Some(notes) = &self.notes {
+            for ev in &events {
+                if let LinkEvent::SharedUpdated { shared, .. } = ev {
+                    notes.lock().unwrap_or_else(PoisonError::into_inner).read_shared(shared);
+                }
+            }
+        }
+        events
+    }
+    fn media_ref(&self, media: &MediaRef) -> Option<String> {
+        let MediaRef::File { path } = media else { return None };
+        if path.starts_with(DRIVE_PREFIX) {
+            return Some(path.clone());
+        }
+        self.index.lock().unwrap_or_else(PoisonError::into_inner).drive_ref_of(&self.project, Path::new(path)).map(str::to_string)
+    }
+    fn resolve(&self, drive_path: &str) -> LocalMedia {
+        self.index.lock().unwrap_or_else(PoisonError::into_inner).resolve(drive_path)
+    }
+}
+
+/// The engine's view of a Drive error. Refusals the session reacts to keep their meaning;
+/// everything else is retried as a network problem.
+pub fn link_error(e: &DriveError) -> LinkError {
+    match e {
+        DriveError::HeldBy { holder, device, .. } => LinkError::HeldBy { holder: holder_name(holder.as_deref(), device.as_deref()) },
+        DriveError::LockLost => LinkError::LockLost,
+        DriveError::Stale { rev } => LinkError::Stale { rev: *rev },
+        DriveError::ItemInUse { item } => LinkError::ItemInUse { item: ItemId(*item) },
+        DriveError::FilesChanged(_) => LinkError::FilesChanged,
+        DriveError::UpdateRequired { .. } => LinkError::UpdateRequired,
+        DriveError::NoSlots(_) | DriveError::SchemaUnsupported { .. } | DriveError::TooLarge(_) => LinkError::Refused(e.to_string()),
+        other => LinkError::Network(other.to_string()),
+    }
+}
+
+/// The name a lock refusal shows: the teammate, or this member on another Mac.
+fn holder_name(holder: Option<&str>, device: Option<&str>) -> String {
+    match (device, holder) {
+        (Some(d), _) => filmcraft_engine::team::own_device_holder(d),
+        (None, Some(h)) if !h.is_empty() => h.to_string(),
+        _ => "Someone".to_string(),
+    }
+}
+
+/// Saves and deletes whose answer never arrived (a network error after sending): the Drive may
+/// have done them, which a retry then finds out.
+#[derive(Default)]
+struct Unanswered {
+    /// The sequence JSON of each such save.
+    puts: BTreeMap<u64, Value>,
+    deletes: BTreeSet<u64>,
+}
+
+#[derive(Clone)]
+struct Worker {
+    client: Arc<DriveClient>,
+    project: String,
+    tokens: Tokens,
+    events: Sender<LinkEvent>,
+    status: Arc<LinkStatus>,
+    lost: Arc<Mutex<Unanswered>>,
+}
+
+impl Worker {
+    /// The heartbeat thread: extends locks until the link is dropped.
+    fn run_beats(self, beats: Receiver<u64>) {
+        while let Ok(seq) = beats.recv() {
+            if catch_unwind(AssertUnwindSafe(|| self.beat(seq))).is_err() {
+                self.status.set_error(Some("A lock heartbeat failed unexpectedly".into()));
+            }
+        }
+    }
+
+    /// Extends the lock on `seq`. A lock with no token here was released or already reported
+    /// lost (by the request that lost it), so it is skipped; so is a failure for a lock released
+    /// while the heartbeat was on its way.
+    fn beat(&self, seq: u64) {
+        let id = ItemId(seq);
+        let Some(token) = self.token(seq) else { return };
+        let r = self.client.heartbeat(&self.project, seq, &token);
+        self.outcome(&r);
+        match r {
+            Ok(_) => self.emit(LinkEvent::HeartbeatOk { seq: id }),
+            Err(e) => {
+                let mut tokens = self.tokens.lock().unwrap_or_else(PoisonError::into_inner);
+                if tokens.get(&seq) != Some(&token) {
+                    return;
+                }
+                let error = link_error(&e);
+                if matches!(error, LinkError::LockLost | LinkError::HeldBy { .. }) {
+                    tokens.remove(&seq);
+                }
+                drop(tokens);
+                self.emit(LinkEvent::HeartbeatFailed { seq: id, error });
+            }
+        }
+    }
+
+    /// Runs commands in order until the link is dropped and the queue is empty.
+    fn run(self, cmds: Receiver<Cmd>) {
+        while let Ok(cmd) = cmds.recv() {
+            if catch_unwind(AssertUnwindSafe(|| self.handle(cmd))).is_err() {
+                self.status.set_error(Some("A Drive request failed unexpectedly and was dropped".into()));
+            }
+        }
+    }
+
+    fn token(&self, seq: u64) -> Option<String> {
+        self.tokens.lock().unwrap_or_else(PoisonError::into_inner).get(&seq).cloned()
+    }
+
+    fn set_token(&self, seq: u64, token: Option<String>) {
+        let mut t = self.tokens.lock().unwrap_or_else(PoisonError::into_inner);
+        match token {
+            Some(tok) => t.insert(seq, tok),
+            None => t.remove(&seq),
+        };
+    }
+
+    fn emit(&self, ev: LinkEvent) {
+        // the receiver is gone only when the session dropped the link: nothing to tell
+        let _ = self.events.send(ev);
+    }
+
+    /// Records how a request went for the status line.
+    fn outcome<T>(&self, r: &Result<T, DriveError>) {
+        match r {
+            Ok(_) => self.status.set_error(None),
+            Err(e) => self.status.set_error(Some(e.to_string())),
+        }
+    }
+
+    fn handle(&self, cmd: Cmd) {
+        let (c, p) = (&self.client, self.project.as_str());
+        match cmd {
+            Cmd::Take(seq) => {
+                let r = c.take_lock(p, seq);
+                self.outcome(&r);
+                let id = ItemId(seq);
+                match r {
+                    Ok(grant) => {
+                        // the Drive's latest version first: a teammate's save this Mac missed (a
+                        // refetch that failed) would make the first push stale
+                        match c.get_sequence(p, seq, None) {
+                            Ok(Fetched::Fresh { value, .. }) => {
+                                self.emit(LinkEvent::SequenceUpdated { seq: id, rev: value.rev, by: String::new(), json: value.json });
+                            }
+                            Err(e) if e.is_network() => {
+                                // a release that fails leaves a lock that expires in 120 s
+                                let _ = c.release(p, seq, &grant.token);
+                                return self.emit(LinkEvent::LockFailed { seq: id, message: e.to_string() });
+                            }
+                            // not on the Drive yet (made here), or a Drive without the route
+                            Ok(Fetched::NotModified) | Err(_) => {}
+                        }
+                        self.set_token(seq, Some(grant.token));
+                        self.emit(LinkEvent::LockTaken { seq: id });
+                    }
+                    Err(e @ DriveError::HeldBy { .. }) => {
+                        let LinkError::HeldBy { holder } = link_error(&e) else { return };
+                        self.emit(LinkEvent::LockRefused { seq: id, holder });
+                    }
+                    Err(e) => self.emit(LinkEvent::LockFailed { seq: id, message: e.to_string() }),
+                }
+            }
+            Cmd::Release(seq) => {
+                if let Some(token) = self.token(seq) {
+                    self.set_token(seq, None);
+                    // a release that fails leaves a lock that expires in 120 s; one that already
+                    // expired is released too
+                    let r = c.release(p, seq, &token);
+                    self.outcome(&r.or_else(|e| if matches!(e, DriveError::LockLost) { Ok(()) } else { Err(e) }));
+                }
+            }
+            Cmd::Put { seq, base, json } => {
+                let id = ItemId(seq);
+                let Some(token) = self.token(seq) else {
+                    return self.emit(LinkEvent::SequencePutFailed { seq: id, error: LinkError::LockLost });
+                };
+                let r = match c.put_sequence(p, seq, &token, base, &json) {
+                    Err(DriveError::Stale { rev }) => self.after_stale_put(seq, &token, &json).unwrap_or(Err(DriveError::Stale { rev })),
+                    other => other,
+                };
+                self.outcome(&r);
+                let mut lost = self.lost.lock().unwrap_or_else(PoisonError::into_inner);
+                match r {
+                    Ok(rev) => {
+                        lost.puts.remove(&seq);
+                        drop(lost);
+                        self.emit(LinkEvent::SequencePut { seq: id, rev });
+                    }
+                    Err(e) => {
+                        if e.is_network() {
+                            lost.puts.insert(seq, json);
+                        }
+                        drop(lost);
+                        self.failed_with_lock(seq, &e, |error| LinkEvent::SequencePutFailed { seq: id, error });
+                    }
+                }
+            }
+            Cmd::Delete { seq, base } => {
+                let id = ItemId(seq);
+                let Some(token) = self.token(seq) else {
+                    return self.emit(LinkEvent::SequenceDeleteFailed { seq: id, error: LinkError::LockLost });
+                };
+                let retried = self.lost.lock().unwrap_or_else(PoisonError::into_inner).deletes.remove(&seq);
+                let r = match c.delete_sequence(p, seq, &token, base) {
+                    // the first try's answer was lost: when the sequence is gone the Drive did it
+                    // (and released the lock; a delete bumps the revision once)
+                    Err(e @ (DriveError::NotFound(_) | DriveError::LockLost | DriveError::Stale { .. })) if retried => match c.get_sequence(p, seq, None) {
+                        Err(DriveError::NotFound(_)) => Ok(base.saturating_add(1)),
+                        _ => Err(e),
+                    },
+                    other => other,
+                };
+                self.outcome(&r);
+                if r.as_ref().is_err_and(DriveError::is_network) {
+                    self.lost.lock().unwrap_or_else(PoisonError::into_inner).deletes.insert(seq);
+                }
+                match r {
+                    Ok(rev) => {
+                        self.set_token(seq, None);
+                        self.emit(LinkEvent::SequenceDeleted { seq: id, rev });
+                    }
+                    Err(e) => self.failed_with_lock(seq, &e, |error| LinkEvent::SequenceDeleteFailed { seq: id, error }),
+                }
+            }
+            Cmd::Shared(push) => {
+                let change = SharedChange {
+                    base_rev: push.base_rev,
+                    upserts: push.upserts.into_iter().map(|(id, v)| (id.0, v)).collect(),
+                    deletes: push.deletes.into_iter().map(|id| id.0).collect(),
+                    bins: push.bins,
+                    fields: push.fields,
+                };
+                let r = c.post_shared(p, &change);
+                self.outcome(&r);
+                match r {
+                    Ok(rev) => self.emit(LinkEvent::SharedPosted { rev }),
+                    Err(e) => self.emit(LinkEvent::SharedPostFailed { error: link_error(&e) }),
+                }
+            }
+            Cmd::Refresh => {
+                let r = c.get_project(p);
+                self.outcome(&r);
+                if let Ok(data) = r {
+                    let held: Vec<u64> = self.tokens.lock().unwrap_or_else(PoisonError::into_inner).keys().copied().collect();
+                    for ev in feed::whole_project(&data, &held) {
+                        self.emit(ev);
+                    }
+                }
+            }
+        }
+    }
+
+    /// A save refused as stale after one whose answer never arrived: when the Drive has what
+    /// this Mac sent, the save is done; when it has the unanswered save, this one goes on top of
+    /// it. None: really stale.
+    fn after_stale_put(&self, seq: u64, token: &str, json: &Value) -> Option<Result<u64, DriveError>> {
+        let unanswered = self.lost.lock().unwrap_or_else(PoisonError::into_inner).puts.get(&seq).cloned()?;
+        let Ok(Fetched::Fresh { value, .. }) = self.client.get_sequence(&self.project, seq, None) else { return None };
+        if value.json == *json {
+            Some(Ok(value.rev))
+        } else if value.json == unanswered {
+            Some(self.client.put_sequence(&self.project, seq, token, value.rev, json))
+        } else {
+            None
+        }
+    }
+
+    /// A failed request under a lock: a lock that is gone forgets its token.
+    fn failed_with_lock(&self, seq: u64, e: &DriveError, event: impl FnOnce(LinkError) -> LinkEvent) {
+        let error = link_error(e);
+        if matches!(error, LinkError::LockLost | LinkError::HeldBy { .. }) {
+            self.set_token(seq, None);
+        }
+        self.emit(event(error));
+    }
+}

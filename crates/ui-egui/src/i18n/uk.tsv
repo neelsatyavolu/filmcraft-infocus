@@ -4,7 +4,7 @@
 # using Ukrainian video-editing vocabulary. No proprietary localization resources were used.
 # Core menu coverage; other interface strings fall back to English.
 
-	About FilmCraft	Про FilmCraft
+	About InFocus Cut	Про InFocus Cut
 	Add Audio Submix Track	Додати доріжку підміксу аудіо
 	Add Caption at Playhead	Додати субтитр у позиції курсора відтворення
 	Add Chapter Marker…	Додати маркер розділу…
@@ -30,7 +30,6 @@
 	Apply Default Transitions to Selection	Застосувати типові переходи до виділення
 	Apply Video Transition	Застосувати відеоперехід
 	Arrange	Упорядкувати
-	ArtCraft Website	Вебсайт ArtCraft
 	Assembly	Компонування
 	Attach Proxies…	Приєднати проксі…
 	Audio	Аудіо
@@ -127,8 +126,6 @@
 	File…	Файл…
 	Fill frame	Заповнити кадр
 	FilmCraft Help…	Довідка FilmCraft…
-	FilmCraft on GitHub	FilmCraft на GitHub
-	FilmCraft on getartcraft.com	FilmCraft на getartcraft.com
 	Find Next	Знайти далі
 	Find…	Знайти…
 	Fit	Умістити
@@ -172,7 +169,6 @@
 	Insert Frame Hold Segment	Вставити сегмент стоп-кадру
 	Install Motion Graphics Template…	Установити шаблон анімаційної графіки…
 	Interpret Footage…	Інтерпретувати матеріал…
-	Join the ArtCraft Discord…	Приєднатися до Discord ArtCraft…
 	Keyboard Shortcuts…	Клавіатурні скорочення…
 	Label	Мітка
 	Labels…	Мітки…
@@ -454,3 +450,149 @@
 	Toggle Color Grading Section	Перемкнути розділ кольорокорекції
 	Color Grading Section	Розділ кольорокорекції
 	Read Video Scopes	Зчитати дані відеоскопів
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Запросити учасників до «{name}»
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Ваш проєкт уже на InFocus Drive. Виберіть, з ким ви його робите: вони отримають запрошення на своїй панелі «Команда».
+	They get an invitation in their Team panel.	Вони отримають запрошення на своїй панелі «Команда».
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Поки нема кого запросити. Спершу учасникам потрібен обліковий запис InFocus Drive.
+	Everyone on InFocus Drive is already in this project or invited.	Усі на InFocus Drive вже в цьому проєкті або запрошені.
+	Search by name	Пошук за ім’ям
+	A project can have up to {n} people.	У проєкті може бути до {n} людей.
+	No one matches that name.	Ніхто не відповідає цьому імені.
+	Send Invitations	Надіслати запрошення
+	Invite 1 Person	Запросити 1 людину
+	Invite {n} People	Запросити: {n} осіб
+	Skip for Now	Не зараз
+	You can invite people later with Invite… on the project.	Пізніше можна запросити людей кнопкою «Запросити…» біля проєкту.
+	Team editing is available in the desktop app.	Спільний монтаж доступний у настільному застосунку.
+	Signed in as {user}	Ви увійшли як {user}
+	Connecting to InFocus Drive…	Підключення до InFocus Drive…
+	Not signed in	Вхід не виконано
+	Sign Out	Вийти
+	Check that this Mac is online, then press Refresh.	Перевірте, чи цей Mac у мережі, і натисніть «Оновити».
+	Press Sign In to continue.	Натисніть «Увійти», щоб продовжити.
+	Ask whoever runs your InFocus Drive for its address.	Дізнайтеся адресу в того, хто обслуговує ваш InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Натисніть «Оновити». Якщо проєкту все ще немає, попросіть учасника запросити вас знову.
+	Dismiss	Закрити
+	Edit together on InFocus Drive	Монтуйте разом на InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Увійдіть з обліковим записом InFocus Drive, щоб створити командний проєкт, запросити однокласників і ділитися матеріалом.
+	Sign In…	Увійти…
+	Your browser opens to finish signing in.	Відкриється браузер, щоб завершити вхід.
+	No footage yet	Матеріалу ще немає
+	1 file · {size}	1 файл · {size}
+	{n} files · {size}	Файлів: {n} · {size}
+	Invitations	Запрошення
+	Invited by {name}	Запросив(ла): {name}
+	You're invited to this project	Вас запросили до цього проєкту
+	Decline	Відхилити
+	Turn the invitation down. A teammate can invite you again.	Відхилити запрошення. Учасник може запросити вас знову.
+	Join	Приєднатися
+	Join and open the project. Footage downloads when you open a sequence.	Приєднатися й відкрити проєкт. Матеріал завантажується, коли ви відкриваєте секвенцію.
+	Your team projects	Ваші командні проєкти
+	Check InFocus Drive for new invitations and changes.	Перевірити InFocus Drive на нові запрошення та зміни.
+	New Team Project…	Новий командний проєкт…
+	Leave the open team project first, then make a new one.	Спершу вийдіть із відкритого командного проєкту, а тоді створіть новий.
+	Put the project you have open on InFocus Drive for your team.	Розмістити відкритий проєкт на InFocus Drive для вашої команди.
+	No team projects yet	Командних проєктів ще немає
+	Join an invitation above, or make a team project from the project you have open.	Прийміть запрошення вище або створіть командний проєкт із відкритого проєкту.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Створіть проєкт із відкритого й запросіть учасників. Або попросіть когось запросити вас: запрошення з’являться тут.
+	New team project	Новий командний проєкт
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Відкритий проєкт, його секвенції та матеріал вирушать на InFocus Drive. Матеріал вивантажується у фоні, поки ви монтуєте далі.
+	Project name, like “Homecoming Video”	Назва проєкту, наприклад «Відео з випускного»
+	Create and Invite…	Створити й запросити…
+	You're editing {sequence}	Ви редагуєте {sequence}
+	You're editing a sequence	Ви редагуєте секвенцію
+	{name} is editing {sequence}	{name} редагує {sequence}
+	{name} is editing a sequence	{name} редагує секвенцію
+	Open now	Відкритий зараз
+	Open this project here. Footage downloads when you open a sequence.	Відкрити цей проєкт тут. Матеріал завантажується, коли ви відкриваєте секвенцію.
+	Team: {names}	Команда: {names}
+	Open to everyone on InFocus Drive	Відкритий для всіх на InFocus Drive
+	Invited: {name}	Запрошено: {name}
+	Take this invitation back.	Відкликати це запрошення.
+	No one is editing right now	Зараз ніхто не редагує
+	Moves to the Drive's recycle bin on {date}	Потрапить до кошика Drive {date}
+	Keep	Зберегти
+	Keeps the project for another 30 days.	Зберігає проєкт ще на 30 днів.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Вийти з проєкту? Він зникне з вашого списку, а учасники працюватимуть далі. Вас можуть запросити знову.
+	Leave Project	Вийти з проєкту
+	Invite…	Запросити…
+	Invite teammates to this project.	Запросити учасників до цього проєкту.
+	Keep forever	Зберігати завжди
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Ніколи не переміщувати проєкт до кошика. Змінити це може лише автор або адміністратор Drive.
+	Leave Project…	Вийти з проєкту…
+	Live	У мережі
+	Reconnecting…	Перепідключення…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Припинити роботу над проєктом тут. Ваші зміни спершу надійдуть на Drive, а блокування буде знято.
+	Add Footage…	Додати матеріал…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Виберіть відео, аудіо чи фото. Вони ввійдуть до проєкту й вивантажаться на InFocus Drive, щоб їх отримали учасники.
+	Downloads and uploads are paused while exporting.	Завантаження й вивантаження призупинено на час експорту.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	Матеріал завантажується на цей Mac, коли ви відкриваєте секвенцію, де він є, а цей Mac сам створює проксі для плавного монтажу.
+	Downloading {name}	Завантаження {name}
+	Making a proxy of {name}	Створення проксі для {name}
+	Uploading {name}	Вивантаження {name}
+	{name}: uploading from {member}	{name}: вивантажує {member}
+	{name} didn't download: {why}	{name} не завантажено: {why}
+	{name} didn't upload: {why}	{name} не вивантажено: {why}
+	Retry	Повторити
+	Try the failed downloads and uploads again.	Повторити невдалі завантаження й вивантаження.
+	Saving to InFocus Drive	Збереження на InFocus Drive
+	closing the project	закриттям проєкту
+	signing out	виходом з облікового запису
+	quitting	виходом із застосунку
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Ваші останні зміни ще не дійшли до InFocus Drive. Якщо піти зараз, вони залишаться лише на цьому Mac і учасники їх не отримають.
+	Sending your edits to InFocus Drive before {doing}…	Ваші зміни надсилаються на InFocus Drive перед {doing}…
+	Wait	Зачекати
+	Leave Anyway	Усе одно вийти
+	Can't export yet. Still downloading: {list}	Експорт поки неможливий. Ще завантажується: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Експорт поки неможливий. Ще завантажується: {list} і ще {count}
+	Asking for the lock…	Запит блокування…
+	Edit this sequence. Teammates see it read-only until you release it.	Редагувати цю секвенцію. Учасники бачать її лише для читання, доки ви її не звільните.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Дати учаснику відредагувати цю секвенцію. Ваші зміни спершу збережуться на Drive.
+	Read-only: {who}. You can edit it once the lock is free.	Лише читання: {who}. Редагувати можна, коли блокування звільниться.
+	Release Lock	Зняти блокування
+	Requested	Запитано
+	Take	Взяти
+	Take Lock	Взяти блокування
+	Take the lock to edit this sequence.	Візьміть блокування, щоб редагувати цю секвенцію.
+	Team	Команда
+	Team video editing for InFocus, synced through InFocus Drive.	Командний відеомонтаж для InFocus із синхронізацією через InFocus Drive.
+	You're editing this sequence.	Ви редагуєте цю секвенцію.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Ви редагуєте цю секвенцію. Частина змін ще не на Drive.
+	Finish signing in in your browser. This panel updates by itself.	Tarayıcıda girişi tamamla. Bu panel kendiliğinden güncellenir.
+	Signed in as {name} ({user})	{name} ({user}) olarak giriş yapıldı
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Bu Mac'te InFocus Drive oturumunu kapat. Önce düzenlemelerin gönderilir.
+	Switch Account	Hesap Değiştir
+	Sign out, then sign in with another InFocus Drive account.	Oturumu kapat, sonra başka bir InFocus Drive hesabıyla giriş yap.
+	Open the team dashboard ↗	Ekip panosunu aç ↗
+	See your team projects, footage and invitations on the web.	Ekip projelerini, görüntülerini ve davetlerini web'de gör.
+	Press Sign in with InFocus Drive to continue.	Devam etmek için InFocus Drive ile Giriş Yap'a bas.
+	InFocus Drive is where InFocus keeps shared footage and projects.	InFocus Drive, InFocus'un ortak görüntüleri ve projeleri tuttuğu yerdir.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Ekip projesi oluşturmak, sınıf arkadaşlarını davet etmek ve görüntü paylaşmak için okul hesabınla giriş yap.
+	Sign in with InFocus Drive	InFocus Drive ile Giriş Yap
+	Add footage to “{name}”	“{name}” projesine görüntü ekle
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Ekibin, onu kullanan bir sekansı açtığında indirir. Sen düzenlemeye devam ederken arka planda yüklenir.
+	Next: Invite Teammates	Sonraki: Ekibi Davet Et
+	Skip	Atla
+	Add footage later with Add Footage… on the open project.	Görüntüleri daha sonra açık projede Görüntü Ekle… ile ekle.
+	Drop to add to the project	Projeye eklemek için bırak
+	Drop video, audio or photos here	Video, ses veya fotoğrafları buraya bırak
+	Choose Files…	Dosya Seç…
+	Team:	Ekip:
+	Online now	Şu an çevrimiçi
+	Last seen just now	Az önce görüldü
+	Last seen {n} minutes ago	{n} dakika önce görüldü
+	Last seen {n} hours ago	{n} saat önce görüldü
+	Last seen {n} days ago	{n} gün önce görüldü
+	1 new file on InFocus Drive · {size}	InFocus Drive'da 1 yeni dosya · {size}
+	{n} new files on InFocus Drive · {size}	InFocus Drive'da {n} yeni dosya · {size}
+	{list} and {count} more	{list} ve {count} tane daha
+	Add to Project	Projeye Ekle
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Drive web sitesinde eklendi. Bu Mac'e indirilir ve tüm ekip için projenin klasörüne girer.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Bu Mac çevrimdışı görünüyor. Wi-Fi'ye ya da okul ağına bağlan, sonra tekrar dene.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	InFocus Drive'a şu anda ulaşılamıyor. Bağlantını kontrol et ya da bir dakika sonra tekrar dene.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Bu hesap InFocus Drive üyesi değil. Okul hesabınla giriş yap ya da bir InFocus yöneticisinden seni eklemesini iste.
+	Sign-in was cancelled in the browser.	Giriş tarayıcıda iptal edildi.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	Giriş tarayıcıda tamamlanmadı. Tekrar dene; Drive hesabının üye olmadığını söylediyse bir InFocus yöneticisinden seni eklemesini iste.
+	Adding footage from InFocus Drive	InFocus Drive'dan görüntü ekleniyor

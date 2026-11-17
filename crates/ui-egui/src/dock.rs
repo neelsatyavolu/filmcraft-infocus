@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use craft_ui::docking::{Action, Floating, Node};
 use craft_ui::layout::{SplitAxis, SplitSize};
 
+use filmcraft_engine::team::SequenceStatus;
+
 use crate::icons::{self, Icon};
 use crate::theme::Tokens;
 
@@ -41,10 +43,12 @@ pub enum PanelKind {
     ReferenceMonitor,
     Timecode,
     ProjectNotes,
+    /// InFocus Cut team projects (only with [`crate::HostHooks::team`]).
+    Team,
 }
 
 impl PanelKind {
-    pub const ALL: [PanelKind; 28] = [
+    pub const ALL: [PanelKind; 29] = [
         PanelKind::Project,
         PanelKind::MediaBrowser,
         PanelKind::Libraries,
@@ -73,6 +77,7 @@ impl PanelKind {
         PanelKind::ReferenceMonitor,
         PanelKind::Timecode,
         PanelKind::ProjectNotes,
+        PanelKind::Team,
     ];
     pub fn title(self) -> &'static str {
         match self {
@@ -104,6 +109,7 @@ impl PanelKind {
             PanelKind::ReferenceMonitor => "Reference Monitor",
             PanelKind::Timecode => "Timecode",
             PanelKind::ProjectNotes => "Project Notes",
+            PanelKind::Team => "Team",
         }
     }
     pub fn id(self) -> String {
@@ -601,6 +607,8 @@ impl LayoutExt for Layout {
 pub struct SeqTabs {
     pub open: Vec<(u64, String)>,
     pub active: Option<u64>,
+    /// Team projects: each open sequence's lock state (empty otherwise).
+    pub team: std::collections::BTreeMap<u64, SequenceStatus>,
 }
 
 impl SeqTabs {
@@ -611,10 +619,94 @@ impl SeqTabs {
     }
 }
 
+/// The badge after a team sequence's name on its tab.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TabBadge {
+    pub text: String,
+    /// The hover text: what the state means.
+    pub hover: String,
+    /// Edits not saved on the Drive yet.
+    pub dot: bool,
+    /// Read-only: a lock in front of the text.
+    pub lock: bool,
+    /// Free: the badge is a button that takes the lock.
+    pub take: bool,
+}
+
+/// What a team sequence tab shows for `status`.
+pub fn tab_badge(status: &SequenceStatus) -> TabBadge {
+    let badge = |text: &str, hover: String| TabBadge { text: text.to_string(), hover, dot: false, lock: false, take: false };
+    match status {
+        SequenceStatus::Editing { unsynced: false } => badge(tl!("Editing"), tl!("You're editing this sequence.").into()),
+        SequenceStatus::Editing { unsynced: true } => {
+            TabBadge { dot: true, ..badge(tl!("Editing"), tl!("You're editing this sequence. Some edits aren't on the Drive yet.").into()) }
+        }
+        SequenceStatus::Requested => badge(tl!("Requested"), tl!("Asking for the lock…").into()),
+        SequenceStatus::ReadOnly { holder } => {
+            let who = filmcraft_engine::team::editing_message(holder, "this");
+            TabBadge { lock: true, ..badge(&who, tlf!("Read-only: {who}. You can edit it once the lock is free.", who)) }
+        }
+        SequenceStatus::Free => TabBadge { take: true, ..badge(tl!("Take"), tl!("Take the lock to edit this sequence.").into()) },
+    }
+}
+
+const BADGE_GAP: f32 = 6.0;
+const BADGE_PAD: f32 = 5.0;
+const BADGE_ICON: f32 = 9.0;
+
+/// The width of a tab's badge (0 without one), with the gap before it.
+fn badge_width(ui: &egui::Ui, badge: Option<&TabBadge>) -> f32 {
+    let Some(b) = badge else { return 0.0 };
+    let text = ui.painter().layout_no_wrap(b.text.clone(), Tokens::ui(10.5), egui::Color32::WHITE).size().x;
+    let extra = if b.lock { BADGE_ICON + 3.0 } else { 0.0 } + if b.dot { 9.0 } else { 0.0 };
+    BADGE_GAP + text + extra + 2.0 * BADGE_PAD
+}
+
+/// Draw `badge` after the tab's label (`at`: the label's right end, at the text's centre line);
+/// true when its Take button was clicked.
+fn paint_badge(
+    ui: &mut egui::Ui,
+    painter: &egui::Painter,
+    at: egui::Pos2,
+    id: u64,
+    badge: &TabBadge,
+    t: &Tokens,
+    reg: &mut crate::automation::Registry,
+) -> bool {
+    let w = badge_width(ui, Some(badge)) - BADGE_GAP;
+    let r = Rect::from_min_size(pos2(at.x + BADGE_GAP, at.y - 8.0), vec2(w, 16.0));
+    let resp = ui.interact(r, egui::Id::unique(("tab-badge", id)), if badge.take { Sense::click() } else { Sense::hover() });
+    let label = if badge.dot { format!("{} ({})", badge.text, tl!("not synced")) } else { badge.text.clone() };
+    reg.add_response(&format!("timeline.tab.{id}.team"), &resp, &label);
+    let (fill, fg) = if badge.take {
+        (if resp.hovered() { t.accent_hover } else { t.accent }, egui::Color32::WHITE)
+    } else if badge.lock {
+        (t.field_bg, t.text_dim)
+    } else {
+        (t.pill_active_bg, t.tab_text_active)
+    };
+    painter.rect_filled(r, 8.0, fill);
+    let mut tx = r.min.x + BADGE_PAD;
+    if badge.lock {
+        icons::paint(painter, Rect::from_center_size(pos2(tx + BADGE_ICON / 2.0, r.center().y), vec2(BADGE_ICON, BADGE_ICON)), Icon::Lock, fg);
+        tx += BADGE_ICON + 3.0;
+    }
+    let g = painter.layout_no_wrap(badge.text.clone(), Tokens::ui(10.5), fg);
+    let gw = g.size().x;
+    painter.galley(pos2(tx, r.center().y - g.size().y / 2.0), g, fg);
+    if badge.dot {
+        painter.circle_filled(pos2(tx + gw + 6.0, r.center().y), 3.0, t.render_yellow);
+    }
+    paint_widget_focus(painter, &resp, t);
+    resp.on_hover_text(&badge.hover).clicked() && badge.take
+}
+
 /// What the sequence tabs ask for.
 #[derive(Debug, Clone, PartialEq)]
 pub enum SeqAction {
     Open(u64),
+    /// Take the team lock on a sequence (its tab's Take badge).
+    Take(u64),
     Close(u64),
     /// A sequence tab was dragged past a neighbour: its new place among the sequence tabs.
     Move(u64, usize),
@@ -627,7 +719,8 @@ fn sequence_widths(ui: &egui::Ui, seqs: &SeqTabs) -> Vec<f32> {
         .iter()
         .map(|(id, name)| {
             let label = ui.painter().layout_no_wrap(name.clone(), Tokens::ui(12.0), egui::Color32::WHITE).size().x;
-            label + 16.0 + if seqs.active == Some(*id) { 16.0 } else { 0.0 }
+            let badge = seqs.team.get(id).map(tab_badge);
+            label + 16.0 + if seqs.active == Some(*id) { 16.0 } else { 0.0 } + badge_width(ui, badge.as_ref())
         })
         .collect()
 }
@@ -730,6 +823,12 @@ pub fn sequence_tabs(ui: &mut egui::Ui, strip: Rect, seqs: &SeqTabs, t: &Tokens,
         let label_w = galley.size().x;
         painter.galley_with_override_text_color(pos2(label_x, text_y - galley.size().y / 2.0), galley, col);
         let mut closed = false;
+        if let Some(badge) = seqs.team.get(id).map(tab_badge)
+            && paint_badge(ui, &painter, pos2(label_x + label_w, text_y), *id, &badge, t, reg)
+        {
+            actions.push(SeqAction::Take(*id));
+            closed = true;
+        }
         if is_active {
             // × closes the sequence's tab (the sequence stays in the project)
             let cr = Rect::from_center_size(pos2(tab_rect.min.x + 10.0, text_y), vec2(8.0, 8.0));
@@ -820,6 +919,67 @@ pub fn placeholder(ui: &mut egui::Ui, rect: Rect, t: &Tokens, text: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tab_badge_text() {
+        let b = |s: SequenceStatus| tab_badge(&s);
+        assert_eq!(b(SequenceStatus::Editing { unsynced: false }).text, "Editing");
+        assert!(b(SequenceStatus::Editing { unsynced: true }).dot);
+        assert!(!b(SequenceStatus::Editing { unsynced: false }).dot);
+        assert_eq!(b(SequenceStatus::Requested).text, "Requested");
+        let ro = b(SequenceStatus::ReadOnly { holder: "Maya".into() });
+        assert_eq!((ro.text.as_str(), ro.lock, ro.take), ("Maya is editing this", true, false));
+        assert!(ro.hover.starts_with("Read-only: Maya is editing this."), "{}", ro.hover);
+        let own = b(SequenceStatus::ReadOnly { holder: filmcraft_engine::team::own_device_holder("Lab Mac") });
+        assert_eq!(own.text, "You're editing this on Lab Mac");
+        let free = b(SequenceStatus::Free);
+        assert_eq!((free.text.as_str(), free.take), ("Take", true));
+    }
+
+    /// The badges draw on the tabs, and a free sequence's Take badge asks for the lock.
+    #[test]
+    fn team_tabs_show_badges_and_take() {
+        let seqs = SeqTabs {
+            open: vec![(1, "Main".into()), (2, "Rough Cut".into()), (3, "B-Roll".into())],
+            active: Some(1),
+            team: [(1, SequenceStatus::Editing { unsynced: true }), (2, SequenceStatus::ReadOnly { holder: "Maya".into() }), (3, SequenceStatus::Free)]
+                .into_iter()
+                .collect(),
+        };
+        let ctx = egui::Context::default();
+        let t = Tokens::for_kind(crate::theme::ThemeKind::default());
+        let mut reg = crate::automation::Registry::default();
+        let mut time = 0.0;
+        let mut frame = |reg: &mut crate::automation::Registry, events: Vec<egui::Event>| {
+            reg.begin_frame();
+            time += 0.05;
+            let input =
+                egui::RawInput { time: Some(time), events, screen_rect: Some(Rect::from_min_size(pos2(0.0, 0.0), vec2(900.0, 40.0))), ..Default::default() };
+            let mut actions = Vec::new();
+            ctx.run_ui(input, |ui| {
+                let strip = Rect::from_min_size(pos2(0.0, 0.0), vec2(900.0, 28.0));
+                actions = sequence_tabs(ui, strip, &seqs, &t, reg);
+            })
+            .textures_delta
+            .clear();
+            actions
+        };
+        frame(&mut reg, Vec::new());
+        frame(&mut reg, Vec::new());
+        let label = |reg: &crate::automation::Registry, id: &str| reg.find(id).map(|e| e.label.clone());
+        assert_eq!(label(&reg, "timeline.tab.1.team").as_deref(), Some("Editing (not synced)"));
+        assert_eq!(label(&reg, "timeline.tab.2.team").as_deref(), Some("Maya is editing this"));
+        assert_eq!(label(&reg, "timeline.tab.3.team").as_deref(), Some("Take"));
+        let e = reg.find("timeline.tab.3.team").map(|e| e.rect).unwrap();
+        let p = pos2(e[0] + e[2] / 2.0, e[1] + e[3] / 2.0);
+        let b = |pressed| egui::Event::PointerButton { pos: p, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
+        let mut actions = Vec::new();
+        for events in [vec![egui::Event::PointerMoved(p)], vec![b(true)], vec![b(false)], Vec::new()] {
+            actions.extend(frame(&mut reg, events));
+        }
+        assert!(actions.contains(&SeqAction::Take(3)), "{actions:?}");
+        assert!(!actions.contains(&SeqAction::Open(3)), "the badge takes the lock without switching tabs: {actions:?}");
+    }
 
     #[test]
     fn vertical_workspace_gives_program_the_full_height() {

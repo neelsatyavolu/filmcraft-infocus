@@ -108,9 +108,17 @@ pub(super) fn queue_column(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect
         action = Some(("export.queue.clear", json!({})));
     }
     reg.flush(app);
-    if let Some((cmd, p)) = action
-        && let Err(e) = app.session.execute(cmd, p)
-    {
-        app.ui.status = e.to_string();
+    if let Some((cmd, p)) = action {
+        // team projects: the queue waits until the media its sequences use is on this Mac
+        let guard = if cmd == "export.queue.start" {
+            let seqs: Vec<_> =
+                app.session.export_queue.items.iter().filter(|i| i.status == filmcraft_engine::export_tools::QueueStatus::Ready).map(|i| i.sequence).collect();
+            crate::team_ui::export_guard(app, &seqs)
+        } else {
+            Ok(())
+        };
+        if let Err(e) = guard.and_then(|()| app.session.execute(cmd, p).map(|_| ()).map_err(|e| e.to_string())) {
+            app.ui.status = e;
+        }
     }
 }

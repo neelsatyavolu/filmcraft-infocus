@@ -399,6 +399,19 @@ fn scan_keeps_snapshot_when_session_metadata_is_unreadable() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
+fn mac_data_folder_is_infocus_cuts_own() {
+    // read-only look at the environment: only meaningful without an override
+    if std::env::var_os("FILMCRAFT_DATA_DIR").is_some_and(|v| !v.is_empty()) {
+        return;
+    }
+    let Some(home) = std::env::var_os("HOME") else { return };
+    let dir = autosave::default_data_dir().unwrap();
+    assert_eq!(dir, std::path::PathBuf::from(home).join("Library/Application Support/InFocus Cut"));
+    assert!(!dir.ends_with("FilmCraft"), "never an upstream FilmCraft install's folder");
+}
+
+#[test]
 fn portable_marker_keeps_data_next_to_the_executable() {
     // #139: a portable install must not write to %APPDATA%.
     let d = temp_dir("portable");

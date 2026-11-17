@@ -18,7 +18,7 @@
 # dissolve = dissolução, scopes = escopos, highlights = realces, offline = offline, legacy = legado,
 # preferences (also the native macOS Settings menu) = Preferências, settings = configurações.
 
-	About FilmCraft	Sobre o FilmCraft
+	About InFocus Cut	Sobre o InFocus Cut
 	Add Audio Submix Track	Adicionar faixa de submixagem de áudio
 	Add Caption at Playhead	Adicionar legenda no cursor de reprodução
 	Add Chapter Marker…	Adicionar marcador de capítulo…
@@ -44,7 +44,6 @@
 	Apply Default Transitions to Selection	Aplicar transições padrão à seleção
 	Apply Video Transition	Aplicar transição de vídeo
 	Arrange	Organizar
-	ArtCraft Website	Site do ArtCraft
 	Assembly	Montagem
 	Attach Proxies…	Anexar proxies…
 	Audio Channels…	Canais de áudio…
@@ -142,8 +141,7 @@
 	File…	Arquivo…
 	Fill frame	Preencher quadro
 	FilmCraft Help…	Ajuda do FilmCraft…
-	FilmCraft on GitHub	FilmCraft no GitHub
-	FilmCraft on getartcraft.com	FilmCraft no getartcraft.com
+	Source Code on GitHub	Código-fonte no GitHub
 	Find Next	Localizar próximo
 	Find…	Localizar…
 	Fit	Ajustar
@@ -187,7 +185,6 @@
 	Insert Frame Hold Segment	Inserir segmento de quadro congelado
 	Install Motion Graphics Template…	Instalar modelo de gráficos de movimento…
 	Interpret Footage…	Interpretar clipes…
-	Join the ArtCraft Discord…	Entre no Discord do ArtCraft…
 	Keyboard Shortcuts…	Atalhos de teclado…
 	Label	Rótulo
 	Labels…	Rótulos…
@@ -383,7 +380,6 @@
 	Master volume: use the Audio Track Mixer	Volume principal: use o misturador de faixas de áudio
 	Search	Pesquisar
 	Quick Export	Exportação rápida
-	Join the ArtCraft Discord (discord.gg/artcraft)	Entre no Discord do ArtCraft (discord.gg/artcraft)
 	Cancel	Cancelar
 	OK	OK
 	Interpret Footage	Interpretar clipes
@@ -426,8 +422,6 @@
 	Delete Caption Track	Excluir faixa de legendas
 	Delete Empty Caption Tracks	Excluir faixas de legendas vazias
 	Version {version}	Versão {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Um editor de vídeo não linear em Rust puro, desenvolvido em sala limpa. Parte da família ArtCraft.
-	Join the ArtCraft Discord	Entre no Discord do ArtCraft
 	Source code on GitHub	Código-fonte no GitHub
 	Report an issue	Relatar um problema
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Fontes: Inter, Noto Serif e JetBrains Mono (SIL OFL 1.1).
@@ -447,8 +441,8 @@
 	No background jobs.	Nenhuma tarefa em segundo plano.
 	Recover Unsaved Changes	Recuperar alterações não salvas
 	Untitled	Sem título
-	FilmCraft was closed while “{name}” had unsaved changes.	O FilmCraft foi fechado enquanto “{name}” tinha alterações não salvas.
-	FilmCraft quit unexpectedly while “{name}” had unsaved changes.	O FilmCraft fechou inesperadamente enquanto “{name}” tinha alterações não salvas.
+	InFocus Cut was closed while “{name}” had unsaved changes.	O InFocus Cut foi fechado enquanto “{name}” tinha alterações não salvas.
+	InFocus Cut quit unexpectedly while “{name}” had unsaved changes.	O InFocus Cut fechou inesperadamente enquanto “{name}” tinha alterações não salvas.
 	Recover unsaved changes from {when}?	Recuperar as alterações não salvas de {when}?
 	The project had not been saved yet.	O projeto ainda não tinha sido salvo.
 	{n} sessions have unsaved changes:	{n} sessões têm alterações não salvas:
@@ -470,8 +464,6 @@
 	A cut sequence with transitions, effects and music	Uma sequência editada com transições, efeitos e música
 	Bars and Tone	Barras e tom
 	SMPTE HD bars with 1 kHz reference tone	Barras SMPTE HD com tom de referência de 1 kHz
-	Community	Comunidade
-	Join us on Discord	Junte-se a nós no Discord
 	OMF Export Settings	Configurações de exportação OMF
 	AAF Export Settings	Configurações de exportação AAF
 	OMF Title:	Título OMF:
@@ -2987,7 +2979,7 @@
 	Drag a clip to slide it between its neighbours.	Arraste um clipe para deslizá-lo entre seus vizinhos.
 	Drag to scroll the timeline.	Arraste para rolar a linha do tempo.
 	Click to zoom in; Opt-click to zoom out.	Clique para ampliar; Opt+clique para reduzir.
-	FilmCraft hit an error	O FilmCraft encontrou um erro
+	InFocus Cut hit an error	O InFocus Cut encontrou um erro
 	Details: {path}	Detalhes: {path}
 	Opened {url}	{url} aberto
 	(empty)	(vazio)
@@ -3240,7 +3232,7 @@
 	QuickTime, ProRes 4444 (4:4:4) with alpha channel, 24-bit 48 kHz PCM	QuickTime, ProRes 4444 (4:4:4) com canal alfa, PCM de 24 bits e 48 kHz
 	QuickTime, ProRes 4444 XQ (4:4:4), 24-bit 48 kHz PCM	QuickTime, ProRes 4444 XQ (4:4:4), PCM de 24 bits e 48 kHz
 	QuickTime, ProRes 422, 24-bit 48 kHz PCM	QuickTime, ProRes 422, PCM de 24 bits e 48 kHz
-	Quit FilmCraft	Sair do FilmCraft
+	Quit InFocus Cut	Sair do InFocus Cut
 	Rate Stretch Tool	Ferramenta Alongamento de taxa
 	Razor Tool	Ferramenta Lâmina
 	Rectangle Tool	Ferramenta Retângulo
@@ -3688,3 +3680,149 @@
 	Toggle Color Grading Section	Alternar seção de gradação de cor
 	Color Grading Section	Seção de gradação de cor
 	Read Video Scopes	Ler escopos de vídeo
+
+# InFocus Cut: Team panel (team projects on InFocus Drive)
+	Invite teammates to “{name}”	Convide colegas para “{name}”
+	Your project is on InFocus Drive. Pick who you're making it with: they get an invitation in their Team panel.	Seu projeto está no InFocus Drive. Escolha com quem você vai fazê-lo: eles recebem um convite no painel Equipe.
+	They get an invitation in their Team panel.	Eles recebem um convite no painel Equipe.
+	No one else can be invited yet. Your teammates need an InFocus Drive account first.	Ainda não há ninguém para convidar. Seus colegas precisam primeiro de uma conta no InFocus Drive.
+	Everyone on InFocus Drive is already in this project or invited.	Todos no InFocus Drive já estão neste projeto ou foram convidados.
+	Search by name	Buscar por nome
+	A project can have up to {n} people.	Um projeto pode ter até {n} pessoas.
+	No one matches that name.	Ninguém corresponde a esse nome.
+	Send Invitations	Enviar convites
+	Invite 1 Person	Convidar 1 pessoa
+	Invite {n} People	Convidar {n} pessoas
+	Skip for Now	Agora não
+	You can invite people later with Invite… on the project.	Você pode convidar mais pessoas depois com Convidar… no projeto.
+	Team editing is available in the desktop app.	A edição em equipe está disponível no app para desktop.
+	Signed in as {user}	Conectado como {user}
+	Connecting to InFocus Drive…	Conectando ao InFocus Drive…
+	Not signed in	Não conectado
+	Sign Out	Sair
+	Check that this Mac is online, then press Refresh.	Verifique se este Mac está on-line e clique em Atualizar.
+	Press Sign In to continue.	Clique em Entrar para continuar.
+	Ask whoever runs your InFocus Drive for its address.	Peça o endereço a quem administra o seu InFocus Drive.
+	Press Refresh. If it's still missing, ask a teammate to invite you again.	Clique em Atualizar. Se ainda não aparecer, peça a um colega para convidar você de novo.
+	Dismiss	Dispensar
+	Edit together on InFocus Drive	Editem juntos no InFocus Drive
+	Sign in with your InFocus Drive account to make a team project, invite classmates and share footage.	Entre com sua conta do InFocus Drive para criar um projeto em equipe, convidar colegas e compartilhar as filmagens.
+	Sign In…	Entrar…
+	Your browser opens to finish signing in.	Seu navegador abre para concluir a entrada.
+	No footage yet	Nenhuma filmagem ainda
+	1 file · {size}	1 arquivo · {size}
+	{n} files · {size}	{n} arquivos · {size}
+	Invitations	Convites
+	Invited by {name}	Convidado por {name}
+	You're invited to this project	Você foi convidado para este projeto
+	Decline	Recusar
+	Turn the invitation down. A teammate can invite you again.	Recusa o convite. Um colega pode convidar você de novo.
+	Join	Participar
+	Join and open the project. Footage downloads when you open a sequence.	Participe e abra o projeto. As filmagens são baixadas quando você abre uma sequência.
+	Your team projects	Seus projetos em equipe
+	Check InFocus Drive for new invitations and changes.	Procura novos convites e alterações no InFocus Drive.
+	New Team Project…	Novo projeto em equipe…
+	Leave the open team project first, then make a new one.	Saia primeiro do projeto em equipe aberto e depois crie outro.
+	Put the project you have open on InFocus Drive for your team.	Coloca o projeto aberto no InFocus Drive para a sua equipe.
+	No team projects yet	Nenhum projeto em equipe ainda
+	Join an invitation above, or make a team project from the project you have open.	Aceite um convite acima ou crie um projeto em equipe a partir do projeto aberto.
+	Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.	Crie um a partir do projeto aberto e convide seus colegas. Ou peça a um colega para convidar você: os convites aparecem aqui.
+	New team project	Novo projeto em equipe
+	Your open project, its sequences and its footage go to InFocus Drive. Footage uploads in the background while you keep editing.	Seu projeto aberto, as sequências e as filmagens vão para o InFocus Drive. As filmagens são enviadas em segundo plano enquanto você continua editando.
+	Project name, like “Homecoming Video”	Nome do projeto, como “Vídeo da formatura”
+	Create and Invite…	Criar e convidar…
+	You're editing {sequence}	Você está editando {sequence}
+	You're editing a sequence	Você está editando uma sequência
+	{name} is editing {sequence}	{name} está editando {sequence}
+	{name} is editing a sequence	{name} está editando uma sequência
+	Open now	Aberto agora
+	Open this project here. Footage downloads when you open a sequence.	Abre este projeto aqui. As filmagens são baixadas quando você abre uma sequência.
+	Team: {names}	Equipe: {names}
+	Open to everyone on InFocus Drive	Aberto a todos no InFocus Drive
+	Invited: {name}	Convidado: {name}
+	Take this invitation back.	Retira este convite.
+	No one is editing right now	Ninguém está editando agora
+	Moves to the Drive's recycle bin on {date}	Vai para a lixeira do Drive em {date}
+	Keep	Manter
+	Keeps the project for another 30 days.	Mantém o projeto por mais 30 dias.
+	Leave this project? It disappears from your list, and your teammates keep working on it. Someone can invite you back.	Sair deste projeto? Ele some da sua lista e seus colegas continuam trabalhando nele. Alguém pode convidar você de novo.
+	Leave Project	Sair do projeto
+	Invite…	Convidar…
+	Invite teammates to this project.	Convida colegas para este projeto.
+	Keep forever	Manter para sempre
+	Never move this project to the recycle bin. Only its creator or a Drive admin can change this.	Nunca mover este projeto para a lixeira. Só quem o criou ou um administrador do Drive pode mudar isso.
+	Leave Project…	Sair do projeto…
+	Live	Ao vivo
+	Reconnecting…	Reconectando…
+	Stop working on this project here. Your edits are sent to the Drive first and your locks are released.	Para de trabalhar neste projeto aqui. Suas edições vão antes para o Drive e seus bloqueios são liberados.
+	Add Footage…	Adicionar filmagens…
+	Choose video, audio or photos. They go into this project and upload to InFocus Drive so your teammates get them.	Escolha vídeos, áudio ou fotos. Eles entram neste projeto e são enviados ao InFocus Drive para seus colegas.
+	Downloads and uploads are paused while exporting.	Downloads e envios ficam pausados durante a exportação.
+	Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.	As filmagens são baixadas para este Mac quando você abre uma sequência que as usa, e este Mac cria os próprios proxies para editar sem travar.
+	Downloading {name}	Baixando {name}
+	Making a proxy of {name}	Criando um proxy de {name}
+	Uploading {name}	Enviando {name}
+	{name}: uploading from {member}	{name}: sendo enviado por {member}
+	{name} didn't download: {why}	{name} não foi baixado: {why}
+	{name} didn't upload: {why}	{name} não foi enviado: {why}
+	Retry	Tentar novamente
+	Try the failed downloads and uploads again.	Tenta de novo os downloads e envios que falharam.
+	Saving to InFocus Drive	Salvando no InFocus Drive
+	closing the project	fechar o projeto
+	signing out	sair da conta
+	quitting	encerrar o app
+	Your latest edits haven't reached InFocus Drive yet. If you leave now, they stay on this Mac only and your teammates won't get them.	Suas últimas edições ainda não chegaram ao InFocus Drive. Se sair agora, elas ficam só neste Mac e seus colegas não as recebem.
+	Sending your edits to InFocus Drive before {doing}…	Enviando suas edições ao InFocus Drive antes de {doing}…
+	Wait	Esperar
+	Leave Anyway	Sair mesmo assim
+	Can't export yet. Still downloading: {list}	Ainda não dá para exportar. Ainda baixando: {list}
+	Can't export yet. Still downloading: {list} and {count} more	Ainda não dá para exportar. Ainda baixando: {list} e mais {count}
+	Asking for the lock…	Pedindo o bloqueio…
+	Edit this sequence. Teammates see it read-only until you release it.	Edite esta sequência. Seus colegas a veem somente leitura até você liberá-la.
+	Let a teammate edit this sequence. Your edits are saved to the Drive first.	Deixe um colega editar esta sequência. Suas edições são salvas no Drive antes.
+	Read-only: {who}. You can edit it once the lock is free.	Somente leitura: {who}. Você poderá editar quando o bloqueio estiver livre.
+	Release Lock	Liberar bloqueio
+	Requested	Pedido
+	Take	Pegar
+	Take Lock	Pegar bloqueio
+	Take the lock to edit this sequence.	Pegue o bloqueio para editar esta sequência.
+	Team	Equipe
+	Team video editing for InFocus, synced through InFocus Drive.	Edição de vídeo em equipe para o InFocus, sincronizada pelo InFocus Drive.
+	You're editing this sequence.	Você está editando esta sequência.
+	You're editing this sequence. Some edits aren't on the Drive yet.	Você está editando esta sequência. Algumas edições ainda não estão no Drive.
+	Finish signing in in your browser. This panel updates by itself.	Termine de entrar no navegador. Este painel se atualiza sozinho.
+	Signed in as {name} ({user})	Conectado como {name} ({user})
+	Sign out of InFocus Drive on this Mac. Your edits are sent first.	Sair do InFocus Drive neste Mac. Suas edições são enviadas antes.
+	Switch Account	Trocar de conta
+	Sign out, then sign in with another InFocus Drive account.	Sair e entrar com outra conta do InFocus Drive.
+	Open the team dashboard ↗	Abrir o painel da equipe ↗
+	See your team projects, footage and invitations on the web.	Veja seus projetos de equipe, filmagens e convites na web.
+	Press Sign in with InFocus Drive to continue.	Clique em Entrar com o InFocus Drive para continuar.
+	InFocus Drive is where InFocus keeps shared footage and projects.	O InFocus Drive é onde o InFocus guarda filmagens e projetos compartilhados.
+	Sign in with your school account to make a team project, invite classmates and share footage.	Entre com sua conta da escola para criar um projeto de equipe, convidar colegas e compartilhar filmagens.
+	Sign in with InFocus Drive	Entrar com o InFocus Drive
+	Add footage to “{name}”	Adicionar filmagens a “{name}”
+	Your teammates download it when they open a sequence that uses it. It uploads in the background while you keep editing.	Sua equipe baixa quando abre uma sequência que usa as filmagens. O envio acontece em segundo plano enquanto você continua editando.
+	Next: Invite Teammates	Próximo: convidar a equipe
+	Skip	Pular
+	Add footage later with Add Footage… on the open project.	Adicione filmagens depois com Adicionar filmagens… no projeto aberto.
+	Drop to add to the project	Solte para adicionar ao projeto
+	Drop video, audio or photos here	Solte aqui vídeo, áudio ou fotos
+	Choose Files…	Escolher arquivos…
+	Team:	Equipe:
+	Online now	Online agora
+	Last seen just now	Visto agora há pouco
+	Last seen {n} minutes ago	Visto há {n} min
+	Last seen {n} hours ago	Visto há {n} h
+	Last seen {n} days ago	Visto há {n} dias
+	1 new file on InFocus Drive · {size}	1 arquivo novo no InFocus Drive · {size}
+	{n} new files on InFocus Drive · {size}	{n} arquivos novos no InFocus Drive · {size}
+	{list} and {count} more	{list} e mais {count}
+	Add to Project	Adicionar ao projeto
+	Added on the Drive website. They download to this Mac and go into the project's bin for the whole team.	Adicionados no site do Drive. São baixados para este Mac e vão para a pasta do projeto para toda a equipe.
+	This Mac looks offline. Connect to Wi-Fi or the school network, then try again.	Este Mac parece estar offline. Conecte-se ao Wi-Fi ou à rede da escola e tente de novo.
+	Can't reach InFocus Drive right now. Check your connection, or try again in a minute.	Não foi possível acessar o InFocus Drive agora. Verifique sua conexão ou tente de novo em um minuto.
+	This account isn't an InFocus Drive member. Sign in with your school account, or ask an InFocus admin to add you.	Esta conta não é membro do InFocus Drive. Entre com sua conta da escola ou peça a um administrador do InFocus para adicionar você.
+	Sign-in was cancelled in the browser.	A entrada foi cancelada no navegador.
+	Sign-in didn't finish in the browser. Try again, and if the Drive said your account isn't a member, ask an InFocus admin to add you.	A entrada não terminou no navegador. Tente de novo e, se o Drive disse que sua conta não é membro, peça a um administrador do InFocus para adicionar você.
+	Adding footage from InFocus Drive	Adicionando filmagens do InFocus Drive
