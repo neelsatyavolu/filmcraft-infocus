@@ -10,7 +10,8 @@
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
-use std::sync::PoisonError;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, PoisonError};
 use std::time::Instant;
 
 use filmcraft_drive::{DRIVE_PREFIX, Expected, MediaFile, Person, media_folder};
@@ -38,6 +39,15 @@ pub(super) struct DriveMedia {
     adding: bool,
     /// The feed's footage change count at the last fetch.
     changes_seen: u64,
+    /// Set when the project closes (or this Mac signs out): a running Add to Project stops.
+    stop: Arc<AtomicBool>,
+}
+
+impl Drop for DriveMedia {
+    fn drop(&mut self) {
+        // the open project is gone: its downloads stop using the link and the stream permits
+        self.stop.store(true, Ordering::Relaxed);
+    }
 }
 
 /// Shortest gap between two fetches started by footage change events (a burst of uploads
@@ -112,6 +122,13 @@ impl TeamSessionController {
             self.presence = Some((id.to_string(), people));
             self.apply_presence();
         }
+        // the list is the freshest count of the project's footage: the panel shows the same
+        // numbers as the dashboard without waiting for the next project list
+        let (count, bytes) = (files.len() as u64, files.iter().fold(0u64, |acc, f| acc.saturating_add(f.size)));
+        for p in self.projects.iter_mut().filter(|p| p.id == id) {
+            p.media_count = count;
+            p.media_bytes = bytes;
+        }
         let Some(o) = self.open.as_mut().filter(|o| o.info.id == id) else { return };
         let used = used(&s.project, o.media.index(), id);
         let folder = o.info.folder.clone();
@@ -142,6 +159,7 @@ impl TeamSessionController {
             return;
         }
         o.drive_media.adding = true;
+        let stop = o.drive_media.stop.clone();
         let (id, folder) = (o.info.id.clone(), o.info.folder.clone());
         let jobs: Vec<(MediaFile, String, PathBuf)> = o
             .drive_media
@@ -157,14 +175,18 @@ impl TeamSessionController {
         self.spawn("Adding footage from InFocus Drive", move || {
             let mut done = Vec::new();
             for (file, drive_ref, dest) in jobs {
+                if stop.load(Ordering::Relaxed) {
+                    return Outcome::DriveFetched(id, done, None);
+                }
                 if let Some(dir) = dest.parent()
                     && let Err(e) = std::fs::create_dir_all(dir)
                 {
                     return Outcome::Failed { message: format!("Could not make the media cache folder: {e}"), signed_out: false };
                 }
                 let expected = Expected { size: Some(file.size).filter(|s| *s > 0), sha256: None };
-                match client.download_media(&id, &file.path, &dest, &expected, &mut |_, _| true) {
+                match client.download_media(&id, &file.path, &dest, &expected, &mut |_, _| !stop.load(Ordering::Relaxed)) {
                     Ok(bytes) => done.push(Fetched { drive_ref, path: dest, bytes }),
+                    Err(_) if stop.load(Ordering::Relaxed) => return Outcome::DriveFetched(id, done, None),
                     Err(e) => {
                         log::warn!("could not fetch a file from the media folder: {e}");
                         let message = match failed(e) {
@@ -226,5 +248,14 @@ mod tests {
     fn drive_refs_live_in_the_media_folder() {
         assert_eq!(drive_ref("Team Projects/Robotics.fcteam", "Day 1/A.mov").as_deref(), Some("drive:/Team Projects/Robotics Media/Day 1/A.mov"));
         assert_eq!(drive_ref("Team Projects/Robotics", "A.mov"), None);
+    }
+
+    #[test]
+    fn closing_the_project_stops_add_to_project() {
+        let dm = DriveMedia::default();
+        let stop = dm.stop.clone();
+        assert!(!stop.load(Ordering::Relaxed));
+        drop(dm);
+        assert!(stop.load(Ordering::Relaxed), "a running Add to Project sees the stop and quits");
     }
 }

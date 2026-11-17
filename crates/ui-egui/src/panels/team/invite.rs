@@ -41,20 +41,16 @@ pub(super) fn picker(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, id: &str, s
         };
         ui.add(egui::Label::new(RichText::new(hint).small().color(t.text_dim)).wrap());
         ui.add_space(6.0);
-        let offered: Vec<&TeamPerson> = view.people.iter().filter(|p| !taken.contains(&p.username.as_str())).collect();
-        if offered.is_empty() {
-            let text = if view.people.is_empty() {
-                tl!("No one else can be invited yet. Your teammates need an InFocus Drive account first.")
-            } else {
-                tl!("Everyone on InFocus Drive is already in this project or invited.")
-            };
-            ui.add(egui::Label::new(RichText::new(text).color(t.text_faint)).wrap());
-        } else {
-            let r = crate::widgets::search_field(ui, &mut st.query, tl!("Search by name"), ui.available_width(), t);
-            out.elem("team.invite.search", r.rect, st.query.clone());
-            ui.add_space(4.0);
-            people(ui, t, &offered, room, st, out);
+        // The Drive answers name searches only (it never lists everyone), so the list is the
+        // search results plus the people already ticked.
+        let r = crate::widgets::search_field(ui, &mut st.query, tl!("Type a teammate's name"), ui.available_width(), t);
+        out.elem("team.invite.search", r.rect, st.query.clone());
+        if r.changed() {
+            out.actions.push(TeamAction::SearchPeople(st.query.clone()));
         }
+        ui.add_space(4.0);
+        let offered: Vec<&TeamPerson> = view.people.iter().filter(|p| !taken.contains(&p.username.as_str())).collect();
+        people(ui, t, &offered, room, st, out);
         if room == 0 {
             ui.label(RichText::new(tlf!("A project can have up to {n} people.", n = MAX_TEAM)).small().color(t.render_yellow));
         }
@@ -65,9 +61,22 @@ pub(super) fn picker(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, id: &str, s
 }
 
 fn people(ui: &mut egui::Ui, t: &Tokens, offered: &[&TeamPerson], room: usize, st: &mut PanelState, out: &mut Out) {
-    let shown: Vec<&&TeamPerson> = offered.iter().filter(|p| matches(p, &st.query)).collect();
+    // ticked people stay listed while the search changes
+    for p in offered {
+        if st.picked.contains(&p.username) && !st.picked_people.iter().any(|q| q.username == p.username) {
+            st.picked_people.push((*p).clone());
+        }
+    }
+    st.picked_people.retain(|p| st.picked.contains(&p.username));
+    let mut shown: Vec<&TeamPerson> = st.picked_people.iter().collect();
+    shown.extend(offered.iter().copied().filter(|p| matches(p, &st.query) && !st.picked.contains(&p.username)));
     if shown.is_empty() {
-        ui.label(RichText::new(tl!("No one matches that name.")).color(t.text_faint));
+        let text = if st.query.trim().chars().count() < 2 {
+            tl!("Type at least 2 letters of their name.")
+        } else {
+            tl!("No one on InFocus Drive matches that name. They need an InFocus Drive account first.")
+        };
+        ui.add(egui::Label::new(RichText::new(text).color(t.text_faint)).wrap());
         return;
     }
     egui::ScrollArea::vertical().id_salt("team-invite-people").max_height(LIST_HEIGHT).auto_shrink([false, true]).show(ui, |ui| {

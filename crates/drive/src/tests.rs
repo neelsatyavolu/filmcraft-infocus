@@ -61,7 +61,7 @@ fn login_exchanges_code_with_verifier_and_stores_token() {
     let cfg = DriveConfig::new(&server.url, None).unwrap();
     let store = MemoryStore::new();
     let seen = Arc::new(Mutex::new(None));
-    let opts = LoginOptions { device: "InFocus Cut test".into(), timeout: Duration::from_secs(10) };
+    let opts = LoginOptions { device: "InFocus Cut test".into(), timeout: Duration::from_secs(10), switch_account: false };
     let signed = login(&cfg, &store, &opts, &fake_browser(seen.clone(), "code=code123")).unwrap();
     assert_eq!(signed.token, "ifd_new");
     assert_eq!(signed.username, "student1");
@@ -71,10 +71,25 @@ fn login_exchanges_code_with_verifier_and_stores_token() {
     assert_eq!(authorize.path(), "/cli/authorize");
     let q = |k: &str| authorize.query_pairs().find(|(key, _)| key == k).unwrap().1.into_owned();
     assert_eq!(q("device"), "InFocus Cut test");
+    assert!(authorize.query_pairs().all(|(k, _)| k != "switch"), "a plain sign-in keeps the browser's account");
     let token_req = server.requests().into_iter().find(|r| r.path() == "/api/cli/token").unwrap();
     let body = token_req.json();
     assert_eq!(body["code"], "code123");
     assert_eq!(pkce_challenge(body["verifier"].as_str().unwrap()), q("challenge"));
+}
+
+#[test]
+fn switch_account_asks_the_page_for_another_account() {
+    let server = MockServer::start(|req| match req.path() {
+        "/api/cli/token" => Reply::json(200, json!({"token": "ifd_new", "username": "student2"})),
+        _ => Reply::json(404, json!({})),
+    });
+    let cfg = DriveConfig::new(&server.url, None).unwrap();
+    let seen = Arc::new(Mutex::new(None));
+    let opts = LoginOptions { timeout: Duration::from_secs(10), switch_account: true, ..LoginOptions::default() };
+    login(&cfg, &MemoryStore::new(), &opts, &fake_browser(seen.clone(), "code=c")).unwrap();
+    let authorize = seen.lock().unwrap().clone().unwrap();
+    assert!(authorize.query_pairs().any(|(k, v)| k == "switch" && v == "1"));
 }
 
 #[test]
@@ -120,7 +135,11 @@ fn example_config_parses() {
 fn dashboard_defaults_and_is_checked() {
     let cfg = DriveConfig::from_toml("drive_url = \"https://drive.example.com\"").unwrap();
     assert_eq!(cfg.dashboard_url, DEFAULT_DASHBOARD_URL);
-    assert!(DriveConfig::from_toml("drive_url = \"https://drive.example.com\"\ndashboard_url = \"http://editing.example.com\"").is_err());
+    // a bad dashboard address falls back to the default instead of breaking sign-in
+    let bad = DriveConfig::from_toml("drive_url = \"https://drive.example.com\"\ndashboard_url = \"http://editing.example.com\"").unwrap();
+    assert_eq!(bad.dashboard_url, DEFAULT_DASHBOARD_URL);
+    assert_eq!(bad.drive_url, "https://drive.example.com");
+    assert!(cfg.clone().with_dashboard("http://editing.example.com").is_err());
     assert_eq!(cfg.with_dashboard("http://127.0.0.1:9000/editing/").unwrap().dashboard_url, "http://127.0.0.1:9000/editing");
 }
 

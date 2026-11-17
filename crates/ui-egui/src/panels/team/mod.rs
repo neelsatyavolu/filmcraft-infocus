@@ -43,6 +43,8 @@ type Elems = Vec<(String, Rect, String)>;
 const SECTION_GAP: f32 = 12.0;
 /// Below this width a row's buttons go under its text instead of beside it.
 const NARROW: f32 = 220.0;
+/// Below this width the account chip's buttons go under the name.
+const ACCOUNT_ONE_ROW: f32 = 340.0;
 
 /// Text on the left and buttons on the right (added right to left). The buttons are placed first,
 /// so long text wraps in the space left of them instead of running under them; in a very narrow
@@ -74,10 +76,17 @@ struct PanelState {
     /// The picker's search text and ticked user names.
     query: String,
     picked: BTreeSet<String>,
+    /// The ticked people, so they stay listed while the search text changes.
+    picked_people: Vec<crate::team_ui::TeamPerson>,
     /// Asking "Leave this project?" for this project.
     confirm_leave: Option<String>,
     /// The new project whose "Add footage" step is done (the invite step comes next).
     footage_done: Option<String>,
+    /// Files seen uploading during the "Add footage" step (listed as uploaded once done).
+    setup_files: Vec<String>,
+    /// Something has downloaded or uploaded in this panel: the "how footage gets here" line
+    /// has done its job and stays hidden.
+    seen_transfer: bool,
 }
 
 /// What the panel asks of the app after drawing.
@@ -139,6 +148,12 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
             st.query.clear();
         }
         ui.add_space(4.0);
+        // the open project (who is editing, what is moving) comes first: it is what a member
+        // checks most, and a narrow panel shouldn't push it below the fold
+        if let Some(open) = &view.open {
+            let row = view.projects.iter().find(|p| p.id == open.id);
+            open::section(ui, &t, open, row, &mut st, &mut out);
+        }
         let footage_step = view.invite_prompt.as_deref().is_some_and(|id| st.footage_done.as_deref() != Some(id));
         if footage_step {
             setup::footage_step(ui, &t, &view, &mut st, &mut out);
@@ -146,10 +161,6 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
             invite::picker(ui, &t, &view, &id, &mut st, &mut out);
         }
         projects::invitations(ui, &t, &view, &mut out);
-        if let Some(open) = &view.open {
-            let row = view.projects.iter().find(|p| p.id == open.id);
-            open::section(ui, &t, open, row, &mut st, &mut out);
-        }
         projects::list(ui, &t, &view, in_team, session_name.as_deref(), &mut st, &mut out);
     });
     ui.data_mut(|d| d.insert_temp(state_id(), st));
@@ -210,36 +221,52 @@ fn account_row(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
     let frame = egui::Frame::new().fill(t.field_bg).corner_radius(4.0).inner_margin(egui::Margin::symmetric(8, 6));
     frame.show(ui, |ui| {
         ui.set_width(ui.available_width());
+        let mut account = |ui: &mut egui::Ui| {
+            let r = ui.small_button(tl!("Sign Out"));
+            out.elem("team.signOut", r.rect, tl!("Sign Out"));
+            if r.on_hover_text(tl!("Sign out of InFocus Drive on this Mac. Your edits are sent first.")).clicked() {
+                out.actions.push(TeamAction::SignOut);
+            }
+            let r = ui.small_button(tl!("Switch Account"));
+            out.elem("team.switchAccount", r.rect, tl!("Switch Account"));
+            if r.on_hover_text(tl!("Sign out, then sign in with another InFocus Drive account.")).clicked() {
+                out.actions.push(TeamAction::SwitchAccount);
+            }
+        };
+        // a narrow panel puts the buttons on their own row, so the name keeps its width
+        let narrow = ui.available_width() < ACCOUNT_ONE_ROW;
         let mut chip = Rect::NOTHING;
-        split_row(
-            ui,
-            |ui| {
-                let initial: String = shown.chars().next().map(|c| c.to_uppercase().collect()).unwrap_or_default();
-                let (r, _) = ui.allocate_exact_size(vec2(22.0, 22.0), egui::Sense::hover());
-                ui.painter().circle_filled(r.center(), 11.0, t.accent);
-                ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, initial, Tokens::ui(12.0), Color32::WHITE);
-                let text = ui.vertical(|ui| {
+        ui.horizontal(|ui| {
+            let initial: String = shown.chars().next().map(|c| c.to_uppercase().collect()).unwrap_or_default();
+            let (r, _) = ui.allocate_exact_size(vec2(22.0, 22.0), egui::Sense::hover());
+            ui.painter().circle_filled(r.center(), 11.0, t.accent);
+            ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, initial, Tokens::ui(12.0), Color32::WHITE);
+            let names = |ui: &mut egui::Ui| {
+                ui.vertical(|ui| {
                     ui.spacing_mut().item_spacing.y = 0.0;
-                    ui.label(RichText::new(&shown).strong().color(t.text));
+                    ui.add(egui::Label::new(RichText::new(&shown).strong().color(t.text)).truncate()).on_hover_text(&shown);
                     if let Some(u) = &username {
-                        ui.label(RichText::new(u).small().color(t.text_dim));
+                        ui.add(egui::Label::new(RichText::new(u).small().color(t.text_dim)).truncate()).on_hover_text(u);
                     }
+                })
+                .response
+                .rect
+            };
+            let text = if narrow {
+                names(ui)
+            } else {
+                let mut rect = Rect::NOTHING;
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    account(ui);
+                    ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| rect = names(ui));
                 });
-                chip = r.union(text.response.rect);
-            },
-            |ui| {
-                let r = ui.small_button(tl!("Sign Out"));
-                out.elem("team.signOut", r.rect, tl!("Sign Out"));
-                if r.on_hover_text(tl!("Sign out of InFocus Drive on this Mac. Your edits are sent first.")).clicked() {
-                    out.actions.push(TeamAction::SignOut);
-                }
-                let r = ui.small_button(tl!("Switch Account"));
-                out.elem("team.switchAccount", r.rect, tl!("Switch Account"));
-                if r.on_hover_text(tl!("Sign out, then sign in with another InFocus Drive account.")).clicked() {
-                    out.actions.push(TeamAction::SwitchAccount);
-                }
-            },
-        );
+                rect
+            };
+            chip = r.union(text);
+        });
+        if narrow {
+            ui.horizontal_wrapped(account);
+        }
         out.elem("team.status", chip, status);
         if view.dashboard_url.is_some() {
             let r = ui.add(egui::Label::new(RichText::new(tl!("Open the team dashboard ↗")).small().color(t.accent)).sense(egui::Sense::click()));
@@ -305,17 +332,14 @@ fn signed_out(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, out: &mut Out) {
     let block = ui.data(|d| d.get_temp::<f32>(height_id)).unwrap_or(150.0);
     ui.add_space(((ui.available_height() - block) / 2.0).max(0.0));
     let r = ui.vertical_centered(|ui| {
-        ui.set_max_width(360.0);
+        // never wider than the panel: a fixed 360 overflowed (and clipped) narrow panels
+        ui.set_max_width(ui.available_width().min(360.0));
         let status = tl!("Not signed in");
-        let r = ui.label(RichText::new(tl!("Edit together on InFocus Drive")).strong().size(14.0).color(t.text));
+        let r = ui.add(egui::Label::new(RichText::new(tl!("Edit together on InFocus Drive")).strong().size(14.0).color(t.text)).wrap());
         out.elem("team.status", r.rect, status);
-        ui.add(egui::Label::new(RichText::new(tl!("InFocus Drive is where InFocus keeps shared footage and projects.")).color(t.text_dim)).wrap());
-        ui.add(
-            egui::Label::new(
-                RichText::new(tl!("Sign in with your school account to make a team project, invite classmates and share footage.")).color(t.text_dim),
-            )
-            .wrap(),
-        );
+        let intro = tl!("InFocus Drive is the school's shared drive for footage. Sign in to edit with your team.");
+        let r = ui.add(egui::Label::new(RichText::new(intro).color(t.text_dim)).wrap());
+        out.elem("team.intro", r.rect, intro);
         if let Some(e) = &view.error {
             ui.add_space(4.0);
             let r = ui.add(egui::Label::new(RichText::new(crate::i18n::t(e)).color(t.danger)).wrap());

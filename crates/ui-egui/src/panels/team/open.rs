@@ -46,18 +46,20 @@ pub(super) fn section(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, row: O
                 st.invite_for = Some(open.id.clone());
                 st.picked.clear();
                 st.query.clear();
-                out.actions.push(TeamAction::LoadPeople);
+                out.actions.push(TeamAction::SearchPeople(String::new()));
             }
         }
         if let Some(row) = row {
-            ui.label(RichText::new(footage_text(row.media_count, row.media_bytes)).small().color(t.text_dim));
+            let text = tlf!("{footage} on InFocus Drive", footage = footage_text(row.media_count, row.media_bytes));
+            let r = ui.label(RichText::new(&text).small().color(t.text_dim));
+            out.elem("team.open.footage", r.rect, text);
         }
     });
     drive_only(ui, t, open, out);
     if open.exporting {
         ui.label(RichText::new(tl!("Downloads and uploads are paused while exporting.")).small().color(t.text_dim));
     }
-    transfers(ui, t, open, out);
+    transfers(ui, t, open, st, out);
     ui.add_space(SECTION_GAP);
 }
 
@@ -104,11 +106,16 @@ fn drive_only(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, out: &mut Out)
 
 /// Downloads, proxies, uploads, teammates' uploads and failures, or a line saying how footage
 /// gets here when nothing is moving.
-fn transfers(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, out: &mut Out) {
-    let idle = open.downloads.is_empty() && open.proxies.is_empty() && open.uploads.is_empty() && open.incoming.is_empty();
+fn transfers(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, st: &mut PanelState, out: &mut Out) {
+    let idle = open.downloads.is_empty() && open.proxies.is_empty() && open.uploads.is_empty() && open.uploads_done.is_empty() && open.incoming.is_empty();
+    st.seen_transfer |= !idle;
     if idle && open.failures.is_empty() && open.upload_failures.is_empty() {
-        let text = tl!("Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies for smooth editing.");
-        ui.add(egui::Label::new(RichText::new(text).small().color(t.text_faint)).wrap());
+        // said until the first transfer shows how it works, then out of the way
+        if !st.seen_transfer {
+            let text = tl!("Footage downloads to this Mac when you open a sequence that uses it, and this Mac makes its own proxies.");
+            let r = ui.add(egui::Label::new(RichText::new(text).small().color(t.text_dim)).wrap());
+            out.elem("team.open.howto", r.rect, text);
+        }
         return;
     }
     for (i, (name, frac)) in open.downloads.iter().enumerate() {
@@ -120,8 +127,14 @@ fn transfers(ui: &mut egui::Ui, t: &Tokens, open: &TeamOpenView, out: &mut Out) 
         progress_row(ui, t, &text, *frac, format!("team.proxy.{i}"), out);
     }
     for (i, (name, frac)) in open.uploads.iter().enumerate() {
-        let text = tlf!("Uploading {name}", name);
+        // after a quit the upload carries on where it stopped: say so
+        let text = if open.uploads_resumed.contains(name) { tlf!("Resuming upload of {name}", name) } else { tlf!("Uploading {name}", name) };
         progress_row(ui, t, &text, *frac, format!("team.upload.{i}"), out);
+    }
+    for (i, name) in open.uploads_done.iter().enumerate() {
+        let text = tlf!("{name} uploaded", name);
+        let r = ui.add(egui::Label::new(RichText::new(format!("✓ {text}")).small().color(t.render_green)).truncate());
+        out.elem(format!("team.upload.done.{i}"), r.rect, text);
     }
     for (i, (name, member)) in open.incoming.iter().enumerate() {
         let text = tlf!("{name}: uploading from {member}", name, member);

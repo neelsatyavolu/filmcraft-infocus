@@ -80,6 +80,10 @@ pub struct TeamOpenView {
     pub failures: Vec<(String, String)>,
     /// This member's media going up to the project's media folder: (name, fraction done).
     pub uploads: Vec<(String, f32)>,
+    /// Uploads that finished a moment ago (listed as uploaded for a second or two).
+    pub uploads_done: Vec<String>,
+    /// Running uploads that carry on from before a quit (shown as "Resuming").
+    pub uploads_resumed: Vec<String>,
     /// This member's media that failed to upload: (name, why).
     pub upload_failures: Vec<(String, String)>,
     /// Media a teammate is still uploading: (name, teammate).
@@ -132,8 +136,9 @@ pub enum TeamAction {
     SetKeepForever(String, bool),
     /// Try failed downloads and uploads again.
     RetryDownloads,
-    /// Fetch the people who can be invited again.
-    LoadPeople,
+    /// Search the Drive's members by name (the invite picker's search field; under 2
+    /// characters clears the results).
+    SearchPeople(String),
     /// Invite these Drive user names to a project.
     Invite(String, Vec<String>),
     /// Take back the invite of a user name to a project.

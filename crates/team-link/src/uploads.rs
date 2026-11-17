@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex, PoisonError};
-use std::time::UNIX_EPOCH;
+use std::time::{Duration, Instant, UNIX_EPOCH};
 
 use filmcraft_drive::{DRIVE_PREFIX, DriveClient, DriveError, UploadedMedia};
 use filmcraft_project::{Bin, BinEntry, ItemId, MediaRef, Project};
@@ -37,6 +37,8 @@ const LOCAL_ONLY: &str = "local_only";
 /// Names tried before an upload gives up (`A001.mov`, `A001 (2).mov`, …).
 const MAX_NAME_TRIES: u32 = 50;
 const MAX_BIN_DEPTH: usize = 64;
+/// How long a finished upload stays listed as done, so a fast one is still seen to happen.
+pub const SHOW_DONE_FOR: Duration = Duration::from_millis(1500);
 
 /// Who is uploading what, shared between the uploads, the link (which marks this member's
 /// uploading items in what it sends) and the panel (which shows teammates' uploads).
@@ -141,6 +143,8 @@ struct Candidate {
 
 struct Active {
     src: PathBuf,
+    /// It carries on a Drive session an earlier run started (after a quit or a crash).
+    resumed: bool,
     done: Arc<AtomicU64>,
     total: Arc<AtomicU64>,
     stop: Arc<AtomicBool>,
@@ -163,6 +167,8 @@ pub struct TeamUploads {
     checked_tx: Sender<(PathBuf, Option<u64>)>,
     /// The worker's answers: each file's modification time, None when it is not a file.
     checked: Receiver<(PathBuf, Option<u64>)>,
+    /// Uploads that just finished (file name, when), shown as done for [`SHOW_DONE_FOR`].
+    finished_at: Vec<(String, Instant)>,
 }
 
 impl TeamUploads {
@@ -182,6 +188,7 @@ impl TeamUploads {
             checking: BTreeMap::new(),
             checked_tx,
             checked,
+            finished_at: Vec::new(),
         };
         up.note_mine();
         up
@@ -292,6 +299,7 @@ impl TeamUploads {
     /// [`MAX_UPLOADS`] running, none while paused).
     pub fn poll(&mut self) -> Vec<FinishedUpload> {
         let mut finished = Vec::new();
+        self.finished_at.retain(|(_, at)| at.elapsed() < SHOW_DONE_FOR);
         let mut changed = self.note_progress();
         let (done, running): (Vec<Active>, Vec<Active>) =
             std::mem::take(&mut self.active).into_iter().partition(|a| a.result.lock().unwrap_or_else(PoisonError::into_inner).is_some());
@@ -303,6 +311,8 @@ impl TeamUploads {
                     let items = self.pending.iter().find(|u| u.src == a.src).map(|u| u.items.iter().map(|i| ItemId(*i)).collect()).unwrap_or_default();
                     self.pending.retain(|u| u.src != a.src);
                     changed = true;
+                    let shown = a.at.lock().unwrap_or_else(PoisonError::into_inner).name.clone();
+                    self.finished_at.push((shown, Instant::now()));
                     let path = m.path.trim_start_matches('/');
                     finished.push(FinishedUpload { items, src: a.src, drive_ref: format!("{DRIVE_PREFIX}{path}"), bytes: m.size });
                 }
@@ -341,6 +351,7 @@ impl TeamUploads {
     fn start(&mut self, u: PendingUpload) -> Result<(), String> {
         let a = Active {
             src: u.src.clone(),
+            resumed: u.upload_id.is_some(),
             done: Arc::default(),
             total: Arc::default(),
             stop: Arc::default(),
@@ -412,6 +423,17 @@ impl TeamUploads {
                 (name, if total == 0 { 0.0 } else { (done as f64 / total as f64).clamp(0.0, 1.0) as f32 })
             })
             .collect()
+    }
+
+    /// Uploads that finished in the last [`SHOW_DONE_FOR`]: the panel lists them as done, so
+    /// even a file that went up in a moment is seen to arrive.
+    pub fn just_finished(&self) -> Vec<String> {
+        self.finished_at.iter().filter(|(_, at)| at.elapsed() < SHOW_DONE_FOR).map(|(n, _)| n.clone()).collect()
+    }
+
+    /// Names of running uploads that carry on from an earlier run (shown as "Resuming").
+    pub fn resumed(&self) -> Vec<String> {
+        self.active.iter().filter(|a| a.resumed).map(|a| a.at.lock().unwrap_or_else(PoisonError::into_inner).name.clone()).collect()
     }
 
     /// Uploads that failed: (file name, why). Not tried again until [`Self::retry`].

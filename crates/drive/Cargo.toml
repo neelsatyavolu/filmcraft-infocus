@@ -17,6 +17,7 @@ test-util = []
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+log = { workspace = true }
 url = { workspace = true }
 # Same HTTP stack as filmcraft-speech's model downloads: blocking ureq, pure-Rust TLS (rustls +
 # RustCrypto) with OS certificate verification.

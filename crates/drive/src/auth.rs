@@ -133,11 +133,14 @@ pub struct LoginOptions {
     pub device: String,
     /// How long to wait for the browser.
     pub timeout: Duration,
+    /// Switch Account: the consent page signs the browser out of the Drive first, so the
+    /// person can pick another account instead of getting the one the browser had.
+    pub switch_account: bool,
 }
 
 impl Default for LoginOptions {
     fn default() -> Self {
-        Self { device: "InFocus Cut".into(), timeout: LOGIN_TIMEOUT }
+        Self { device: "InFocus Cut".into(), timeout: LOGIN_TIMEOUT, switch_account: false }
     }
 }
 
@@ -167,6 +170,9 @@ pub fn login(cfg: &DriveConfig, store: &dyn TokenStore, opts: &LoginOptions, ope
         .append_pair("state", &state)
         .append_pair("challenge", &pkce_challenge(&verifier))
         .append_pair("device", &opts.device);
+    if opts.switch_account {
+        authorize.query_pairs_mut().append_pair("switch", "1");
+    }
     open_browser(authorize.as_str());
     let code = wait_for_code(&listener, &state, opts.timeout)?;
     let signed = exchange(cfg, &code, &verifier)?;

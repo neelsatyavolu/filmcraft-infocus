@@ -250,8 +250,16 @@ fn an_upload_cut_short_resumes_after_a_restart() {
     let mut up = TeamUploads::new(cache.path().to_path_buf(), PID, client(&server.url, "ifd_test"), notes);
     assert_eq!(up.unfinished(), vec![(vec![ia], a.clone())]);
     queue_all(&mut up, &p, &CacheIndex::default());
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while up.resumed().is_empty() {
+        assert!(Instant::now() < deadline, "the restarted upload is shown as resuming");
+        up.poll();
+        std::thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(up.resumed(), vec!["a.mov".to_string()]);
     let done = poll_finished(&mut up, 1);
     assert_eq!(done[0].drive_ref, "drive:/Team Projects/Robotics Media/a.mov");
+    assert_eq!(up.just_finished(), vec!["a.mov".to_string()], "a finished upload stays listed for a moment");
     let reqs = server.requests();
     let chunks: Vec<String> = reqs.iter().filter(|r| r.path() == "/api/upload/chunk").map(|r| r.query("index").unwrap()).collect();
     assert_eq!(chunks.len(), 6, "each chunk sent once: {chunks:?}");

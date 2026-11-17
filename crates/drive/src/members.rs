@@ -72,14 +72,24 @@ impl Invite {
 }
 
 impl DriveClient {
-    /// Drive members this member can invite (not including this member).
-    pub fn people(&self) -> Result<Vec<Person>> {
+    /// Shortest name search the Drive answers (shorter gets an empty list).
+    pub const PEOPLE_MIN_QUERY: usize = 2;
+
+    /// Drive members this member can invite (not including this member) whose name or user
+    /// name contains `query`. The Drive never hands out its whole list: it answers searches of
+    /// [`Self::PEOPLE_MIN_QUERY`]+ characters with up to 20 matches.
+    pub fn people(&self, query: &str) -> Result<Vec<Person>> {
         #[derive(Deserialize)]
         struct People {
             #[serde(default)]
             people: Vec<Person>,
         }
-        let list: People = http::parse(&self.call(Method::Get, "/api/team/people", None)?)?;
+        let query = query.trim();
+        if query.chars().count() < Self::PEOPLE_MIN_QUERY {
+            return Ok(Vec::new());
+        }
+        let path = format!("/api/team/people?{}", url::form_urlencoded::Serializer::new(String::new()).append_pair("q", query).finish());
+        let list: People = http::parse(&self.call(Method::Get, &path, None)?)?;
         Ok(list.people.into_iter().filter(|p| !p.username.is_empty()).collect())
     }
 

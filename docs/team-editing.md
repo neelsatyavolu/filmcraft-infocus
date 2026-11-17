@@ -52,10 +52,13 @@ updates live. Projects sync through InFocus Drive. The full design is in
   shows each member their projects and their invitations (an older project without a member
   list stays open to every Drive member). The Team panel puts invitations at the top with
   Join and Decline (`POST …/join` gives this Mac an id slot like opening does, then the project
-  opens), ends "New Team Project…" on an "Invite teammates" step (a searchable list of the
-  Drive's members from `GET /api/team/people`, up to 12 people per project; it can be skipped),
+  opens), ends "New Team Project…" on an "Invite teammates" step (type 2+ letters of a
+  name and the Drive answers with up to 20 matches from `GET /api/team/people?q=`; it never
+  hands out its whole member list; up to 12 people per project; it can be skipped),
   and offers Invite…, cancelling an invite and Leave Project… on each project. The list is
   fetched again every 30 s while signed in, so a new invitation shows up on its own.
+- Account: Switch Account signs out here and opens the Drive's consent page with `switch=1`,
+  which signs that browser out of the Drive first so another Google account can be picked.
 - Footage: "Add Footage…" on the open project imports the chosen files; they upload to the
   project's `<name> Media/` folder like any media imported into a team project. A teammate's Mac
   downloads an original only when it opens a sequence (or the Source monitor) that uses it, and

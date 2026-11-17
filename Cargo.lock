@@ -2177,6 +2177,7 @@ version = "0.20.1"
 dependencies = [
  "base64",
  "getrandom 0.3.4",
+ "log",
  "rustls-rustcrypto",
  "security-framework",
  "serde",

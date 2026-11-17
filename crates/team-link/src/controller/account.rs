@@ -45,7 +45,7 @@ impl TeamSessionController {
     /// Signing out finished: carry on with Switch Account.
     pub(super) fn signed_out_now(&mut self) {
         if std::mem::take(&mut self.sign_in_after_sign_out) && self.phase == Phase::SignedOut {
-            self.sign_in();
+            self.start_sign_in(true);
         }
     }
 }

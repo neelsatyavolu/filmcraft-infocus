@@ -23,6 +23,10 @@ use crate::http;
 
 /// `expect_mtime_ns` for "the file must not exist yet": completing never overwrites.
 const MUST_NOT_EXIST: i64 = -1;
+/// Tries per chunk when the network drops a request (the chunk PUT is safe to repeat).
+const CHUNK_TRIES: u32 = 3;
+/// Wait before the second try; the third waits twice as long.
+const CHUNK_RETRY_WAIT: Duration = Duration::from_millis(400);
 
 /// Largest chunk this client sends or accepts from the server (the server caps chunks at 32 MiB).
 pub const MAX_CHUNK_SIZE: u64 = 64 * 1024 * 1024;
@@ -134,6 +138,30 @@ impl DriveClient {
         Ok(())
     }
 
+    /// [`Self::upload_chunk`], tried again after a network error ([`CHUNK_TRIES`] tries in
+    /// all, with a short wait between), so one dropped request on flaky Wi-Fi doesn't end a
+    /// whole parallel upload. `keep_going` false stops the waiting.
+    fn upload_chunk_retrying(&self, id: &str, index: u64, bytes: &[u8], keep_going: &mut dyn FnMut() -> bool) -> Result<()> {
+        let mut tries: u32 = 0;
+        loop {
+            tries += 1;
+            match self.upload_chunk(id, index, bytes) {
+                Err(DriveError::Network(why)) if tries < CHUNK_TRIES => {
+                    log::info!("upload chunk {index} failed ({why}); trying again");
+                    let wait = CHUNK_RETRY_WAIT * tries;
+                    let until = std::time::Instant::now() + wait;
+                    while std::time::Instant::now() < until {
+                        if !keep_going() {
+                            return Err(DriveError::Cancelled);
+                        }
+                        std::thread::sleep(Duration::from_millis(50));
+                    }
+                }
+                other => return other,
+            }
+        }
+    }
+
     /// Drops the session and its chunks.
     pub fn upload_abort(&self, id: &str) -> Result<()> {
         self.request(Method::Post, "/api/upload/abort", Body::Form(&[("upload_id", upload_id(id)?)]), &[])?;
@@ -236,7 +264,7 @@ impl DriveClient {
                 file.seek(SeekFrom::Start(offset))?;
                 file.read_exact(&mut buf)?;
                 let Some(_permit) = self.streams.acquire(self.transfers().max_streams, &mut || !stop.load(Ordering::Relaxed)) else { return Ok(()) };
-                self.upload_chunk(&session.upload_id, index, &buf)?;
+                self.upload_chunk_retrying(&session.upload_id, index, &buf, &mut || !stop.load(Ordering::Relaxed))?;
                 sent.fetch_add(len, Ordering::Relaxed);
             }
         };
@@ -289,7 +317,7 @@ impl DriveClient {
             file.seek(SeekFrom::Start(offset))?;
             file.read_exact(&mut buf)?;
             let Some(_permit) = self.streams.acquire(self.transfers().max_streams, &mut || on_progress(done)) else { return Err(DriveError::Cancelled) };
-            self.upload_chunk(&session.upload_id, index, &buf)?;
+            self.upload_chunk_retrying(&session.upload_id, index, &buf, &mut || on_progress(done))?;
             done = done.saturating_add(len);
             if !on_progress(done) {
                 return Err(DriveError::Cancelled);

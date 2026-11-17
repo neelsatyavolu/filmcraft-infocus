@@ -70,8 +70,17 @@ pub(super) fn list(ui: &mut egui::Ui, t: &Tokens, view: &TeamView, in_team: bool
         create_form(ui, t, in_team, st, out);
     }
     if mine.is_empty() {
-        if !st.creating {
-            empty_state(ui, t, in_team, invited, suggested, st, out);
+        if st.creating {
+            return;
+        }
+        if invited {
+            // the invitation card above is the next step: no "No team projects yet" under it
+            let text = tl!("Join the invitation above to start, or make your own team project.");
+            let r = ui.add(egui::Label::new(RichText::new(text).small().color(t.text_dim)).wrap());
+            out.elem("team.empty", r.rect, text);
+            new_button(ui, in_team, suggested, st, out);
+        } else {
+            empty_state(ui, t, in_team, suggested, st, out);
         }
         return;
     }
@@ -100,18 +109,14 @@ fn new_button(ui: &mut egui::Ui, in_team: bool, suggested: Option<&str>, st: &mu
 }
 
 /// No team projects yet: say what a team project is and what to do next.
-fn empty_state(ui: &mut egui::Ui, t: &Tokens, in_team: bool, invited: bool, suggested: Option<&str>, st: &mut PanelState, out: &mut Out) {
+fn empty_state(ui: &mut egui::Ui, t: &Tokens, in_team: bool, suggested: Option<&str>, st: &mut PanelState, out: &mut Out) {
     ui.add_space(8.0);
     ui.vertical_centered(|ui| {
         ui.set_max_width(ui.available_width().min(360.0));
         let title = tl!("No team projects yet");
         let r = ui.label(RichText::new(title).strong().color(t.text));
         out.elem("team.empty", r.rect, title);
-        let body = if invited {
-            tl!("Join an invitation above, or make a team project from the project you have open.")
-        } else {
-            tl!("Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.")
-        };
+        let body = tl!("Make one from the project you have open, then invite your teammates. Or ask a teammate to invite you: invitations show up here.");
         ui.add(egui::Label::new(RichText::new(body).color(t.text_dim)).wrap());
         ui.add_space(8.0);
         let r = primary_button(ui, t, tl!("New Team Project…"), !in_team);
@@ -344,7 +349,7 @@ fn actions(ui: &mut egui::Ui, t: &Tokens, p: &TeamProjectRow, st: &mut PanelStat
                 st.invite_for = Some(p.id.clone());
                 st.picked.clear();
                 st.query.clear();
-                out.actions.push(TeamAction::LoadPeople);
+                out.actions.push(TeamAction::SearchPeople(String::new()));
             }
         }
         let mut keep = p.keep_forever;

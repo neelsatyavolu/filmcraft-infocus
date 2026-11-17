@@ -19,15 +19,26 @@ impl TeamSessionController {
         &self.people
     }
 
-    /// Fetches [`Self::people`] again.
-    pub fn load_people(&mut self) {
+    /// Searches the Drive's members for `query` (the invite picker's search field); fewer than
+    /// 2 characters just clears [`Self::people`]. An answer to an older search is dropped.
+    pub fn search_people(&mut self, query: &str) {
+        let query = query.trim().to_string();
+        if query == self.people_query {
+            return;
+        }
+        self.people_query.clone_from(&query);
+        self.people.clear();
+        if query.chars().count() < filmcraft_drive::DriveClient::PEOPLE_MIN_QUERY {
+            return;
+        }
         let Some(client) = self.client.clone() else { return };
-        // an older Drive has no people list: the invite picker then says there is no one to invite
-        self.spawn("Loading people", move || {
-            Outcome::People(client.people().unwrap_or_else(|e| {
+        // an older Drive has no search: the picker then says no one matches
+        self.spawn_quiet("Looking up people", move || {
+            let found = client.people(&query).unwrap_or_else(|e| {
                 log::info!("no people to invite: {e}");
                 Vec::new()
-            }))
+            });
+            Outcome::People(query, found)
         });
     }
 

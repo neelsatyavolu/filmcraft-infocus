@@ -172,7 +172,7 @@ impl FilmcraftApp {
         let shown = match self.job_text.take().filter(|s| s.job == job.id) {
             Some(s) if (s.at..s.at + panels::JobText::EVERY).contains(&now) => s,
             old => {
-                let verb = if job.label.starts_with("Rendering") { crate::i18n::t(&job.label).to_string() } else { tl!("Exporting").to_string() };
+                let verb = job_verb(&job.label);
                 let label = format!("{:.0}%{}", f * 100.0, eta.map(panels::left_text).unwrap_or_default());
                 let text = format!("{verb}… {label}");
                 // room from the start for 100 % and the longest time shown (99:59:59), so no estimate
@@ -226,6 +226,19 @@ impl FilmcraftApp {
     }
 }
 
+/// The status bar's word for a background job: exports (their labels name the file) say
+/// "Exporting", proxies "Making proxies", anything else its own label. Never "Exporting" for
+/// work that isn't one.
+fn job_verb(label: &str) -> String {
+    if label.is_empty() || ["Export", "Quick Export", "Queue:"].iter().any(|p| label.starts_with(p)) {
+        tl!("Exporting").to_string()
+    } else if label.starts_with("Create Proxies") {
+        tl!("Making proxies").to_string()
+    } else {
+        crate::i18n::t(label).to_string()
+    }
+}
+
 impl FilmcraftApp {
     /// The "InFocus Cut hit an error" window after a caught UI panic. Automation ids:
     /// `error.dismiss`, `error.save`.
@@ -270,6 +283,16 @@ mod job_status_tests {
     use std::time::Duration;
 
     use super::*;
+
+    #[test]
+    fn proxy_work_is_never_called_exporting() {
+        assert_eq!(job_verb("Create Proxies (1 clip)"), "Making proxies");
+        assert_eq!(job_verb("Export Main Edit.mp4"), "Exporting");
+        assert_eq!(job_verb("Queue: Main → a.mp4"), "Exporting");
+        assert_eq!(job_verb("Exporting"), "Exporting");
+        assert_eq!(job_verb("Rendering 3 preview segments"), "Rendering 3 preview segments");
+        assert_eq!(job_verb("Detect Scenes"), "Detect Scenes");
+    }
 
     /// The status bar's export text changed on every frame, and right-aligned against the bar, so
     /// "Exporting… 46%" jumped sideways whenever the time left gained or lost a digit or its hour.

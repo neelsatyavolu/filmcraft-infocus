@@ -153,7 +153,7 @@ enum Outcome {
     SignedOut,
     Projects(Vec<ProjectSummary>),
     /// Drive members who can be invited.
-    People(Vec<Person>),
+    People(String, Vec<Person>),
     /// Joined project `id`: open it.
     Joined(String),
     /// A project to attach: to the current session project (created from it, at that document
@@ -208,6 +208,8 @@ pub struct TeamSessionController {
     quit_ready: bool,
     /// Drive members who can be invited (loaded after sign-in).
     people: Vec<Person>,
+    /// The search [`Self::people`] answers.
+    people_query: String,
     /// The project just created here: the panel offers to invite teammates to it.
     invite_prompt: Option<String>,
     /// When the project list was last asked for.
@@ -236,6 +238,7 @@ impl TeamSessionController {
             leave_wait: LEAVE_WAIT,
             quit_ready: false,
             people: Vec::new(),
+            people_query: String::new(),
             invite_prompt: None,
             listed_at: None,
             me_name: None,
@@ -333,6 +336,11 @@ impl TeamSessionController {
 
     /// Signs in through the browser (PKCE); the token goes to the Keychain.
     pub fn sign_in(&mut self) {
+        self.start_sign_in(false);
+    }
+
+    /// Signing in; `switch_account` asks the Drive's page for another account (Switch Account).
+    pub(super) fn start_sign_in(&mut self, switch_account: bool) {
         let drive = match self.cfg.drive.clone() {
             Ok(d) => d,
             Err(e) => return self.error = Some(e),
@@ -341,7 +349,8 @@ impl TeamSessionController {
             return;
         }
         self.phase = Phase::Connecting;
-        let (store, app, opts, browser) = (self.cfg.store.clone(), self.cfg.app.clone(), self.cfg.login.clone(), self.cfg.open_browser.clone());
+        let (store, app, mut opts, browser) = (self.cfg.store.clone(), self.cfg.app.clone(), self.cfg.login.clone(), self.cfg.open_browser.clone());
+        opts.switch_account = switch_account;
         self.spawn("Signing in", move || match login(&drive, store.as_ref(), &opts, &|u| browser(u)) {
             Ok(signed) => account::signed_in(connect(&drive, &signed.token, app, Some(signed.username))),
             Err(e) => account::sign_in_failed(e),
@@ -357,6 +366,7 @@ impl TeamSessionController {
         self.me_name = None;
         self.projects.clear();
         self.people.clear();
+        self.people_query.clear();
         self.invite_prompt = None;
         self.phase = Phase::SignedOut;
         let Ok(drive) = self.cfg.drive.clone() else { return };
@@ -642,7 +652,6 @@ impl TeamSessionController {
                 self.phase = Phase::SignedIn;
                 self.error = None;
                 self.refresh_projects();
-                self.load_people();
             }
             Outcome::NoToken => self.phase = Phase::SignedOut,
             Outcome::SignedOut => self.signed_out_now(),
@@ -650,7 +659,11 @@ impl TeamSessionController {
                 self.projects = list;
                 self.apply_presence();
             }
-            Outcome::People(list) => self.people = list,
+            Outcome::People(query, list) => {
+                if query == self.people_query {
+                    self.people = list;
+                }
+            }
             Outcome::Joined(id) => {
                 self.refresh_projects();
                 self.open(&id);

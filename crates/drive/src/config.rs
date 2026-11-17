@@ -53,6 +53,18 @@ impl DriveConfig {
         Ok(Self { dashboard_url: normalize(url, false)?, ..self })
     }
 
+    /// [`Self::with_dashboard`], keeping the current address (with a warning) when `url` is bad:
+    /// the dashboard link must never stop sign-in and team editing.
+    pub fn with_dashboard_or_default(self, url: &str) -> Self {
+        match normalize(url, false) {
+            Ok(dashboard_url) => Self { dashboard_url, ..self },
+            Err(e) => {
+                log::warn!("ignoring the dashboard address ({e}); using {}", self.dashboard_url);
+                self
+            }
+        }
+    }
+
     /// `~/Library/Application Support/InFocus Cut/config.toml`.
     pub fn default_path() -> Option<PathBuf> {
         let home = std::env::var_os("HOME").filter(|h| !h.is_empty())?;
@@ -65,7 +77,7 @@ impl DriveConfig {
         let env = std::env::var(DRIVE_URL_ENV).ok().or_else(|| option_env!("INFOCUS_DRIVE_URL").map(str::to_string));
         let cfg = Self::load_from(Self::default_path().as_deref(), env.as_deref())?;
         match std::env::var(DASHBOARD_URL_ENV).ok().filter(|u| !u.trim().is_empty()) {
-            Some(url) => cfg.with_dashboard(&url),
+            Some(url) => Ok(cfg.with_dashboard_or_default(&url)),
             None => Ok(cfg),
         }
     }
@@ -99,7 +111,7 @@ impl DriveConfig {
         let file: ConfigFile = toml::from_str(text).map_err(|e| DriveError::Config(e.to_string()))?;
         let cfg = Self::new(&file.drive_url, file.lan_url.as_deref())?;
         match file.dashboard_url.as_deref().map(str::trim).filter(|u| !u.is_empty()) {
-            Some(url) => cfg.with_dashboard(url),
+            Some(url) => Ok(cfg.with_dashboard_or_default(url)),
             None => Ok(cfg),
         }
     }

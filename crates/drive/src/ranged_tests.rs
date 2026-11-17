@@ -276,3 +276,51 @@ fn upload_sends_chunks_in_parallel() {
     let most = most.load(Ordering::SeqCst);
     assert!(most > 1 && most <= UPLOAD_STREAMS, "{most} chunks at once");
 }
+
+#[test]
+fn a_dropped_chunk_is_sent_again_instead_of_ending_the_upload() {
+    const MIB: u64 = 1024 * 1024;
+    let chunks: Arc<Mutex<std::collections::BTreeMap<u64, Vec<u8>>>> = Arc::default();
+    let dropped = Arc::new(AtomicUsize::new(0));
+    let server = {
+        let (chunks, dropped) = (chunks.clone(), dropped.clone());
+        let size = Arc::new(Mutex::new(0u64));
+        MockServer::start(move |req: &Req| {
+            let session =
+                |size: u64| serde_json::json!({"upload_id": "up_1", "chunk_size": MIB, "total_chunks": size.div_ceil(MIB), "size": size, "received": []});
+            match (req.method.as_str(), req.path()) {
+                ("POST", p) if p.ends_with("/media/upload/init") => {
+                    *size.lock().unwrap() = req.json()["size"].as_u64().unwrap();
+                    Reply::json(200, session(*size.lock().unwrap()))
+                }
+                ("PUT", "/api/upload/chunk") => {
+                    let index: u64 = req.query("index").unwrap().parse().unwrap();
+                    // chunk 2 loses its answer twice (flaky Wi-Fi), then goes through
+                    if index == 2 && dropped.fetch_add(1, Ordering::SeqCst) < 2 {
+                        return Reply::Truncated(200, vec![], b"{\"ok\": true}".to_vec(), 0);
+                    }
+                    chunks.lock().unwrap().insert(index, req.body.clone());
+                    Reply::json(200, serde_json::json!({"ok": true}))
+                }
+                ("POST", p) if p.ends_with("/media/upload/complete") => {
+                    let n = chunks.lock().unwrap().values().map(Vec::len).sum::<usize>();
+                    Reply::json(200, serde_json::json!({"name": "B.mov", "path": "Team Projects/A Media/B.mov", "size": n}))
+                }
+                _ => Reply::json(404, serde_json::json!({"detail": "x"})),
+            }
+        })
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let src = dir.path().join("B.mov");
+    let data = body(4 * MIB as usize + 3);
+    std::fs::write(&src, &data).unwrap();
+    for streams in [1, UPLOAD_STREAMS] {
+        chunks.lock().unwrap().clear();
+        dropped.store(0, Ordering::SeqCst);
+        let t = Transfers { upload_streams: streams, ..Transfers::default() };
+        client(&server, t).upload_media(PID, &src, "B.mov", None, None, &mut |_| true).unwrap();
+        let got: Vec<u8> = chunks.lock().unwrap().values().flatten().copied().collect();
+        assert_eq!(got, data, "{streams} streams");
+        assert_eq!(dropped.load(Ordering::SeqCst), 3, "chunk 2 tried three times");
+    }
+}

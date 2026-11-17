@@ -250,7 +250,10 @@ fn new_project_ends_on_the_invite_step() {
     assert_eq!(label(&app, "team.invite.send").as_deref(), Some("Invite 1 Person"));
     h.click(&mut app, "team.invite.send");
     let acts = acts.borrow();
-    assert_eq!(acts[1..], [TeamAction::Invite("p1".into(), vec!["ana".into()]), TeamAction::DismissInvitePrompt]);
+    // typing searches the Drive (it never hands out everyone)
+    assert!(acts.contains(&TeamAction::SearchPeople("ruiz".into())));
+    let rest: Vec<&TeamAction> = acts[1..].iter().filter(|a| !matches!(a, TeamAction::SearchPeople(_))).collect();
+    assert_eq!(rest, [&TeamAction::Invite("p1".into(), vec!["ana".into()]), &TeamAction::DismissInvitePrompt]);
     drop(acts);
     h.frames(&mut app, 2);
     assert!(app.auto.find("team.invite.send").is_none(), "the step closes");
@@ -282,7 +285,9 @@ fn open_project_shows_downloads_proxies_failures_and_connection() {
         downloads: vec![("A001.mov".into(), 0.25)],
         proxies: vec![("A000.mov".into(), 0.75)],
         failures: vec![("A002.mov".into(), "disk full".into())],
-        uploads: vec![("B001.mov".into(), 0.5)],
+        uploads: vec![("B001.mov".into(), 0.5), ("B003.mov".into(), 0.6)],
+        uploads_done: vec!["B004.mov".into()],
+        uploads_resumed: vec!["B003.mov".into()],
         upload_failures: vec![("B002.mov".into(), "file is gone".into())],
         incoming: vec![("C001.mov".into(), "maya".into())],
         exporting: false,
@@ -296,6 +301,8 @@ fn open_project_shows_downloads_proxies_failures_and_connection() {
     assert_eq!(label(&app, "team.proxy.0").as_deref(), Some("Making a proxy of A000.mov: 75 %"));
     assert_eq!(label(&app, "team.failure.0").as_deref(), Some("A002.mov didn't download: disk full"));
     assert_eq!(label(&app, "team.upload.0").as_deref(), Some("Uploading B001.mov: 50 %"));
+    assert_eq!(label(&app, "team.upload.1").as_deref(), Some("Resuming upload of B003.mov: 60 %"));
+    assert_eq!(label(&app, "team.upload.done.0").as_deref(), Some("B004.mov uploaded"));
     assert_eq!(label(&app, "team.upload_failure.0").as_deref(), Some("B002.mov didn't upload: file is gone"));
     assert_eq!(label(&app, "team.incoming.0").as_deref(), Some("C001.mov: uploading from maya"));
     assert!(app.auto.find("team.project.p1.open").is_none(), "the open project has no Open button");

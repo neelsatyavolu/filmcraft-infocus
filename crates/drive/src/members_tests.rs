@@ -55,7 +55,10 @@ fn people_invite_cancel_join_decline_leave() {
         _ => Reply::json(404, json!({"detail": "x"})),
     });
     let c = client(&server);
-    let people = c.people().unwrap();
+    assert!(c.people("s").unwrap().is_empty(), "one letter isn't asked for");
+    let people = c.people("stu dent").unwrap();
+    let asked = server.requests().into_iter().find(|r| r.path() == "/api/team/people").unwrap();
+    assert_eq!(asked.query("q").as_deref(), Some("stu dent"));
     assert_eq!(people.len(), 2, "nameless entries are dropped");
     assert_eq!(people[1].shown(), "student3");
     let invites = c.invite(PID, &["student2".into()]).unwrap();

@@ -68,7 +68,10 @@ fn signed_in(server: &MockServer, cache: &Path) -> (TeamSessionController, Sessi
     store.save("ifd_test").unwrap();
     let mut c = TeamSessionController::new(config(&server.url, store, cache));
     let mut s = Session::default();
-    poll_until(&mut c, &mut s, |c, _| c.phase() == Phase::SignedIn && !c.projects().is_empty() && !c.people().is_empty());
+    poll_until(&mut c, &mut s, |c, _| c.phase() == Phase::SignedIn && !c.projects().is_empty());
+    assert!(c.people().is_empty(), "the Drive's people are only searched, never loaded whole");
+    c.search_people("stu");
+    poll_until(&mut c, &mut s, |c, _| !c.people().is_empty());
     (c, s)
 }
 
