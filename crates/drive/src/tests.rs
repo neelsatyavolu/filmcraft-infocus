@@ -179,9 +179,19 @@ fn config_file_wins_then_env() {
 #[test]
 fn app_version_must_look_like_server_expects() {
     assert!(AppInfo::new("1.2.3", 1).is_ok());
-    for bad in ["", "1.2.3.4.5", "v1", "1..2", "1234567"] {
+    for bad in ["", "1.2.3.4.5", "v1", "1..2", "1234567", "-beta.1", "1.0.0-", "1.x.0-beta"] {
         assert!(AppInfo::new(bad, 1).is_err(), "{bad}");
     }
+}
+
+#[test]
+fn prerelease_and_build_versions_send_their_numeric_core() {
+    // A beta (`cargo xtask version set 1.0.0-beta.1`) must still reach the Drive, which only takes
+    // numbers: it counts as 1.0.0 for the Drive's version gates.
+    assert_eq!(AppInfo::new("1.0.0-beta.1", 17).unwrap().version(), "1.0.0");
+    assert_eq!(AppInfo::new("1.2.3+abc", 17).unwrap().version(), "1.2.3");
+    assert_eq!(AppInfo::new("1.2.3-rc.1+abc", 17).unwrap().version(), "1.2.3");
+    assert_eq!(AppInfo::new("0.20.1", 17).unwrap().version(), "0.20.1");
 }
 
 #[test]

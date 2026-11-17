@@ -32,15 +32,25 @@ pub struct AppInfo {
 }
 
 impl AppInfo {
-    /// `version` looks like `1.2.3` (one to four numeric parts), as the server requires. The device
+    /// `version` looks like `1.2.3` (one to four numeric parts), as the server requires, optionally
+    /// followed by a pre-release or build suffix (`1.0.0-beta.1`, `1.2.3+abc`). Only the numeric
+    /// core is sent, so a beta counts as its release for the server's version gates. The device
     /// name is this Mac's computer name ([`local_device_name`]); see [`AppInfo::with_device`].
     pub fn new(version: &str, schema_version: u32) -> Result<Self> {
-        let parts: Vec<&str> = version.split('.').collect();
+        let invalid = || DriveError::Invalid(format!("app version {version:?} must look like 1.2.3"));
+        let (core, suffix) = match version.find(['-', '+']) {
+            Some(i) => (version.get(..i).unwrap_or_default(), version.get(i + 1..).unwrap_or_default()),
+            None => (version, ""),
+        };
+        if version.len() > core.len() && suffix.is_empty() {
+            return Err(invalid());
+        }
+        let parts: Vec<&str> = core.split('.').collect();
         let ok = (1..=4).contains(&parts.len()) && parts.iter().all(|p| (1..=6).contains(&p.len()) && p.bytes().all(|b| b.is_ascii_digit()));
         if !ok {
-            return Err(DriveError::Invalid(format!("app version {version:?} must look like 1.2.3")));
+            return Err(invalid());
         }
-        Ok(Self { version: version.to_string(), schema_version, device: local_device_name() })
+        Ok(Self { version: core.to_string(), schema_version, device: local_device_name() })
     }
 
     /// The same app with another device name (sanitized like [`sanitize_device_name`]).
