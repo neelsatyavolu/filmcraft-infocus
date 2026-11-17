@@ -2012,7 +2012,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "arboard",
  "chrono",
@@ -2051,14 +2051,14 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-audio-dsp"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-testkit",
 ]
 
 [[package]]
 name = "filmcraft-automation"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "base64",
  "filmcraft-engine",
@@ -2075,14 +2075,14 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-bitstream"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-media",
 ]
 
 [[package]]
 name = "filmcraft-captions"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-captions",
  "filmcraft-color",
@@ -2093,14 +2093,14 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-cfb"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-cfb",
 ]
 
 [[package]]
 name = "filmcraft-cli"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-media",
  "filmcraft-automation",
@@ -2125,7 +2125,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-codecs"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-audio",
  "craft-jpeg",
@@ -2151,7 +2151,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-color"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "proptest",
  "serde",
@@ -2159,7 +2159,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-dng"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-raw",
  "craft-tiff 0.1.0 (git+https://github.com/storytold/craft-libs?rev=0eaafeb5054f2113523c8844822a830865cf45f2)",
@@ -2173,7 +2173,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-drive"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "base64",
  "getrandom 0.3.4",
@@ -2192,7 +2192,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-edit"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-geom",
  "filmcraft-media",
@@ -2205,7 +2205,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-engine"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "chrono",
  "craft-docpath",
@@ -2244,7 +2244,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-export"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-audio",
  "craft-exr",
@@ -2274,7 +2274,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-format"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "chrono",
  "filmcraft-media",
@@ -2289,7 +2289,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-frame"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-color",
  "filmcraft-time",
@@ -2299,7 +2299,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-geom"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "proptest",
  "serde",
@@ -2307,7 +2307,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-golden"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-color",
  "filmcraft-frame",
@@ -2324,7 +2324,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-gpu"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-color",
  "filmcraft-export",
@@ -2344,7 +2344,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-interchange"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-timeline",
  "filmcraft-cfb",
@@ -2362,7 +2362,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-isobmff"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-media",
  "filmcraft-testkit",
@@ -2372,7 +2372,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-matroska"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-media",
  "filmcraft-testkit",
@@ -2381,7 +2381,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-media"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-dpx",
  "filmcraft-color",
@@ -2398,7 +2398,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-platform"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-video",
  "filmcraft-bitstream",
@@ -2424,7 +2424,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-project"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-color",
  "filmcraft-geom",
@@ -2439,7 +2439,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-render"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-audio-dsp",
  "filmcraft-captions",
@@ -2459,7 +2459,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-scopes"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-color",
  "serde",
@@ -2468,7 +2468,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-speech"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -2487,7 +2487,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-team"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-format",
  "filmcraft-media",
@@ -2500,7 +2500,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-team-link"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-drive",
  "filmcraft-engine",
@@ -2518,7 +2518,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-testkit"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "chrono",
  "png",
@@ -2527,7 +2527,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-text"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-color",
  "harfrust",
@@ -2540,14 +2540,14 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-time"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-timeline",
 ]
 
 [[package]]
 name = "filmcraft-tts"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -2562,7 +2562,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-tts-text"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
@@ -2570,7 +2570,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-ui-egui"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "cpu-time",
  "craft-ui",
@@ -2613,7 +2613,7 @@ dependencies = [
 
 [[package]]
 name = "filmcraft-web"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "craft-web-api",
  "craft-web-host",
@@ -8316,7 +8316,7 @@ checksum = "e450f9b2ed1dff33c94c12589a87338689467b9c4f5d8a5710bd09a847d2c8a7"
 
 [[package]]
 name = "xtask"
-version = "0.20.1"
+version = "1.0.0-beta.1"
 dependencies = [
  "filmcraft-testkit",
  "serde_json",
